@@ -1,0 +1,34 @@
+##### End of variables to change
+
+NAME = libcommon
+ALL = $(NAME).$(LIB_SUFFIX)
+all:	$(ALL)
+
+.$(C).$(OBJ):
+	$(C_COMPILER) -c $(C_FLAGS) -DENV_LINUX $<
+.$(CPP).$(OBJ):
+	$(CPLUSPLUS_COMPILER) -c $(CPLUSPLUS_FLAGS) -DENV_LINUX $<
+
+COMMON_LIB_OBJS = as_mutex.$(OBJ) as_thread.$(OBJ) 
+
+as_mutex.$(C):	as_mutex.h as_config.h as_common.h
+as_thread.$(C):	as_thread.h as_config.h as_common.h
+
+$(NAME).$(LIB_SUFFIX): $(COMMON_LIB_OBJS) \
+    $(PLATFORM_SPECIFIC_LIB_OBJS)
+	$(LIBRARY_LINK)$@ $(LIBRARY_LINK_OPTS) \
+		$(COMMON_LIB_OBJS)
+
+clean:
+	-rm -rf *.$(OBJ) $(ALL) core *.core *~ include/*~
+
+install: install1 $(INSTALL2)
+install1: $(NAME).$(LIB_SUFFIX)
+	  install -d $(DESTDIR)$(PREFIX)/include/common $(DESTDIR)$(LIBDIR)
+	  install -m 644 include/*.hh include/*.h $(DESTDIR)$(PREFIX)/include/common
+	  install -m 644 $(NAME).$(LIB_SUFFIX) $(DESTDIR)$(LIBDIR)
+install_shared_libraries: $(NAME).$(LIB_SUFFIX)
+	  ln -fs $(NAME).$(LIB_SUFFIX) $(DESTDIR)$(LIBDIR)/$(NAME).$(SHORT_LIB_SUFFIX)
+	  ln -fs $(NAME).$(LIB_SUFFIX) $(DESTDIR)$(LIBDIR)/$(NAME).so
+
+##### Any additional, platform-specific rules come here:

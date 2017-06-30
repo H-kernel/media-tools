@@ -1,0 +1,50 @@
+##### End of variables to change
+
+LIBRTSPCLINET = libASRtspClient.so
+
+PREFIX = /usr/local
+ALL = $(LIBRTSPCLINET)
+
+RTSP_LIBS      += -shared -fPIC -Wunused-value -lpthread 
+RTSP_FLAGS     += -pipe -g -fPIC -Wall -O0 -DENV_LINUX
+
+all: $(ALL)
+
+.$(C).$(OBJ):
+	$(C_COMPILER) -c $(C_FLAGS) $(RTSP_FLAGS) $<
+.$(CPP).$(OBJ):
+	$(CPLUSPLUS_COMPILER) -c $(CPLUSPLUS_FLAGS) $(RTSP_FLAGS) $<
+
+LIB_RTSP_CLIENT_OBJS = as_rtsp_client.$(OBJ) libASRtspClient.$(OBJ)
+
+as_rtsp_client.$(CPP):as_rtsp_client.h as_def.h 
+libASRtspClient.$(CPP):libASRtspClient.h as_def.h as_rtsp_client.h
+
+USAGE_ENVIRONMENT_DIR = ../UsageEnvironment
+USAGE_ENVIRONMENT_LIB = $(USAGE_ENVIRONMENT_DIR)/libUsageEnvironment.$(libUsageEnvironment_LIB_SUFFIX)
+BASIC_USAGE_ENVIRONMENT_DIR = ../BasicUsageEnvironment
+BASIC_USAGE_ENVIRONMENT_LIB = $(BASIC_USAGE_ENVIRONMENT_DIR)/libBasicUsageEnvironment.$(libBasicUsageEnvironment_LIB_SUFFIX)
+LIVEMEDIA_DIR = ../liveMedia
+LIVEMEDIA_LIB = $(LIVEMEDIA_DIR)/libliveMedia.$(libliveMedia_LIB_SUFFIX)
+GROUPSOCK_DIR = ../groupsock
+GROUPSOCK_LIB = $(GROUPSOCK_DIR)/libgroupsock.$(libgroupsock_LIB_SUFFIX)
+COMMON_DIR = ../common
+COMMON_LIB = $(COMMON_DIR)/libcommon.$(libcommon_LIB_SUFFIX)
+
+LOCAL_LIBS =    $(LIVEMEDIA_LIB) $(GROUPSOCK_LIB) \
+        $(BASIC_USAGE_ENVIRONMENT_LIB) $(USAGE_ENVIRONMENT_LIB) $(COMMON_LIB)
+LIBS =            $(LOCAL_LIBS) $(LIBS_FOR_CONSOLE_APPLICATION)
+
+$(LIBRTSPCLINET): $(LIB_RTSP_CLIENT_OBJS) $(LOCAL_LIBS) \
+	$(PLATFORM_SPECIFIC_LIB_OBJS)
+	$(CPLUSPLUS_COMPILER) $(CPLUSPLUS_FLAGS) -o $@ \
+		$(LIB_RTSP_CLIENT_OBJS) $(LIBS) $(RTSP_LIBS)
+
+clean:
+	-rm -rf *.$(OBJ) $(ALL) core *.core *~ include/*~
+
+install: $(PROXY_SERVER)
+		install -d $(DESTDIR)$(PREFIX)/bin
+		install -m 755 $(PROXY_SERVER) $(DESTDIR)$(PREFIX)/bin
+
+##### Any additional, platform-specific rules come here:
