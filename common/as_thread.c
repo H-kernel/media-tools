@@ -11,7 +11,7 @@ int32_t  as_create_thread( AS_THREAD_FUNC pfnThread, void *args, as_thread_t **p
 {
     as_thread_t *pstThread = NULL ;
 
-    pstThread = (as_thread_t*)(void*)av_malloc(sizeof(as_thread_t));
+    pstThread = (as_thread_t*)(void*)malloc(sizeof(as_thread_t));
     if( NULL == pstThread )
     {
         return AS_ERROR_CODE_MEM;
@@ -20,7 +20,7 @@ int32_t  as_create_thread( AS_THREAD_FUNC pfnThread, void *args, as_thread_t **p
 #if AS_APP_OS == AS_OS_LINUX
     if ( pthread_attr_init(&pstThread->attr) != 0 )
     {
-        av_free(pstThread);
+        free(pstThread);
         return AS_ERROR_CODE_FAIL ;
     }
 
@@ -32,20 +32,20 @@ int32_t  as_create_thread( AS_THREAD_FUNC pfnThread, void *args, as_thread_t **p
     }
     if (pthread_attr_setstacksize(&pstThread->attr, (size_t)ulStackSize))
     {
-        av_free(pstThread);
+        free(pstThread);
         return AS_ERROR_CODE_FAIL ;
     }
 
     if ( pthread_create(&pstThread->pthead, &pstThread->attr, pfnThread, args) != 0 )
     {
-        av_free(pstThread);
+        free(pstThread);
         return AS_ERROR_CODE_FAIL ;
     }
 #elif AS_APP_OS == AS_OS_WIN32
     pstThread->pthead = CreateThread(NULL,ulStackSize,pfnThread,args,0,&pstThread->ptheadID);
     if (NULL == pstThread->pthead)
     {
-        av_free(pstThread);
+        free(pstThread);
         return AS_ERROR_CODE_FAIL ;
     }
 #endif

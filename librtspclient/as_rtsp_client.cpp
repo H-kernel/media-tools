@@ -23,6 +23,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #include "liveMedia.hh"
 #include "BasicUsageEnvironment.hh"
 #include "as_rtsp_client.h"
+#include "RTSPCommon.hh"
 
 #if defined(__WIN32__) || defined(_WIN32)
 extern "C" int initializeWinsockIfNecessary();
@@ -50,6 +51,7 @@ ASRtspClient::ASRtspClient(u_int32_t ulEnvIndex,UsageEnvironment& env, char cons
                  int verbosityLevel, char const* applicationName, portNumBits tunnelOverHTTPPortNum)
   : RTSPClient(env,rtspURL, verbosityLevel, applicationName, tunnelOverHTTPPortNum, -1) {
   m_ulEnvIndex = ulEnvIndex;
+  m_bSupportsGetParameter = False;
 }
 
 ASRtspClient::~ASRtspClient() {
@@ -61,7 +63,7 @@ int32_t ASRtspClient::open(as_rtsp_callback_t* cb)
     // Next, send a RTSP "DESCRIBE" command, to get a SDP description for the stream.
     // Note that this command - like all RTSP commands - is sent asynchronously; we do not block, waiting for a response.
     // Instead, the following function call returns immediately, and we handle the RTSP response later, from within the event loop:
-    return sendDescribeCommand(&ASRtspClientManager::continueAfterDESCRIBE);
+    return sendOptionsCommand(&ASRtspClientManager::continueAfterOPTIONS);
 }
 void    ASRtspClient::close()
 {
@@ -307,6 +309,28 @@ void      ASRtspClientManager::closeURL(AS_HANDLE handle)
 
 
 // Implementation of the RTSP 'response handlers':
+void ASRtspClientManager::continueAfterOPTIONS(RTSPClient* rtspClient, int resultCode, char* resultString) {
+    do {
+        UsageEnvironment& env = rtspClient->envir(); // alias
+        ASRtspClient* pAsRtspClient = (ASRtspClient*)rtspClient;
+        if (resultCode != 0) {
+          env << *rtspClient << "Failed to deal options: " << resultString << "\n";
+          delete[] resultString;
+          break;
+        }
+
+        Boolean serverSupportsGetParameter = RTSPOptionIsSupported("GET_PARAMETER", resultString);
+        delete[] resultString;
+        pAsRtspClient->SupportsGetParameter(serverSupportsGetParameter);
+
+        rtspClient->sendDescribeCommand(continueAfterDESCRIBE);
+        return;
+    } while (0);
+
+    // An unrecoverable error occurred with this stream.
+    shutdownStream(rtspClient);
+
+}
 
 void ASRtspClientManager::continueAfterDESCRIBE(RTSPClient* rtspClient, int resultCode, char* resultString) {
 
@@ -394,6 +418,7 @@ void ASRtspClientManager::continueAfterSETUP(RTSPClient* rtspClient, int resultC
     do {
         UsageEnvironment& env = rtspClient->envir(); // alias
         ASRtspStreamState& scs = ((ASRtspClient*)rtspClient)->scs; // alias
+         ASRtspClient* pAsRtspClient = (ASRtspClient*)rtspClient;
 
         if (resultCode != 0) {
             env << *rtspClient << "Failed to set up the \"" << *scs.subsession << "\" subsession: " << resultString << "\n";
@@ -412,7 +437,7 @@ void ASRtspClientManager::continueAfterSETUP(RTSPClient* rtspClient, int resultC
         // (This will prepare the data sink to receive data; the actual flow of data from the client won't start happening until later,
         // after we've sent a RTSP "PLAY" command.)
 
-        scs.subsession->sink = ASStreamSink::createNew(env, *scs.subsession, rtspClient->url());
+        scs.subsession->sink = ASStreamSink::createNew(env, *scs.subsession, rtspClient->url(),pAsRtspClient->get_cb());
           // perhaps use your own custom "MediaSink" subclass instead
         if (scs.subsession->sink == NULL) {
             env << *rtspClient << "Failed to create a data sink for the \"" << *scs.subsession
@@ -468,6 +493,10 @@ void ASRtspClientManager::continueAfterPLAY(RTSPClient* rtspClient, int resultCo
         success = True;
         /* report the status */
         pAsRtspClient->report_status(AS_RTSP_STATUS_PLAY);
+        if(pAsRtspClient->SupportsGetParameter()) {
+            rtspClient->sendGetParameterCommand(*scs.session,continueAfterGET_PARAMETE, "", NULL);
+        }
+
     } while (0);
     delete[] resultString;
 
@@ -476,6 +505,11 @@ void ASRtspClientManager::continueAfterPLAY(RTSPClient* rtspClient, int resultCo
         shutdownStream(rtspClient);
     }
 }
+
+void ASRtspClientManager::continueAfterGET_PARAMETE(RTSPClient* rtspClient, int resultCode, char* resultString) {
+    delete[] resultString;
+}
+
 
 
 // Implementation of the other event handlers:

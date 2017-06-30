@@ -2,7 +2,9 @@
 #define __AS_RTSP_CLIENT_MANAGE_H__
 #include "liveMedia.hh"
 #include "BasicUsageEnvironment.hh"
+extern "C"{
 #include "as_common.h"
+}
 #include "as_def.h"
 
 //#ifndef _BASIC_USAGE_ENVIRONMENT0_HH
@@ -12,7 +14,7 @@
 
 // By default, we request that the server stream its data using RTP/UDP.
 // If, instead, you want to request that the server stream via RTP-over-TCP, change the following to True:
-#define REQUEST_STREAMING_OVER_TCP False
+#define REQUEST_STREAMING_OVER_TCP True
 
 #define RTSP_CLIENT_VERBOSITY_LEVEL 1 // by default, print verbose output from each "RTSPClient"
 
@@ -70,11 +72,15 @@ public:
     void    close();
     u_int32_t index(){return m_ulEnvIndex;};
     void    report_status(int status);
+    void    SupportsGetParameter(Boolean bSupportsGetParameter) {m_bSupportsGetParameter = bSupportsGetParameter;};
+    Boolean SupportsGetParameter(){return m_bSupportsGetParameter;};
+    as_rtsp_callback_t* get_cb(){return m_cb;};
 public:
     ASRtspStreamState   scs;
 private:
     u_int32_t           m_ulEnvIndex;
     as_rtsp_callback_t *m_cb;
+    Boolean             m_bSupportsGetParameter;
 };
 
 // Define a data sink (a subclass of "MediaSink") to receive the data for each subsession (i.e., each audio or video 'substream').
@@ -136,9 +142,11 @@ public:
     void rtsp_env_thread();
 public:
     // RTSP 'response handlers':
+    static void continueAfterOPTIONS(RTSPClient* rtspClient, int resultCode, char* resultString);
     static void continueAfterDESCRIBE(RTSPClient* rtspClient, int resultCode, char* resultString);
     static void continueAfterSETUP(RTSPClient* rtspClient, int resultCode, char* resultString);
     static void continueAfterPLAY(RTSPClient* rtspClient, int resultCode, char* resultString);
+    static void continueAfterGET_PARAMETE(RTSPClient* rtspClient, int resultCode, char* resultString);
 
     // Other event handler functions:
     static void subsessionAfterPlaying(void* clientData); // called when a stream's subsession (e.g., audio or video substream) ends

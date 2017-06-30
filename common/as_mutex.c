@@ -13,7 +13,7 @@ as_mutex_t *as_create_mutex()
 
     as_mutex_t *pstMutex = NULL ;
 
-    pstMutex = (as_mutex_t *)(void*) av_malloc(sizeof(as_mutex_t));
+    pstMutex = (as_mutex_t *)(void*) malloc(sizeof(as_mutex_t));
     if ( NULL == pstMutex  )
     {
         return NULL ;
@@ -28,14 +28,14 @@ as_mutex_t *as_create_mutex()
     ulResult = (int32_t)pthread_mutex_init( &pstMutex->mutex, &pstMutex->attr);
     if( AS_ERROR_CODE_OK != ulResult )
     {
-        av_free( pstMutex );
+        free( pstMutex );
         return NULL ;
     }
 #elif AS_APP_OS == AS_OS_WIN32
     pstMutex->mutex = CreateMutex(NULL,0,NULL);
     if (NULL == pstMutex->mutex)
     {
-        av_free( pstMutex );
+        free( pstMutex );
         return NULL ;
     }
     (void)ulResult; //¹ýPCLINT
@@ -53,7 +53,7 @@ int32_t as_destroy_mutex( as_mutex_t *pstMutex )
 #elif AS_APP_OS == AS_OS_WIN32
     (void)CloseHandle(pstMutex->mutex);
 #endif
-    av_free( pstMutex );
+    free( pstMutex );
 
     return ulResult ;
 }
