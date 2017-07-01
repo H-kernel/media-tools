@@ -158,7 +158,7 @@ void ASStreamSink::afterGettingFrame(unsigned frameSize, unsigned numTruncatedBy
     m_MediaInfo.rtpPayloadFormat = fSubsession.rtpPayloadFormat();
     m_MediaInfo.rtpTimestampFrequency = fSubsession.rtpTimestampFrequency();
     m_MediaInfo.presentationTime = presentationTime;
-	m_MediaInfo.codecName = (char*)fSubsession.codecName();
+    m_MediaInfo.codecName = (char*)fSubsession.codecName();
     m_MediaInfo.protocolName = (char*)fSubsession.protocolName();
     m_MediaInfo.videoWidth = fSubsession.videoWidth();
     m_MediaInfo.videoHeight = fSubsession.videoHeight();
@@ -167,7 +167,7 @@ void ASStreamSink::afterGettingFrame(unsigned frameSize, unsigned numTruncatedBy
 
     if(NULL != m_cb) {
         if(NULL != m_cb->f_data_cb) {
-		    unsigned int size = frameSize + prefixSize;
+            unsigned int size = frameSize + prefixSize;
             m_cb->f_data_cb(&m_MediaInfo,(char*)&fMediaBuffer[0],size,m_cb->ctx);
         }
     }
