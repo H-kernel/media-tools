@@ -1,7 +1,6 @@
+#include "stdafx.h"
 #include "libASRtspClient.h"
-#include "as_common.h"
 #include "as_rtsp_client.h"
-
 /* init the rtsp client libary */
 int32_t   as_lib_init()
 {

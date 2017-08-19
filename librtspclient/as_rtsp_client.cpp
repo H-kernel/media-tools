@@ -19,7 +19,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 // NOTE: This code - although it builds a running application - is intended only to illustrate how to develop your own RTSP
 // client application.  For a full-featured RTSP client application - with much more functionality, and many options - see
 // "openRTSP": http://www.live555.com/openRTSP/
-
+#include "stdafx.h"
 #include "liveMedia.hh"
 #include "BasicUsageEnvironment.hh"
 #include "as_rtsp_client.h"

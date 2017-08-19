@@ -2,11 +2,10 @@
 #define __AS_RTSP_CLIENT_MANAGE_H__
 #include "liveMedia.hh"
 #include "BasicUsageEnvironment.hh"
+#include "as_def.h"
 extern "C"{
 #include "as_common.h"
 }
-#include "as_def.h"
-
 //#ifndef _BASIC_USAGE_ENVIRONMENT0_HH
 //#include "BasicUsageEnvironment0.hh"
 //#endif
