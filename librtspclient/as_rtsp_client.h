@@ -69,6 +69,10 @@ protected:
 public:
     int32_t open(as_rtsp_callback_t* cb);
     void    close();
+    void    getPlayRange(double* start,double* end);
+    void    seek(double start);
+    void    pause();
+    void    play(double curTime);
     u_int32_t index(){return m_ulEnvIndex;};
     void    report_status(int status);
     void    SupportsGetParameter(Boolean bSupportsGetParameter) {m_bSupportsGetParameter = bSupportsGetParameter;};
@@ -80,6 +84,8 @@ private:
     u_int32_t           m_ulEnvIndex;
     as_rtsp_callback_t *m_cb;
     Boolean             m_bSupportsGetParameter;
+    double              m_dStarttime;
+    double              m_dEndTime;
 };
 
 // Define a data sink (a subclass of "MediaSink") to receive the data for each subsession (i.e., each audio or video 'substream').
@@ -137,6 +143,10 @@ public:
     // The main streaming routine (for each "rtsp://" URL):
     AS_HANDLE openURL(char const* rtspURL,as_rtsp_callback_t* cb);
     void      closeURL(AS_HANDLE handle);
+    void      getPlayRange(AS_HANDLE handle,double* start,double* end);
+    void      seek(AS_HANDLE handle,double start);
+    void      pause(AS_HANDLE handle);
+    void      play(AS_HANDLE handle, double curTime);
 public:
     void rtsp_env_thread();
 public:
@@ -146,6 +156,8 @@ public:
     static void continueAfterSETUP(RTSPClient* rtspClient, int resultCode, char* resultString);
     static void continueAfterPLAY(RTSPClient* rtspClient, int resultCode, char* resultString);
     static void continueAfterGET_PARAMETE(RTSPClient* rtspClient, int resultCode, char* resultString);
+    static void continueAfterPause(RTSPClient* rtspClient, int resultCode, char* resultString);
+    static void continueAfterSeek(RTSPClient* rtspClient, int resultCode, char* resultString);
 
     // Other event handler functions:
     static void subsessionAfterPlaying(void* clientData); // called when a stream's subsession (e.g., audio or video substream) ends

@@ -19,7 +19,9 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 // NOTE: This code - although it builds a running application - is intended only to illustrate how to develop your own RTSP
 // client application.  For a full-featured RTSP client application - with much more functionality, and many options - see
 // "openRTSP": http://www.live555.com/openRTSP/
+#ifdef WIN32
 #include "stdafx.h"
+#endif
 #include "liveMedia.hh"
 #include "BasicUsageEnvironment.hh"
 #include "as_rtsp_client.h"
@@ -52,6 +54,8 @@ ASRtspClient::ASRtspClient(u_int32_t ulEnvIndex,UsageEnvironment& env, char cons
   : RTSPClient(env,rtspURL, verbosityLevel, applicationName, tunnelOverHTTPPortNum, -1) {
   m_ulEnvIndex = ulEnvIndex;
   m_bSupportsGetParameter = False;
+  m_dStarttime = 0.0;
+  m_dEndTime = 0.0;
 }
 
 ASRtspClient::~ASRtspClient() {
@@ -68,6 +72,72 @@ int32_t ASRtspClient::open(as_rtsp_callback_t* cb)
 void    ASRtspClient::close()
 {
     ASRtspClientManager::shutdownStream(this);
+}
+void ASRtspClient::getPlayRange(double* start,double* end)
+{
+    if(NULL == scs.session)
+    {
+        *start = 0.0;
+        *end = 0.0;
+        return;
+    }
+    m_dStarttime = scs.session->playStartTime();
+    m_dEndTime = scs.session->playEndTime();
+    *start = m_dStarttime;
+    *end = m_dEndTime;
+}
+void ASRtspClient::seek(double start)
+{
+    if(NULL == scs.session)
+    {
+        return;
+    }
+    m_dStarttime = scs.session->playStartTime();
+    m_dEndTime = scs.session->playEndTime();
+    if(start < m_dStarttime)
+    {
+        return;
+    }
+
+    if(start > m_dEndTime)
+    {
+        return;
+    }
+
+    // send the pause first
+    sendPauseCommand(*scs.session,&ASRtspClientManager::continueAfterPause);
+
+    // send the play with new start time
+    sendPlayCommand(*scs.session, &ASRtspClientManager::continueAfterSeek, start, m_dEndTime);
+}
+void ASRtspClient::pause()
+{
+    if(NULL == scs.session)
+    {
+        return;
+    }
+    // send the pause first
+    sendPauseCommand(*scs.session,&ASRtspClientManager::continueAfterPause);
+}
+void ASRtspClient::play(double curTime)
+{
+    if(NULL == scs.session)
+    {
+        return;
+    }
+    m_dStarttime = scs.session->playStartTime();
+    m_dEndTime = scs.session->playEndTime();
+    if(curTime < m_dStarttime)
+    {
+        return;
+    }
+
+    if(curTime > m_dEndTime)
+    {
+        return;
+    }
+    // send the play with new start time
+    sendPlayCommand(*scs.session, &ASRtspClientManager::continueAfterSeek, curTime, m_dEndTime);
 }
 
 void ASRtspClient::report_status(int status)
@@ -307,6 +377,30 @@ void      ASRtspClientManager::closeURL(AS_HANDLE handle)
     return;
 }
 
+void ASRtspClientManager::getPlayRange(AS_HANDLE handle,double* start,double* end)
+{
+    ASRtspClient* pAsRtspClient = (ASRtspClient*)handle;
+    pAsRtspClient->getPlayRange(start, end);
+    return;
+}
+void ASRtspClientManager::seek(AS_HANDLE handle,double start)
+{
+    ASRtspClient* pAsRtspClient = (ASRtspClient*)handle;
+    pAsRtspClient->seek(start);
+    return;
+}
+void ASRtspClientManager::pause(AS_HANDLE handle)
+{
+    ASRtspClient* pAsRtspClient = (ASRtspClient*)handle;
+    pAsRtspClient->pause();
+}
+void ASRtspClientManager::play(AS_HANDLE handle, double curTime)
+{
+    ASRtspClient* pAsRtspClient = (ASRtspClient*)handle;
+    pAsRtspClient->play(curTime);
+}
+
+
 
 // Implementation of the RTSP 'response handlers':
 void ASRtspClientManager::continueAfterOPTIONS(RTSPClient* rtspClient, int resultCode, char* resultString) {
@@ -510,6 +604,23 @@ void ASRtspClientManager::continueAfterGET_PARAMETE(RTSPClient* rtspClient, int 
     delete[] resultString;
 }
 
+void ASRtspClientManager::continueAfterPause(RTSPClient* rtspClient, int resultCode, char* resultString)
+{
+    ASRtspStreamState& scs = ((ASRtspClient*)rtspClient)->scs; // alias
+    ASRtspClient* pAsRtspClient = (ASRtspClient*)rtspClient;
+
+    pAsRtspClient->report_status(AS_RTSP_STATUS_PAUSE);
+
+    delete[] resultString;
+}
+void ASRtspClientManager::continueAfterSeek(RTSPClient* rtspClient, int resultCode, char* resultString)
+{
+    ASRtspStreamState& scs = ((ASRtspClient*)rtspClient)->scs; // alias
+    ASRtspClient* pAsRtspClient = (ASRtspClient*)rtspClient;
+
+    pAsRtspClient->report_status(AS_RTSP_STATUS_PLAY);
+    delete[] resultString;
+}
 
 
 // Implementation of the other event handlers:
