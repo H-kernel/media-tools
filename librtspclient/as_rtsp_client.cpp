@@ -212,8 +212,11 @@ ASStreamSink::ASStreamSink(UsageEnvironment& env, MediaSubsession& subsession,
 }
 
 ASStreamSink::~ASStreamSink() {
-    delete[] fReceiveBuffer;
-    delete[] fStreamId;
+    fReceiveBuffer = NULL;
+    if(NULL == fStreamId) {
+        delete[] fStreamId;
+        fStreamId = NULL;
+    }
 }
 
 void ASStreamSink::afterGettingFrame(void* clientData, unsigned frameSize, unsigned numTruncatedBytes,
@@ -370,8 +373,8 @@ AS_HANDLE ASRtspClientManager::openURL(char const* rtspURL,as_rtsp_callback_t* c
 void      ASRtspClientManager::closeURL(AS_HANDLE handle)
 {
     ASRtspClient* pAsRtspClient = (ASRtspClient*)handle;
-    pAsRtspClient->close();
     u_int32_t index = pAsRtspClient->index();
+    pAsRtspClient->close();
     m_clCountArray[index]--;
 
     return;
@@ -695,10 +698,12 @@ void ASRtspClientManager::shutdownStream(RTSPClient* rtspClient, int exitCode) {
     }
 
     env << *rtspClient << "Closing the stream.\n";
-    Medium::close(rtspClient);
-    // Note that this will also cause this stream's "ASRtspStreamState" structure to get reclaimed.
     /* report the status */
     pAsRtspClient->report_status(AS_RTSP_STATUS_TEARDOWN);
+
+    Medium::close(rtspClient);
+    // Note that this will also cause this stream's "ASRtspStreamState" structure to get reclaimed.
+
 }
 
 
