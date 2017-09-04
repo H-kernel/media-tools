@@ -701,7 +701,8 @@ void ASRtspClientManager::shutdownStream(RTSPClient* rtspClient, int exitCode) {
     /* report the status */
     pAsRtspClient->report_status(AS_RTSP_STATUS_TEARDOWN);
 
-    Medium::close(rtspClient);
+    /* not close here ,it will be closed by the close URL */
+    //Medium::close(rtspClient);
     // Note that this will also cause this stream's "ASRtspStreamState" structure to get reclaimed.
 
 }
