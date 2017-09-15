@@ -24,8 +24,10 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #endif
 #include "liveMedia.hh"
 #include "BasicUsageEnvironment.hh"
+#include "GroupsockHelper.hh"
 #include "as_rtsp_client.h"
 #include "RTSPCommon.hh"
+
 
 #if defined(__WIN32__) || defined(_WIN32)
 extern "C" int initializeWinsockIfNecessary();
@@ -263,6 +265,7 @@ ASRtspClientManager::ASRtspClientManager()
 {
     m_ulTdIndex     = 0;
     m_LoopWatchVar  = 0;
+    m_ulRecvBufSize = RTSP_SOCKET_RECV_BUFFER_SIZE_DEFAULT;
 }
 
 ASRtspClientManager::~ASRtspClientManager()
@@ -402,6 +405,14 @@ void ASRtspClientManager::play(AS_HANDLE handle, double curTime)
     ASRtspClient* pAsRtspClient = (ASRtspClient*)handle;
     pAsRtspClient->play(curTime);
 }
+void ASRtspClientManager::setRecvBufSize(u_int32_t ulSize)
+{
+    m_ulRecvBufSize = ulSize;
+}
+u_int32_t ASRtspClientManager::getRecvBufSize()
+{
+    return m_ulRecvBufSize;
+}
 
 
 
@@ -490,6 +501,25 @@ void ASRtspClientManager::setupNextSubsession(RTSPClient* rtspClient) {
                 env << "client ports " << scs.subsession->clientPortNum() << "-" << scs.subsession->clientPortNum()+1;
             }
             env << ")\n";
+
+            if (scs.subsession->rtpSource() != NULL) {
+            // Because we're saving the incoming data, rather than playing
+            // it in real time, allow an especially large time threshold
+            // (1 second) for reordering misordered incoming packets:
+            unsigned const thresh = 1000000; // 1 second
+            scs.subsession->rtpSource()->setPacketReorderingThresholdTime(thresh);
+
+            // Set the RTP source's OS socket buffer size as appropriate - either if we were explicitly asked (using -B),
+            // or if the desired FileSink buffer size happens to be larger than the current OS socket buffer size.
+            // (The latter case is a heuristic, on the assumption that if the user asked for a large FileSink buffer size,
+            // then the input data rate may be large enough to justify increasing the OS socket buffer size also.)
+            int socketNum = scs.subsession->rtpSource()->RTPgs()->socketNum();
+            unsigned curBufferSize = getReceiveBufferSize(env, socketNum);
+            unsigned ulRecvBufSize = ASRtspClientManager::instance().getRecvBufSize();
+            if (ulRecvBufSize > curBufferSize) {
+                (void)setReceiveBufferTo(env, socketNum, ulRecvBufSize);
+              }
+            }
 
             // Continue setting up this subsession, by sending a RTSP "SETUP" command:
             rtspClient->sendSetupCommand(*scs.subsession, continueAfterSETUP, False, REQUEST_STREAMING_OVER_TCP);

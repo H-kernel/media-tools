@@ -21,12 +21,14 @@ extern "C"{
 
 // Even though we're not going to be doing anything with the incoming data, we still need to receive it.
 // Define the size of the buffer that we'll use:
-#define DUMMY_SINK_RECEIVE_BUFFER_SIZE (100*1024)
+#define DUMMY_SINK_RECEIVE_BUFFER_SIZE (512*1024)
 
 #define DUMMY_SINK_H264_STARTCODE_SIZE 4
 
 #define DUMMY_SINK_MEDIA_BUFFER_SIZE (DUMMY_SINK_RECEIVE_BUFFER_SIZE+DUMMY_SINK_H264_STARTCODE_SIZE)
 
+
+#define RTSP_SOCKET_RECV_BUFFER_SIZE_DEFAULT (1024*1024)
 
 
 // If you don't want to see debugging output for each received frame, then comment out the following line:
@@ -147,6 +149,9 @@ public:
     void      seek(AS_HANDLE handle,double start);
     void      pause(AS_HANDLE handle);
     void      play(AS_HANDLE handle, double curTime);
+    // option set function
+    void      setRecvBufSize(u_int32_t ulSize);
+    u_int32_t getRecvBufSize();
 public:
     void rtsp_env_thread();
 public:
@@ -190,5 +195,6 @@ private:
     as_thread_t      *m_ThreadHandle[RTSP_MANAGE_ENV_MAX_COUNT];
     UsageEnvironment *m_envArray[RTSP_MANAGE_ENV_MAX_COUNT];
     u_int32_t         m_clCountArray[RTSP_MANAGE_ENV_MAX_COUNT];
+    u_int32_t         m_ulRecvBufSize;
 };
 #endif /* __AS_RTSP_CLIENT_MANAGE_H__ */

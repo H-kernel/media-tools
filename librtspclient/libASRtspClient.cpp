@@ -13,6 +13,16 @@ void      as_lib_release()
 {
     ASRtspClientManager::instance().release();
 }
+/* set the socket recv buffer size*/
+void      as_lib_set_recv_buffer_size(uint32_t size)
+{
+    ASRtspClientManager::instance().setRecvBufSize(size);
+}
+/* get the socket recv buffer size*/
+uint32_t as_lib_get_recv_buffer_size()
+{
+    return ASRtspClientManager::instance().getRecvBufSize();
+}
 /* open a rtsp client handle */
 AS_HANDLE as_create_handle(char const* rtspURL,as_rtsp_callback_t* cb)
 {
