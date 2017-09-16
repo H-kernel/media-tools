@@ -26,7 +26,7 @@ extern "C"
     /* destory a rtsp client handle */
     AS_API void      as_destory_handle(AS_HANDLE handle);
     /* get the rtsp client play range */
-    void             as_get_play_range(AS_HANDLE handle,double* start,double* end);
+    AS_API void      as_get_play_range(AS_HANDLE handle,double* start,double* end);
     /* seek the play */
     AS_API void      as_seek(AS_HANDLE handle,double start);
     /* pause the play */
