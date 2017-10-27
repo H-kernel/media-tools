@@ -44,6 +44,9 @@ public:
   ASRtspStreamState();
   virtual ~ASRtspStreamState();
 
+  long Start();
+  void Stop();
+
 public:
   MediaSubsessionIterator* iter;
   MediaSession* session;
@@ -71,10 +74,10 @@ protected:
 public:
     int32_t open(as_rtsp_callback_t* cb);
     void    close();
-    void    getPlayRange(double* start,double* end);
+    double  getDuration();
     void    seek(double start);
     void    pause();
-    void    play(double curTime);
+    void    play();
     u_int32_t index(){return m_ulEnvIndex;};
     void    report_status(int status);
     void    SupportsGetParameter(Boolean bSupportsGetParameter) {m_bSupportsGetParameter = bSupportsGetParameter;};
@@ -88,6 +91,7 @@ private:
     Boolean             m_bSupportsGetParameter;
     double              m_dStarttime;
     double              m_dEndTime;
+    int                 m_curStatus;
 };
 
 // Define a data sink (a subclass of "MediaSink") to receive the data for each subsession (i.e., each audio or video 'substream').
@@ -106,6 +110,8 @@ private:
   ASStreamSink(UsageEnvironment& env, MediaSubsession& subsession, char const* streamId,as_rtsp_callback_t* cb);
     // called only by "createNew()"
   virtual ~ASStreamSink();
+  long Start();
+  void Stop();
 
   static void afterGettingFrame(void* clientData, unsigned frameSize,
                                 unsigned numTruncatedBytes,
@@ -126,6 +132,8 @@ private:
   char* fStreamId;
   as_rtsp_callback_t *m_cb;
   MediaFrameInfo      m_MediaInfo;
+
+  volatile bool m_bRunning;
 };
 
 
@@ -145,10 +153,10 @@ public:
     // The main streaming routine (for each "rtsp://" URL):
     AS_HANDLE openURL(char const* rtspURL,as_rtsp_callback_t* cb);
     void      closeURL(AS_HANDLE handle);
-    void      getPlayRange(AS_HANDLE handle,double* start,double* end);
+    double    getDuration(AS_HANDLE handle);
     void      seek(AS_HANDLE handle,double start);
     void      pause(AS_HANDLE handle);
-    void      play(AS_HANDLE handle, double curTime);
+    void      play(AS_HANDLE handle);
     // option set function
     void      setRecvBufSize(u_int32_t ulSize);
     u_int32_t getRecvBufSize();

@@ -35,9 +35,9 @@ void      as_destory_handle(AS_HANDLE handle)
 }
 
 /* get the rtsp client play range */
-void      as_get_play_range(AS_HANDLE handle,double* start,double* end)
+double      as_get_play_duration(AS_HANDLE handle)
 {
-    ASRtspClientManager::instance().getPlayRange(handle,start,end);
+    return ASRtspClientManager::instance().getDuration(handle);
 }
 /* seek the play */
 void      as_seek(AS_HANDLE handle,double start)
@@ -50,9 +50,9 @@ void      as_pause(AS_HANDLE handle)
     ASRtspClientManager::instance().pause(handle);
 }
 /* continue the play */
-void      as_continue(AS_HANDLE handle,double curTime)
+void      as_continue(AS_HANDLE handle)
 {
-    ASRtspClientManager::instance().play(handle,curTime);
+    ASRtspClientManager::instance().play(handle);
 }
 
 

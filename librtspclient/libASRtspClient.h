@@ -26,12 +26,12 @@ extern "C"
     /* destory a rtsp client handle */
     AS_API void      as_destory_handle(AS_HANDLE handle);
     /* get the rtsp client play range */
-    AS_API void      as_get_play_range(AS_HANDLE handle,double* start,double* end);
+    AS_API double    as_get_play_duration(AS_HANDLE handle);
     /* seek the play */
     AS_API void      as_seek(AS_HANDLE handle,double start);
     /* pause the play */
     AS_API void      as_pause(AS_HANDLE handle);
     /* continue the play */
-    AS_API void      as_continue(AS_HANDLE handle,double curTime);
+    AS_API void      as_continue(AS_HANDLE handle);
 }
 #endif /*__LIB_AS_RTSP_CLINET_H__*/

@@ -58,6 +58,7 @@ ASRtspClient::ASRtspClient(u_int32_t ulEnvIndex,UsageEnvironment& env, char cons
   m_bSupportsGetParameter = False;
   m_dStarttime = 0.0;
   m_dEndTime = 0.0;
+  m_curStatus = AS_RTSP_STATUS_INIT;
 }
 
 ASRtspClient::~ASRtspClient() {
@@ -69,25 +70,19 @@ int32_t ASRtspClient::open(as_rtsp_callback_t* cb)
     // Next, send a RTSP "DESCRIBE" command, to get a SDP description for the stream.
     // Note that this command - like all RTSP commands - is sent asynchronously; we do not block, waiting for a response.
     // Instead, the following function call returns immediately, and we handle the RTSP response later, from within the event loop:
+    scs.Start();
     return sendOptionsCommand(&ASRtspClientManager::continueAfterOPTIONS);
 }
 void    ASRtspClient::close()
 {
-    ASRtspClientManager::shutdownStream(this);
+    scs.Stop();
+    ASRtspClientManager::shutdownStream(this,0);
 }
-void ASRtspClient::getPlayRange(double* start,double* end)
+double ASRtspClient::getDuration()
 {
-    if(NULL == scs.session)
-    {
-        *start = 0.0;
-        *end = 0.0;
-        return;
-    }
-    m_dStarttime = scs.session->playStartTime();
-    m_dEndTime = scs.session->playEndTime();
-    *start = m_dStarttime;
-    *end = m_dEndTime;
+    return scs.duration;
 }
+
 void ASRtspClient::seek(double start)
 {
     if(NULL == scs.session)
@@ -121,29 +116,26 @@ void ASRtspClient::pause()
     // send the pause first
     sendPauseCommand(*scs.session,&ASRtspClientManager::continueAfterPause);
 }
-void ASRtspClient::play(double curTime)
+void ASRtspClient::play()
 {
+    if (AS_RTSP_STATUS_PAUSE != m_curStatus)
+    {
+        return;
+    }
     if(NULL == scs.session)
     {
         return;
     }
     m_dStarttime = scs.session->playStartTime();
     m_dEndTime = scs.session->playEndTime();
-    if(curTime < m_dStarttime)
-    {
-        return;
-    }
-
-    if(curTime > m_dEndTime)
-    {
-        return;
-    }
+    double curTime = 0;
     // send the play with new start time
     sendPlayCommand(*scs.session, &ASRtspClientManager::continueAfterSeek, curTime, m_dEndTime);
 }
 
 void ASRtspClient::report_status(int status)
 {
+    m_curStatus = status;
     if(NULL == m_cb) {
         return;
     }
@@ -169,6 +161,40 @@ ASRtspStreamState::~ASRtspStreamState() {
     env.taskScheduler().unscheduleDelayedTask(streamTimerTask);
     Medium::close(session);
   }
+}
+void ASRtspStreamState::Start()
+{
+    if (session != NULL) {
+        MediaSubsessionIterator iter(*session);
+        MediaSubsession* subsession;
+        ASStreamSink* sink = NULL;
+        while ((subsession = iter.next()) != NULL) {
+            if (subsession->sink != NULL) {
+                sink = (ASStreamSink*)subsession->sink;
+                subsession->sink = NULL;
+                if (sink != NULL) {
+                    sink->Start();
+                }
+            }
+        }
+    }
+}
+void ASRtspStreamState::Stop()
+{
+    if (session != NULL) {
+        MediaSubsessionIterator iter(*session);
+        MediaSubsession* subsession;
+        ASStreamSink* sink = NULL;
+        while ((subsession = iter.next()) != NULL) {
+            if (subsession->sink != NULL) {
+                sink = (ASStreamSink*)subsession->sink;
+                subsession->sink = NULL;
+                if (sink != NULL) {
+                    sink->Stop();
+                }
+            }
+        }
+    }
 }
 
 
@@ -211,6 +237,8 @@ ASStreamSink::ASStreamSink(UsageEnvironment& env, MediaSubsession& subsession,
     m_MediaInfo.videoFPS =fSubsession.videoFPS();
     m_MediaInfo.numChannels =fSubsession.numChannels();
 
+    m_bRunning = true;
+
 }
 
 ASStreamSink::~ASStreamSink() {
@@ -229,6 +257,10 @@ void ASStreamSink::afterGettingFrame(void* clientData, unsigned frameSize, unsig
 
 void ASStreamSink::afterGettingFrame(unsigned frameSize, unsigned numTruncatedBytes,
                   struct timeval presentationTime, unsigned /*durationInMicroseconds*/) {
+
+    if(!m_bRunning) {
+        return;
+    }
 
     m_MediaInfo.rtpPayloadFormat = fSubsession.rtpPayloadFormat();
     m_MediaInfo.rtpTimestampFrequency = fSubsession.rtpTimestampFrequency();
@@ -258,6 +290,15 @@ Boolean ASStreamSink::continuePlaying() {
                         afterGettingFrame, this,
                         onSourceClosure, this);
   return True;
+}
+
+long ASStreamSink::Start()
+{
+    m_bRunning = true;
+}
+void ASStreamSink::Stop()
+{
+    m_bRunning = false;
 }
 
 
@@ -378,16 +419,16 @@ void      ASRtspClientManager::closeURL(AS_HANDLE handle)
     ASRtspClient* pAsRtspClient = (ASRtspClient*)handle;
     u_int32_t index = pAsRtspClient->index();
     pAsRtspClient->close();
+    Medium::close(pAsRtspClient);
     m_clCountArray[index]--;
 
     return;
 }
 
-void ASRtspClientManager::getPlayRange(AS_HANDLE handle,double* start,double* end)
+double ASRtspClientManager::getDuration(AS_HANDLE handle)
 {
     ASRtspClient* pAsRtspClient = (ASRtspClient*)handle;
-    pAsRtspClient->getPlayRange(start, end);
-    return;
+    return pAsRtspClient->getDuration();
 }
 void ASRtspClientManager::seek(AS_HANDLE handle,double start)
 {
@@ -400,10 +441,10 @@ void ASRtspClientManager::pause(AS_HANDLE handle)
     ASRtspClient* pAsRtspClient = (ASRtspClient*)handle;
     pAsRtspClient->pause();
 }
-void ASRtspClientManager::play(AS_HANDLE handle, double curTime)
+void ASRtspClientManager::play(AS_HANDLE handle)
 {
     ASRtspClient* pAsRtspClient = (ASRtspClient*)handle;
-    pAsRtspClient->play(curTime);
+    pAsRtspClient->play();
 }
 void ASRtspClientManager::setRecvBufSize(u_int32_t ulSize)
 {
@@ -418,6 +459,12 @@ u_int32_t ASRtspClientManager::getRecvBufSize()
 
 // Implementation of the RTSP 'response handlers':
 void ASRtspClientManager::continueAfterOPTIONS(RTSPClient* rtspClient, int resultCode, char* resultString) {
+
+    if(0 != resultCode) {
+        shutdownStream(rtspClient);
+        return;
+    }
+
     do {
         UsageEnvironment& env = rtspClient->envir(); // alias
         ASRtspClient* pAsRtspClient = (ASRtspClient*)rtspClient;
@@ -442,6 +489,11 @@ void ASRtspClientManager::continueAfterOPTIONS(RTSPClient* rtspClient, int resul
 
 void ASRtspClientManager::continueAfterDESCRIBE(RTSPClient* rtspClient, int resultCode, char* resultString) {
 
+
+    if(0 != resultCode) {
+        shutdownStream(rtspClient);
+        return;
+    }
     do {
         UsageEnvironment& env = rtspClient->envir(); // alias
         ASRtspStreamState& scs = ((ASRtspClient*)rtspClient)->scs; // alias
@@ -526,10 +578,8 @@ void ASRtspClientManager::setupNextSubsession(RTSPClient* rtspClient) {
         }
         return;
     }
-
     /* report the status */
     pAsRtspClient->report_status(AS_RTSP_STATUS_SETUP);
-
     // We've finished setting up all of the subsessions.  Now, send a RTSP "PLAY" command to start the streaming:
     if (scs.session->absStartTime() != NULL) {
         // Special case: The stream is indexed by 'absolute' time, so send an appropriate "PLAY" command:
@@ -538,14 +588,19 @@ void ASRtspClientManager::setupNextSubsession(RTSPClient* rtspClient) {
         scs.duration = scs.session->playEndTime() - scs.session->playStartTime();
         rtspClient->sendPlayCommand(*scs.session, continueAfterPLAY);
     }
+
     return;
 }
 
 void ASRtspClientManager::continueAfterSETUP(RTSPClient* rtspClient, int resultCode, char* resultString) {
+    if(0 != resultCode) {
+        shutdownStream(rtspClient);
+        return;
+    }
     do {
         UsageEnvironment& env = rtspClient->envir(); // alias
         ASRtspStreamState& scs = ((ASRtspClient*)rtspClient)->scs; // alias
-         ASRtspClient* pAsRtspClient = (ASRtspClient*)rtspClient;
+        ASRtspClient* pAsRtspClient = (ASRtspClient*)rtspClient;
 
         if (resultCode != 0) {
             env << *rtspClient << "Failed to set up the \"" << *scs.subsession << "\" subsession: " << resultString << "\n";
@@ -589,7 +644,10 @@ void ASRtspClientManager::continueAfterSETUP(RTSPClient* rtspClient, int resultC
 
 void ASRtspClientManager::continueAfterPLAY(RTSPClient* rtspClient, int resultCode, char* resultString) {
     Boolean success = False;
-
+    if(0 != resultCode) {
+        shutdownStream(rtspClient);
+        return;
+    }
     do {
         UsageEnvironment& env = rtspClient->envir(); // alias
         ASRtspStreamState& scs = ((ASRtspClient*)rtspClient)->scs; // alias
@@ -639,6 +697,9 @@ void ASRtspClientManager::continueAfterGET_PARAMETE(RTSPClient* rtspClient, int 
 
 void ASRtspClientManager::continueAfterPause(RTSPClient* rtspClient, int resultCode, char* resultString)
 {
+    if(0 != resultCode) {
+        return;
+    }
     ASRtspStreamState& scs = ((ASRtspClient*)rtspClient)->scs; // alias
     ASRtspClient* pAsRtspClient = (ASRtspClient*)rtspClient;
 
@@ -648,6 +709,9 @@ void ASRtspClientManager::continueAfterPause(RTSPClient* rtspClient, int resultC
 }
 void ASRtspClientManager::continueAfterSeek(RTSPClient* rtspClient, int resultCode, char* resultString)
 {
+    if(0 != resultCode) {
+        return;
+    }
     ASRtspStreamState& scs = ((ASRtspClient*)rtspClient)->scs; // alias
     ASRtspClient* pAsRtspClient = (ASRtspClient*)rtspClient;
 
@@ -729,7 +793,9 @@ void ASRtspClientManager::shutdownStream(RTSPClient* rtspClient, int exitCode) {
 
     env << *rtspClient << "Closing the stream.\n";
     /* report the status */
-    pAsRtspClient->report_status(AS_RTSP_STATUS_TEARDOWN);
+    if(exitCode) {
+        pAsRtspClient->report_status(AS_RTSP_STATUS_TEARDOWN);
+    }
 
     /* not close here ,it will be closed by the close URL */
     //Medium::close(rtspClient);
