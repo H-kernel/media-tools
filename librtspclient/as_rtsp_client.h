@@ -44,7 +44,7 @@ public:
   ASRtspStreamState();
   virtual ~ASRtspStreamState();
 
-  long Start();
+  void Start();
   void Stop();
 
 public:
@@ -106,12 +106,13 @@ public:
                   char const* streamId = NULL,
                   as_rtsp_callback_t* cb = NULL); // identifies the stream itself (optional)
 
+  void Start();
+  void Stop();
+
 private:
   ASStreamSink(UsageEnvironment& env, MediaSubsession& subsession, char const* streamId,as_rtsp_callback_t* cb);
     // called only by "createNew()"
   virtual ~ASStreamSink();
-  long Start();
-  void Stop();
 
   static void afterGettingFrame(void* clientData, unsigned frameSize,
                                 unsigned numTruncatedBytes,
@@ -171,6 +172,7 @@ public:
     static void continueAfterGET_PARAMETE(RTSPClient* rtspClient, int resultCode, char* resultString);
     static void continueAfterPause(RTSPClient* rtspClient, int resultCode, char* resultString);
     static void continueAfterSeek(RTSPClient* rtspClient, int resultCode, char* resultString);
+    static void continueAfterTeardown(RTSPClient* rtspClient, int resultCode, char* resultString);
 
     // Other event handler functions:
     static void subsessionAfterPlaying(void* clientData); // called when a stream's subsession (e.g., audio or video substream) ends

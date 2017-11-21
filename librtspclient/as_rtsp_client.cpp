@@ -76,7 +76,24 @@ int32_t ASRtspClient::open(as_rtsp_callback_t* cb)
 void    ASRtspClient::close()
 {
     scs.Stop();
-    ASRtspClientManager::shutdownStream(this,0);
+    if (scs.session != NULL) {
+        Boolean someSubsessionsWereActive = False;
+        MediaSubsessionIterator iter(*scs.session);
+        MediaSubsession* subsession;
+
+        while ((subsession = iter.next()) != NULL) {
+            if (subsession->sink != NULL) {
+                someSubsessionsWereActive = True;
+            }
+        }
+
+        if (someSubsessionsWereActive) {
+          // Send a RTSP "TEARDOWN" command, to tell the server to shutdown the stream.
+          // Don't bother handling the response to the "TEARDOWN".
+          sendTeardownCommand(*scs.session,&ASRtspClientManager::continueAfterTeardown);
+        }
+    }
+
 }
 double ASRtspClient::getDuration()
 {
@@ -292,7 +309,7 @@ Boolean ASStreamSink::continuePlaying() {
   return True;
 }
 
-long ASStreamSink::Start()
+void ASStreamSink::Start()
 {
     m_bRunning = true;
 }
@@ -419,7 +436,6 @@ void      ASRtspClientManager::closeURL(AS_HANDLE handle)
     ASRtspClient* pAsRtspClient = (ASRtspClient*)handle;
     u_int32_t index = pAsRtspClient->index();
     pAsRtspClient->close();
-    Medium::close(pAsRtspClient);
     m_clCountArray[index]--;
 
     return;
@@ -719,6 +735,15 @@ void ASRtspClientManager::continueAfterSeek(RTSPClient* rtspClient, int resultCo
     delete[] resultString;
 }
 
+void ASRtspClientManager::continueAfterTeardown(RTSPClient* rtspClient, int resultCode, char* resultString)
+{
+    ASRtspClient* pAsRtspClient = (ASRtspClient*)rtspClient;
+
+    shutdownStream(pAsRtspClient,0);
+    delete[] resultString;
+}
+
+
 
 // Implementation of the other event handlers:
 
@@ -798,7 +823,7 @@ void ASRtspClientManager::shutdownStream(RTSPClient* rtspClient, int exitCode) {
     }
 
     /* not close here ,it will be closed by the close URL */
-    //Medium::close(rtspClient);
+    Medium::close(rtspClient);
     // Note that this will also cause this stream's "ASRtspStreamState" structure to get reclaimed.
 
 }
