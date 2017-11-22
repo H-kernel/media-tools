@@ -18,10 +18,18 @@
 #define   AS_APP_OS                     AS_OS_WIN32
 #define   AS_BYTE_ORDER                 AS_LITTLE_ENDIAN
 
+#ifndef snprintf
 #define snprintf _snprintf
+#endif
+#ifndef strcasecmp
 #define strcasecmp stricmp
+#endif
+#ifndef strncasecmp
 #define strncasecmp strnicmp
+#endif
+#ifndef vsnprintf
 #define vsnprintf _vsnprintf
+#endif
 
 #endif
 

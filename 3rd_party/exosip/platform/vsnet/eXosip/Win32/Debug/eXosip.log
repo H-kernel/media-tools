@@ -1,0 +1,45 @@
+﻿生成启动时间为 2017-8-26 15:40:54。
+     1>项目“E:\02.MyCode\allcamera\3rd_party\exosip\platform\vsnet\eXosip.vcxproj”在节点 2 上(Build 个目标)。
+     1>ClCompile:
+         D:\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I..\..\..\osip\include /I..\..\..\exosip\include /I"..\..\..\c-ares" /I"..\..\..\win32-bin\include" /I"..\..\..\win32-bin\include\tsc" /Zi /nologo /W3 /WX- /Od /Oy- /D TSC_OPENSSL /D TSC_WINDOWS /D CARES_STATICLIB /D HAVE_CARES_H /D SRV_RECORD /D _CRT_SECURE_NO_DEPRECATE /D HAVE_OPENSSL_SSL_H /D ENABLE_TRACE /D WIN32 /D EXOSIP_EXPORTS /D _WINDOWS /D _USRDLL /D _DEBUG /D _MT /D _VC80_UPGRADE=0x0710 /D _UNICODE /D UNICODE /Gm- /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"eXosip\Win32\Debug\\" /Fd"eXosip\Win32\Debug\eXosip-vc80.pdb" /Gd /TC /analyze- /errorReport:prompt ..\..\..\exosip\src\eXconf.c
+         eXconf.c
+       Lib:
+         D:\Microsoft Visual Studio 12.0\VC\bin\Lib.exe /OUT:"E:\02.MyCode\allcamera\build\v120\Win32\Debug\eXosip.lib" /NOLOGO eXosip\Win32\Debug\eXcall_api.obj
+         eXosip\Win32\Debug\eXconf.obj
+         eXosip\Win32\Debug\eXinsubscription_api.obj
+         eXosip\Win32\Debug\eXmessage_api.obj
+         eXosip\Win32\Debug\eXoptions_api.obj
+         eXosip\Win32\Debug\eXosip.obj
+         eXosip\Win32\Debug\eXpublish_api.obj
+         eXosip\Win32\Debug\eXregister_api.obj
+         eXosip\Win32\Debug\eXsubscription_api.obj
+         eXosip\Win32\Debug\eXtl_dtls.obj
+         eXosip\Win32\Debug\eXtl_tcp.obj
+         eXosip\Win32\Debug\eXtl_tls.obj
+         eXosip\Win32\Debug\eXtl_udp.obj
+         eXosip\Win32\Debug\eXtransport.obj
+         eXosip\Win32\Debug\eXutils.obj
+         eXosip\Win32\Debug\inet_ntop.obj
+         eXosip\Win32\Debug\jauth.obj
+         eXosip\Win32\Debug\jcall.obj
+         eXosip\Win32\Debug\jcallback.obj
+         eXosip\Win32\Debug\jdialog.obj
+         eXosip\Win32\Debug\jevents.obj
+         eXosip\Win32\Debug\jnotify.obj
+         eXosip\Win32\Debug\jpipe.obj
+         eXosip\Win32\Debug\jpublish.obj
+         eXosip\Win32\Debug\jreg.obj
+         eXosip\Win32\Debug\jrequest.obj
+         eXosip\Win32\Debug\jresponse.obj
+         eXosip\Win32\Debug\jsubscribe.obj
+         eXosip\Win32\Debug\milenage.obj
+         eXosip\Win32\Debug\misc.obj
+         eXosip\Win32\Debug\rijndael.obj
+         eXosip\Win32\Debug\sdp_offans.obj
+         eXosip\Win32\Debug\udp.obj
+         eXosip.vcxproj -> E:\02.MyCode\allcamera\build\v120\Win32\Debug\eXosip.lib
+     1>已完成生成项目“E:\02.MyCode\allcamera\3rd_party\exosip\platform\vsnet\eXosip.vcxproj”(Build 个目标)的操作。
+
+生成成功。
+
+已用时间 00:00:00.71

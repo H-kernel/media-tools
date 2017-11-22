@@ -220,14 +220,14 @@ const unsigned char RTCP_PT_TOKEN = 210; // Port Mapping [RFC6284]
 const unsigned char RTCP_PT_IDMS = 211; // IDMS Settings [RFC7272]
 
 // SDES tags:
-const unsigned char RTCP_SDES_END = 0;
-const unsigned char RTCP_SDES_CNAME = 1;
-const unsigned char RTCP_SDES_NAME = 2;
-const unsigned char RTCP_SDES_EMAIL = 3;
-const unsigned char RTCP_SDES_PHONE = 4;
-const unsigned char RTCP_SDES_LOC = 5;
-const unsigned char RTCP_SDES_TOOL = 6;
-const unsigned char RTCP_SDES_NOTE = 7;
-const unsigned char RTCP_SDES_PRIV = 8;
+const unsigned char AS_RTCP_SDES_END = 0;
+const unsigned char AS_RTCP_SDES_CNAME = 1;
+const unsigned char AS_RTCP_SDES_NAME = 2;
+const unsigned char AS_RTCP_SDES_EMAIL = 3;
+const unsigned char AS_RTCP_SDES_PHONE = 4;
+const unsigned char AS_RTCP_SDES_LOC = 5;
+const unsigned char AS_RTCP_SDES_TOOL = 6;
+const unsigned char AS_RTCP_SDES_NOTE = 7;
+const unsigned char AS_RTCP_SDES_PRIV = 8;
 
 #endif

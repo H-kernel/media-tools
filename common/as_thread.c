@@ -7,7 +7,7 @@
 #endif
 
 
-int32_t  as_create_thread( AS_THREAD_FUNC pfnThread, void *args, as_thread_t **pstSVSThread,uint32_t ulStackSize)
+int32_t  as_create_thread( AS_THREAD_FUNC pfnThread, void *args, as_thread_t **pstASThread,uint32_t ulStackSize)
 {
     as_thread_t *pstThread = NULL ;
 
@@ -49,7 +49,7 @@ int32_t  as_create_thread( AS_THREAD_FUNC pfnThread, void *args, as_thread_t **p
         return AS_ERROR_CODE_FAIL ;
     }
 #endif
-    *pstSVSThread = pstThread ;
+    *pstASThread = pstThread ;
 
     return AS_ERROR_CODE_OK;
 }
@@ -65,4 +65,32 @@ int32_t as_join_thread(as_thread_t *pstMKThread)
     return AS_ERROR_CODE_OK;
 }
 
+void     as_thread_exit(void *retval)
+{
+#if AS_APP_OS == AS_OS_LINUX
+    pthread_exit(retval);
+#elif AS_APP_OS == AS_OS_WIN32
+    (void)retval;
+    ExitThread(0);
+#endif
+}
+uint32_t as_get_threadid()
+{
+#if AS_APP_OS == AS_OS_LINUX
+    return pthread_self();
+#elif AS_APP_OS == AS_OS_WIN32
+    return GetCurrentThreadId();
+#endif
+}
 
+#if AS_APP_OS == AS_OS_LINUX
+pthread_t  as_thread_self()
+{
+    return pthread_self();
+}
+#elif AS_APP_OS == AS_OS_WIN32
+HANDLE as_thread_self(void)
+{
+    return GetCurrentThread();
+}
+#endif
