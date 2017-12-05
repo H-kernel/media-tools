@@ -29,6 +29,11 @@ extern "C"{
 #include "as_time.h"
 }
 
+#ifdef WIN32
+#include "atlbase.h"
+#include "atlstr.h"
+#endif
+
 
 //extern HANDLE g_hDLLModule;                     //动态链接库句柄
 
@@ -247,7 +252,7 @@ long as_log::Start()
     {
 #if AS_APP_OS == AS_OS_WIN32
         //根据中间件模块句柄得到路径
-        (void)::GetModuleFileName(NULL, m_szLogFilePathName, MAX_LOG_FILE_PATH_NAME_LEN - 1);
+        (void)::GetModuleFileName(NULL, CA2W(m_szLogFilePathName), MAX_LOG_FILE_PATH_NAME_LEN - 1);
         //    (void)::GetModuleFileName((HMODULE)g_hDLLModule, m_szLogFilePathName, MAX_LOG_FILE_PATH_NAME_LEN-1);
         char* pszFind = ::strrchr(m_szLogFilePathName, '.');
         if (NULL == pszFind)

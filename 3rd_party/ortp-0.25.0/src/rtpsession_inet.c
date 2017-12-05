@@ -378,9 +378,11 @@ rtp_session_set_local_addr (RtpSession * session, const char * addr, int rtp_por
 		}
 
 		/* set socket options (but don't change chosen states) */
+		/*
 		rtp_session_set_dscp( session, -1 );
 		rtp_session_set_multicast_ttl( session, -1 );
 		rtp_session_set_multicast_loopback( session, -1 );
+		*/
 		ortp_message("RtpSession bound to [%s] ports [%i] [%i]", addr, rtp_port, rtcp_port);
 		return 0;
 	}

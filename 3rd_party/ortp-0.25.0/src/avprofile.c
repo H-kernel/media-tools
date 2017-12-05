@@ -474,6 +474,9 @@ void av_profile_init(RtpProfile *profile)
 	rtp_profile_set_payload(profile,34,&payload_type_h263);
 	rtp_profile_set_payload(profile,96,&payload_type_t140);
 	rtp_profile_set_payload(profile,97,&payload_type_t140_red);
+	rtp_profile_set_payload(profile, 105, &payload_type_h264);
+	rtp_profile_set_payload(profile, 107, &payload_type_h264);
+	rtp_profile_set_payload(profile, 108, &payload_type_h264);
 }
 
 /* these are extra payload types that can be used dynamically */

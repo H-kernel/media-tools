@@ -27,9 +27,6 @@
     <ClInclude Include="as_def.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="as_rtp_session_manage.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="as_rtsp2sip_client.h">
       <Filter>头文件</Filter>
     </ClInclude>

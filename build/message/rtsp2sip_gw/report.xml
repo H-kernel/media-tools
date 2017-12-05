@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <report version="1.0">
-    <session sessionid="0123456789" command="running" /> <!-- status:start,running,stop -->
-    <session sessionid="0123456789" command="running" /> 
-    <session sessionid="0123456789" command="running" /> 
+    <session sessionid="0123456789" status="running" /> <!-- status:start,running,stop -->
+    <session sessionid="0123456789" status="running" /> 
+    <session sessionid="0123456789" status="running" /> 
 </report>

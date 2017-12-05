@@ -113,7 +113,7 @@ _eXosip_transaction_init (struct eXosip_t *excontext, osip_transaction_t ** tran
 
   if ((0 != excontext->host[0]) && (0 != excontext->port))
   {
-      osip_nict_set_destination((*transaction)->nict_context, excontext->host, excontext->port);
+	  osip_nict_set_destination((*transaction)->nict_context, osip_strdup(excontext->host), excontext->port);
   }
 
   osip_transaction_set_reserved1 (*transaction, excontext);

@@ -165,7 +165,7 @@ void rtcp_sdes_parse(const mblk_t *m, SdesItemFoundCallback cb, void *user_data)
 				uint8_t type=rptr[0];
 				uint8_t len=rptr[1];
 
-                if (type == AS_RTCP_SDES_END){
+                if (type == RTCP_SDES_END){
 					/* pad to next 32bit boundary*/
 					rptr=(uint8_t *)((intptr_t)(rptr+4) & ~0x3);
 					nchunk++;

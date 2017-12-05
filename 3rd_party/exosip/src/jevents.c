@@ -76,8 +76,17 @@ _eXosip_event_init_for_call (int type, eXosip_call_t * jc, eXosip_dialog_t * jd,
   je->cid = jc->c_id;
   if (jd != NULL)
     je->did = jd->d_id;
-  if (tr != NULL)
-    je->tid = tr->transactionid;
+  if (tr != NULL) {
+      je->tid = tr->transactionid;
+      /* fill request and answer */
+      if (tr->orig_request != NULL) {
+          int i = osip_message_clone(tr->orig_request, &je->request);
+          if (i != 0) {
+              OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL, "failed to clone request for event\n"));
+          }
+      }
+  }
+
 
   je->external_reference = jc->external_reference;
 

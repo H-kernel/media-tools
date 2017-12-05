@@ -2,12 +2,12 @@
 <req version="1.0">
     <session sessionid="1234567890" command="add"> <!-- command:add,remove -->
 	    <report interval="60" url="http://127.55.92.246:18080/abc/liveCallback" />
-		<register>
+		<register reg="0">
             <params>
-                <param name="username"        value="1234567890" />
+                <param name="username"        value="1052594445" />
                 <param name="password"        value="123456"     />
-                <param name="domain"          value="video.chinamobile.com" />
-                <param name="realm"           value="video.chinamobile.com" />
+                <param name="domain"          value="isbc.ge.chinamobile.com" />
+                <param name="realm"           value="isbc.ge.chinamobile.com" />
                 <param name="cameraid"        value="01234567890123456789" />
                 <param name="streamtype"      value="1" />
             </params>

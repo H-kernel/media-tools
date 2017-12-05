@@ -26,8 +26,10 @@
 #endif
 #include <list>
 #include <map>
+extern "C"{
 #include <ortp/ortp.h>
 #include <eXosip2/eXosip.h>
+}
 #include "as_def.h"
 #include "as.h"
 
@@ -35,10 +37,14 @@
 //#ifndef _BASIC_USAGE_ENVIRONMENT0_HH
 //#include "BasicUsageEnvironment0.hh"
 //#endif
-
+#define _AS_DEBUG_
+#ifndef _AS_DEBUG_
 #define RTSP2SIP_CONF_FILE "../conf/rtsp2sip_gw.conf"
 #define RTSP2SIP_LOG_FILE  "../logs/rtsp2sip_gw.log"
-
+#else
+#define RTSP2SIP_CONF_FILE "E:\\build\\conf\\rtsp2sip_gw.conf"
+#define RTSP2SIP_LOG_FILE  "E:\\build\\logs\\rtsp2sip_gw.log"
+#endif
 #define HTTP_SERVER_URI    "/session/req"
 
 #define GW_SERVER_ADDR                 "0.0.0.0"
@@ -73,9 +79,12 @@
 #define SIP_LOCAL_IP_LENS          128
 #define SIP_SDP_LENS_MAX          4096
 
+#define ORTP_LOG_LENS_MAX        1024
 
+#define MAX_RTP_PKT_LENGTH        1400
 
-
+#define H264_RTP_TIMESTAMP_FREQUE 3600
+#define G711_RTP_TIMESTAMP_FREQUE 400
 
 
 
@@ -169,6 +178,7 @@ private:
 
 // Define a class to hold per-stream state that we maintain throughout each stream's lifetime:
 
+
 class ASRtsp2SipStreamState {
 public:
   ASRtsp2SipStreamState();
@@ -203,7 +213,14 @@ public:
 // "ASRtsp2SipStreamState" structure, as a global variable in your application.  However, because - in this demo application - we're
 // showing how to play multiple streams, concurrently, we can't do that.  Instead, we have to have a separate "ASRtsp2SipStreamState"
 // structure for each "RTSPClient".  To do this, we subclass "RTSPClient", and add a "ASRtsp2SipStreamState" field to the subclass:
-
+enum AS_RTSP_STATUS {
+    AS_RTSP_STATUS_INIT = 0x00,
+    AS_RTSP_STATUS_SETUP = 0x01,
+    AS_RTSP_STATUS_PLAY = 0x02,
+    AS_RTSP_STATUS_PAUSE = 0x03,
+    AS_RTSP_STATUS_TEARDOWN = 0x04,
+    AS_RTSP_STATUS_INVALID = 0xFF,
+};
 class ASRtsp2RtpChannel: public RTSPClient {
 public:
     static ASRtsp2RtpChannel* createNew(u_int32_t ulEnvIndex,UsageEnvironment& env, char const* rtspURL,
@@ -242,6 +259,7 @@ public:
     static void continueAfterSETUP(RTSPClient* rtspClient, int resultCode, char* resultString);
     static void continueAfterPLAY(RTSPClient* rtspClient, int resultCode, char* resultString);
     static void continueAfterGET_PARAMETE(RTSPClient* rtspClient, int resultCode, char* resultString);
+    static void continueAfterTeardown(RTSPClient* rtspClient, int resultCode, char* resultString);
 
     // Other event handler functions:
     static void subsessionAfterPlaying(void* clientData); // called when a stream's subsession (e.g., audio or video substream) ends
@@ -259,6 +277,7 @@ private:
     int                   m_nTransID;
     CRtpPortPair*         m_LocalPorts;
     CRtpDestinations      m_DestinInfo;
+    AS_RTSP_STATUS        m_enStatus;
 };
 
 // Define a data sink (a subclass of "MediaSink") to receive the data for each subsession (i.e., each audio or video 'substream').
@@ -293,6 +312,8 @@ private:
   u_int32_t        prefixSize;
   MediaSubsession& fSubsession;
   RtpSession*      m_pVideoSession;
+  u_int32_t        m_rtpTimestampdiff;
+  u_int32_t        m_lastTS;
 };
 
 class ASRtsp2SipAudioSink: public MediaSink {
@@ -320,6 +341,8 @@ private:
   u_int8_t         fMediaBuffer[DUMMY_SINK_MEDIA_BUFFER_SIZE];
   MediaSubsession& fSubsession;
   RtpSession*      m_pAudioSession;
+  u_int32_t        m_rtpTimestampdiff;
+  u_int32_t        m_lastTS;
 };
 
 
@@ -351,15 +374,13 @@ public:
     std::string Password(){return m_strPasswd;};
     std::string Domain(){return m_strDomain;};
     std::string RealM(){return m_strRealM;};
-    std::string CameraID(){return m_strCameraID;};
-    std::string StreamType(){return m_strStreamType;};
     u_int32_t  RepInterval(){return m_ulRepInterval;};
     void RepInterval(u_int32_t ulRepInterval){m_ulRepInterval = ulRepInterval;};
-    std::string  ReportUrl(){return m_strReportUrl;};
     void ReportUrl(std::string& strReportUrl){m_strReportUrl = strReportUrl;};
+    void SendStatusReport();
 public:
     int32_t handle_invite(int nCallId,int nTransID,CRtpPortPair* local_ports,sdp_message_t *remote_sdp = NULL);
-    void    handle_bye(int nCallId);
+	int32_t handle_bye(int nCallId);
     void    handle_ack(int nCallId,sdp_message_t    *remote_sdp = NULL);
     void    close_all();
 public:
@@ -425,6 +446,7 @@ public:
     void handle_http_req(struct evhttp_request *req);
     void check_all_sip_session();
     void send_invit_200_ok(int nTransID,CRtpPortPair*local_ports,std::string& strSdp);
+    static void ortp_log_callback(OrtpLogLevel lev, const char *fmt, va_list args);
 protected:
     ASRtsp2SiptManager();
 private:

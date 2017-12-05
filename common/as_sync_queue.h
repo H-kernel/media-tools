@@ -30,9 +30,9 @@ int32_t   as_create_buffer_queue(AsBufferQueue** queue,uint32_t ulMaxCount);
 
 int32_t   as_destory_buffer_queue(AsBufferQueue* queue);
 
-int32_t   as_destory_buffer_enqueue(AsBufferQueue* queue,void* pBuffer);
+int32_t   as_buffer_enqueue(AsBufferQueue* queue,void* pBuffer);
 
-int32_t   as_destory_buffer_dequeue(AsBufferQueue* queue,void** pBuffer);
+int32_t   as_buffer_dequeue(AsBufferQueue* queue,void** pBuffer);
 
 uint32_t  as_get_buffer_queue_size(AsBufferQueue* queue);
 
