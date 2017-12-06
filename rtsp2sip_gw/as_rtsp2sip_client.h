@@ -55,6 +55,11 @@ extern "C"{
 
 #define HTTP_OPTION_TIMEOUT            864000
 #define HTTP_REQUEST_MAX               4096
+
+#define AC_MSS_PORT_DAFAULT            8080
+#define AC_MSS_SIGN_TIME_LEN           16
+#define AC_MSS_ERROR_CODE_OK           "00000000"
+
 #define GW_TIMER_SCALE                 1000
 #define GW_TIMER_SIPSESSION            5
 
@@ -345,14 +350,43 @@ private:
   u_int32_t        m_lastTS;
 };
 
-
 enum SIP_SESSION_STATUS
 {
-    SIP_SESSION_STATUS_ADD     = 0, /* the session is add */
-    SIP_SESSION_STATUS_REG     = 1, /*registing*/
-    SIP_SESSION_STATUS_RUNING  = 2, /*online or wait for call */
-    SIP_SESSION_STATUS_REMOVE  = 2, /*the session need remove */
+    SIP_SESSION_STATUS_ADD = 0, /* the session is add */
+    SIP_SESSION_STATUS_REG = 1, /*registing*/
+    SIP_SESSION_STATUS_RUNING = 2, /*online or wait for call */
+    SIP_SESSION_STATUS_REMOVE = 3, /*the session need remove */
 };
+
+class ASEvLiveHttpClient
+{
+public:
+    ASEvLiveHttpClient();
+    virtual ~ASEvLiveHttpClient();
+    int32_t send_live_url_request(std::string& strCameraID,std::string& strStreamType,std::string& strRtspUrl);
+    void    report_sip_session_status(std::string& strUrl,std::string& strSessionID,SIP_SESSION_STATUS enStatus);
+public:
+    void handle_remote_read(struct evhttp_request* remote_rsp);
+    void handle_readchunk(struct evhttp_request* remote_rsp);
+    void handle_remote_connection_close(struct evhttp_connection* connection);
+private:
+    static void remote_read_cb(struct evhttp_request* remote_rsp, void* arg);
+    static void readchunk_cb(struct evhttp_request* remote_rsp, void* arg);
+    static void remote_connection_close_cb(struct evhttp_connection* connection, void* arg);
+private:
+    int32_t open_http_by_url(std::string& strUrl);
+    int32_t send_http_post_request(std::string& strMsg);
+    int32_t send_http_get_request(std::string& strMsg);
+private:
+    struct evhttp_request   *m_pReq;
+    struct event_base       *m_pBase;
+    struct evhttp_connection*m_pConn;
+    std::string              m_reqPath;
+    std::string              m_strRespMsg;
+};
+
+
+
 
 typedef std::map<int,ASRtsp2RtpChannel*>  CALLRTSPCHANNELMAP;
 typedef std::map<int,std::string>         TRANSSDPMAP;
@@ -362,7 +396,7 @@ class CSipSession:public IRtspChannelObserver
 public:
     CSipSession();
     virtual ~CSipSession();
-    void Init();
+    void Init(std::string &strSessionID);
     void SetSipRegInfo(bool bRegister,std::string &strUsername,std::string &strPasswd,std::string &strDomain,std::string &strRealM);
     void SetCameraInfo(std::string &strCameraID,std::string &strStreamType);
     SIP_SESSION_STATUS SessionStatus();
@@ -380,7 +414,7 @@ public:
     void SendStatusReport();
 public:
     int32_t handle_invite(int nCallId,int nTransID,CRtpPortPair* local_ports,sdp_message_t *remote_sdp = NULL);
-	int32_t handle_bye(int nCallId);
+    int32_t handle_bye(int nCallId);
     void    handle_ack(int nCallId,sdp_message_t    *remote_sdp = NULL);
     void    close_all();
 public:
@@ -394,6 +428,7 @@ private:
     SIP_SESSION_STATUS  m_enStatus;
     bool                m_bRegister;
     int                 m_nRegID;
+    std::string         m_strSessionID;
     std::string         m_strUsername;
     std::string         m_strPasswd;
     std::string         m_strDomain;
@@ -435,6 +470,10 @@ public:
     void    close();;
     void      setRecvBufSize(u_int32_t ulSize);
     u_int32_t getRecvBufSize();
+    std::string getAppID(){return m_strAppID;};
+    std::string getAppSecret(){return m_strAppSecret;};
+    std::string getAppKey(){return m_strAppKey;};
+    std::string getLiveUrl(){return m_strLiveUrl;};
 public:
     void http_env_thread();
     void sip_env_thread();
@@ -447,6 +486,7 @@ public:
     void check_all_sip_session();
     void send_invit_200_ok(int nTransID,CRtpPortPair*local_ports,std::string& strSdp);
     static void ortp_log_callback(OrtpLogLevel lev, const char *fmt, va_list args);
+    static void osip_trace_log_callback(char *fi, int li, osip_trace_level_t level, char *chfr, va_list ap);
 protected:
     ASRtsp2SiptManager();
 private:

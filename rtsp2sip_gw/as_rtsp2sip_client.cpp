@@ -726,22 +726,22 @@ void ASRtsp2SipVideoSink::afterGettingFrame(void* clientData, unsigned frameSize
 void ASRtsp2SipVideoSink::afterGettingFrame(unsigned frameSize, unsigned numTruncatedBytes,
                   struct timeval presentationTime, unsigned /*durationInMicroseconds*/) {
 
-	unsigned int size = frameSize;
+    unsigned int size = frameSize;
     int  sendBytes = 0;
     uint32_t valid_len = frameSize;
-	unsigned char NALU = fMediaBuffer[prefixSize];
+    unsigned char NALU = fMediaBuffer[prefixSize];
     m_lastTS += m_rtpTimestampdiff;
 
-	mblk_t* packet = NULL;
+    mblk_t* packet = NULL;
 
 
     if (size <= MAX_RTP_PKT_LENGTH)
     {
-		sendBytes = rtp_session_send_with_ts(m_pVideoSession, (uint8_t *)&fMediaBuffer[prefixSize], size, m_lastTS);
+        sendBytes = rtp_session_send_with_ts(m_pVideoSession, (uint8_t *)&fMediaBuffer[prefixSize], size, m_lastTS);
     }
     else if (size > MAX_RTP_PKT_LENGTH)
     {
-        //切分为很多个包发送，每个包前要对头进行处理，如第一个包  
+        //切分为很多个包发送，每个包前要对头进行处理，如第一个包
         size -= 1;
         int k = 0, l = 0;
         k = size/MAX_RTP_PKT_LENGTH;
@@ -752,9 +752,9 @@ void ASRtsp2SipVideoSink::afterGettingFrame(unsigned frameSize, unsigned numTrun
         {
             k = k + 1;
         }
-        while (t<k)//||(t==k&&l>0))  
+        while (t<k)//||(t==k&&l>0))
         {
-            if (t<(k - 1))//(t<k&&l!=0)||(t<(k-1))&&(l==0))//(0==t)||(t<k&&0!=l))  
+            if (t<(k - 1))//(t<k&&l!=0)||(t<(k-1))&&(l==0))//(0==t)||(t<k&&0!=l))
             {
                 fMediaBuffer[pos - 2] = (NALU & 0x60) | 28;
                 fMediaBuffer[pos - 1] = (NALU & 0x1f);
@@ -769,7 +769,7 @@ void ASRtsp2SipVideoSink::afterGettingFrame(unsigned frameSize, unsigned numTrun
                 t++;
                 pos += MAX_RTP_PKT_LENGTH;
             }
-            else //if((k==t&&l>0)||((t==k-1)&&l==0))  
+            else //if((k==t&&l>0)||((t==k-1)&&l==0))
             {
                 int iSendLen;
                 if (l>0)
@@ -781,14 +781,14 @@ void ASRtsp2SipVideoSink::afterGettingFrame(unsigned frameSize, unsigned numTrun
                 fMediaBuffer[pos - 2] = (NALU & 0x60) | 28;
                 fMediaBuffer[pos - 1] = (NALU & 0x1f);
                 fMediaBuffer[pos - 1] |= 0x40;
-				packet = rtp_session_create_packet(m_pVideoSession, RTP_FIXED_HEADER_SIZE, &fMediaBuffer[pos - 2], iSendLen + 2);
-				if (NULL == packet)
-				{
-					break;
-				}
-				rtp_header_t *rtp = (rtp_header_t*)packet->b_rptr;
-				rtp->markbit = 1;
-				sendBytes = rtp_session_sendm_with_ts(m_pVideoSession, packet,m_lastTS);
+                packet = rtp_session_create_packet(m_pVideoSession, RTP_FIXED_HEADER_SIZE, &fMediaBuffer[pos - 2], iSendLen + 2);
+                if (NULL == packet)
+                {
+                    break;
+                }
+                rtp_header_t *rtp = (rtp_header_t*)packet->b_rptr;
+                rtp->markbit = 1;
+                sendBytes = rtp_session_sendm_with_ts(m_pVideoSession, packet,m_lastTS);
                 t++;
             }
         }
@@ -822,7 +822,7 @@ ASRtsp2SipAudioSink::ASRtsp2SipAudioSink(UsageEnvironment& env, MediaSubsession&
 
     rtp_session_set_scheduling_mode(m_pAudioSession,1);
     rtp_session_set_blocking_mode(m_pAudioSession,0);
-	rtp_session_set_local_addr(m_pAudioSession, "192.168.2.27", local_ports->getARtpPort(), local_ports->getARtcpPort());
+    rtp_session_set_local_addr(m_pAudioSession, "192.168.2.27", local_ports->getARtpPort(), local_ports->getARtcpPort());
     rtp_session_set_remote_addr_full (m_pAudioSession,des->ServerAudioAddr().c_str(), des->ServerAudioPort(), des->ServerAudioAddr().c_str(), des->ServerAudioPort()+1);
     rtp_session_enable_adaptive_jitter_compensation(m_pAudioSession,1);
     rtp_session_set_jitter_compensation(m_pAudioSession,20);
@@ -885,7 +885,270 @@ Boolean ASRtsp2SipAudioSink::continuePlaying() {
   return True;
 }
 
+ASEvLiveHttpClient::ASEvLiveHttpClient()
+{
+    m_pReq    = NULL;
+    m_pBase   = NULL;
+    m_pConn   = NULL;
+    m_reqPath = "/";
+    m_strRespMsg = "";
+}
+ASEvLiveHttpClient::~ASEvLiveHttpClient()
+{
+    if (NULL != m_pConn)
+    {
+        evhttp_connection_free(m_pConn);
+    }
+    if (NULL != m_pBase)
+    {
+        event_base_free(m_pBase);
+    }
+    m_pReq = NULL;
+}
+int32_t ASEvLiveHttpClient::send_live_url_request(std::string& strCameraID,
+                                               std::string& strStreamType,std::string& strRtspUrl)
+{
+    std::string strLiveUrl = ASRtsp2SiptManager::instance().getLiveUrl();
+    std::string strAppID   = ASRtsp2SiptManager::instance().getAppID();
+    std::string strAppSecr = ASRtsp2SiptManager::instance().getAppSecret();
+    std::string strAppKey  = ASRtsp2SiptManager::instance().getAppKey();
+    std::string strSign    = "all stream";
 
+    if(AS_ERROR_CODE_OK != open_http_by_url(strLiveUrl)) {
+        return AS_ERROR_CODE_FAIL;
+    }
+
+    /* 1.build the request json message */
+
+    cJSON* root = cJSON_CreateObject();
+
+    cJSON_AddItemToObject(root, "appID", cJSON_CreateString(strAppID.c_str()));
+    /* TODO : account ,how to set */
+    cJSON_AddItemToObject(root, "account", cJSON_CreateString(strAppID.c_str()));
+    /* TODO : sign ,sign */
+    cJSON_AddItemToObject(root, "sign", cJSON_CreateString(strSign.c_str()));
+
+    time_t ulTick = time(NULL);
+    char szTime[AC_MSS_SIGN_TIME_LEN] = { 0 };
+    as_strftime(szTime, AC_MSS_SIGN_TIME_LEN, "%Y%m%d%H%M%S", ulTick);
+    cJSON_AddItemToObject(root, "msgtimestamp", cJSON_CreateString((char*)&szTime[0]));
+
+    cJSON_AddItemToObject(root, "cameraId", cJSON_CreateString(strCameraID.c_str()));
+    cJSON_AddItemToObject(root, "streamType", cJSON_CreateString(strStreamType.c_str()));
+    cJSON_AddItemToObject(root, "urlType", cJSON_CreateString("1"));
+
+    std::string strReqMSg = cJSON_PrintUnformatted(root);
+    cJSON_Delete(root);
+    /* sent the http request */
+    if(AS_ERROR_CODE_OK != send_http_get_request(strReqMSg)) {
+        return AS_ERROR_CODE_FAIL;
+    }
+    if(0 == m_strRespMsg.length()) {
+        return AS_ERROR_CODE_FAIL;
+    }
+
+    /* 2.parse the response */
+    root = cJSON_Parse(m_strRespMsg.c_str());
+    if (NULL == root) {
+        return AS_ERROR_CODE_FAIL;
+    }
+
+    cJSON *resultCode = cJSON_GetObjectItem(root, "resultCode");
+    if(NULL == resultCode) {
+        cJSON_Delete(root);
+        return AS_ERROR_CODE_FAIL;
+    }
+
+    int nResultCode = atoi(resultCode->string);
+    if(0 != strncmp(AC_MSS_ERROR_CODE_OK,resultCode->string,strlen(AC_MSS_ERROR_CODE_OK))) {
+        cJSON_Delete(root);
+        return AS_ERROR_CODE_FAIL;
+    }
+
+    cJSON *url = cJSON_GetObjectItem(root, "url");
+    if(NULL == url) {
+        cJSON_Delete(root);
+        return AS_ERROR_CODE_FAIL;
+    }
+    strRtspUrl = resultCode->string;
+    cJSON_Delete(root);
+    return AS_ERROR_CODE_OK;
+}
+void    ASEvLiveHttpClient::report_sip_session_status(std::string& strUrl,std::string& strSessionID,
+                                                SIP_SESSION_STATUS enStatus)
+{
+    if (AS_ERROR_CODE_OK != open_http_by_url(strUrl)) {
+        return ;
+    }
+
+    /* 1.build the request xml message */
+    XMLDocument report;
+    XMLPrinter printer;
+    XMLDeclaration *declare = report.NewDeclaration();
+    XMLElement *RepoetEl = report.NewElement("report");
+    report.InsertEndChild(RepoetEl);
+    RepoetEl->SetAttribute("version", "1.0");
+    XMLElement *SesEle = report.NewElement("session");
+    RepoetEl->InsertEndChild(SesEle);
+
+    SesEle->SetAttribute("sessionid", strSessionID.c_str());
+    if (SIP_SESSION_STATUS_ADD == enStatus)
+    {
+        SesEle->SetAttribute("status", "start");
+    }
+    else if ((SIP_SESSION_STATUS_REG == enStatus) || (SIP_SESSION_STATUS_RUNING == enStatus))
+    {
+        SesEle->SetAttribute("status", "running");
+    }
+    else if (SIP_SESSION_STATUS_REMOVE == enStatus)
+    {
+        SesEle->SetAttribute("status", "stop");
+    }
+    else
+    {
+        SesEle->SetAttribute("status", "stop");
+    }
+
+    report.Accept(&printer);
+    std::string strRespMsg = printer.CStr();
+    /* sent the http request */
+    if (AS_ERROR_CODE_OK != send_http_get_request(strRespMsg)) {
+        return ;
+    }
+    return;
+}
+void ASEvLiveHttpClient::handle_remote_read(struct evhttp_request* remote_rsp)
+{
+    size_t len = evbuffer_get_length(remote_rsp->input_buffer);
+    const char * str = (const char*)evbuffer_pullup(remote_rsp->input_buffer, len);
+    m_strRespMsg.append(str,0,len);
+    event_base_loopexit(m_pBase, NULL);
+}
+
+void ASEvLiveHttpClient::handle_readchunk(struct evhttp_request* remote_rsp)
+{
+    return;
+}
+
+void ASEvLiveHttpClient::handle_remote_connection_close(struct evhttp_connection* connection)
+{
+    event_base_loopexit(m_pBase, NULL);
+}
+
+void ASEvLiveHttpClient::remote_read_cb(struct evhttp_request* remote_rsp, void* arg)
+{
+    ASEvLiveHttpClient* client = (ASEvLiveHttpClient*)arg;
+    client->handle_remote_read(remote_rsp);
+    return;
+}
+
+void ASEvLiveHttpClient::readchunk_cb(struct evhttp_request* remote_rsp, void* arg)
+{
+    ASEvLiveHttpClient* client = (ASEvLiveHttpClient*)arg;
+    client->handle_readchunk(remote_rsp);
+    return;
+}
+
+void ASEvLiveHttpClient::remote_connection_close_cb(struct evhttp_connection* connection, void* arg)
+{
+    ASEvLiveHttpClient* client = (ASEvLiveHttpClient*)arg;
+    client->handle_remote_connection_close(connection);
+    return;
+}
+
+int32_t ASEvLiveHttpClient::open_http_by_url(std::string& strUrl)
+{
+    struct evhttp_uri* uri = evhttp_uri_parse(strUrl.c_str());
+    if (!uri)
+    {
+        return AS_ERROR_CODE_FAIL;
+    }
+
+    int port = evhttp_uri_get_port(uri);
+    if (port < 0) {
+        port = AC_MSS_PORT_DAFAULT;
+    }
+    const char *host = evhttp_uri_get_host(uri);
+    const char *path = evhttp_uri_get_path(uri);
+    if (NULL == host)
+    {
+        evhttp_uri_free(uri);
+        return AS_ERROR_CODE_FAIL;
+    }
+    if (path == NULL || strlen(path) == 0)
+    {
+        m_reqPath = "/";
+    }
+    else
+    {
+        m_reqPath = path;
+    }
+    evhttp_uri_free(uri);
+
+
+    m_pBase = event_base_new();
+    if (!m_pBase)
+    {
+        return AS_ERROR_CODE_FAIL;
+    }
+
+    m_pReq = evhttp_request_new(remote_read_cb, this);
+    evhttp_request_set_chunked_cb(m_pReq, readchunk_cb);
+
+    m_pConn = evhttp_connection_new( host, port);
+    if (!m_pConn)
+    {
+        return AS_ERROR_CODE_FAIL;
+    }
+
+    evhttp_connection_set_closecb(m_pConn, remote_connection_close_cb, this);
+
+    return AS_ERROR_CODE_OK;
+}
+
+int32_t ASEvLiveHttpClient::send_http_post_request(std::string& strMsg)
+{
+    struct evbuffer *buf = NULL;
+    buf = evbuffer_new();
+    if (NULL == buf)
+    {
+        return AS_ERROR_CODE_FAIL;
+    }
+
+    char lenbuf[33] = { 0 };
+    snprintf(lenbuf, 32, "%lu", strMsg.length());
+    evhttp_add_header(m_pReq->output_headers, "Content-Type", "text/plain; charset=UTF-8");
+    evhttp_add_header(m_pReq->output_headers, "Content-length", lenbuf); //content length
+    evhttp_add_header(m_pReq->output_headers, "Connection", "close");
+    evbuffer_add_printf(buf, "%s", strMsg.c_str());
+    evbuffer_add_buffer(m_pReq->output_buffer, buf);
+    evhttp_make_request(m_pConn, m_pReq, EVHTTP_REQ_POST, m_reqPath.c_str());
+    evhttp_connection_set_timeout(m_pReq->evcon, 600);
+    event_base_dispatch(m_pBase);
+    return AS_ERROR_CODE_OK;
+}
+int32_t ASEvLiveHttpClient::send_http_get_request(std::string& strMsg)
+{
+    struct evbuffer *buf = NULL;
+    buf = evbuffer_new();
+    if (NULL == buf)
+    {
+        return AS_ERROR_CODE_FAIL;
+    }
+
+    char lenbuf[33] = { 0 };
+    snprintf(lenbuf, 32, "%lu", strMsg.length());
+    evhttp_add_header(m_pReq->output_headers, "Content-Type", "text/plain; charset=UTF-8");
+    evhttp_add_header(m_pReq->output_headers, "Content-length", lenbuf); //content length
+    evhttp_add_header(m_pReq->output_headers, "Connection", "close");
+    evbuffer_add_printf(buf, "%s", strMsg.c_str());
+    evbuffer_add_buffer(m_pReq->output_buffer, buf);
+    evhttp_make_request(m_pConn, m_pReq, EVHTTP_REQ_GET, m_reqPath.c_str());
+    evhttp_connection_set_timeout(m_pReq->evcon, 600);
+    event_base_dispatch(m_pBase);
+
+    return AS_ERROR_CODE_OK;
+}
 
 
 CSipSession::CSipSession()
@@ -894,6 +1157,7 @@ CSipSession::CSipSession()
     m_enStatus      = SIP_SESSION_STATUS_ADD;
     m_bRegister     = false;
     m_nRegID        = -1;
+    m_strSessionID  = "";
     m_strUsername   = "";
     m_strPasswd     = "";
     m_strDomain     = "";
@@ -909,8 +1173,9 @@ CSipSession::~CSipSession()
 {
 }
 
-void CSipSession::Init()
+void CSipSession::Init(std::string &strSessionID)
 {
+    m_strSessionID = strSessionID;
     m_mutex = as_create_mutex();
     return;
 }
@@ -945,6 +1210,8 @@ void CSipSession::SessionStatus(SIP_SESSION_STATUS enStatus)
 }
 void CSipSession::SendStatusReport()
 {
+    ASEvLiveHttpClient as_http_client;
+    as_http_client.report_sip_session_status(m_strReportUrl,m_strSessionID,m_enStatus);
     return;
 }
 int32_t CSipSession::handle_invite(int nCallId,int nTransID,CRtpPortPair* local_ports,sdp_message_t *remote_sdp/* = NULL */)
@@ -954,11 +1221,15 @@ int32_t CSipSession::handle_invite(int nCallId,int nTransID,CRtpPortPair* local_
     sdp_connection_t *video_con  = NULL;
     sdp_media_t      *md_video   = NULL;
     CRtpDestinations  dest;
+    std::string strRtspUrl = "";
+    ASEvLiveHttpClient as_http_client;
 
 #ifdef _AS_DEBUG_
-    std::string strRtspUrl = "rtsp://112.35.25.82:554/pag://112.35.25.82:7302:13000000001310000001:1:SUB:TCP?cnid=3&pnid=3&auth=50&streamform=rtp";
+    strRtspUrl = "rtsp://112.35.25.82:554/pag://112.35.25.82:7302:13000000001310000001:1:SUB:TCP?cnid=3&pnid=3&auth=50&streamform=rtp";
 #else
-    std::string strRtspUrl = "";
+    if(AS_ERROR_CODE_OK != as_http_client.send_live_url_request(m_strCameraID,m_strStreamType,strRtspUrl)) {
+        return AS_ERROR_CODE_FAIL;
+    }
 #endif
 
     as_lock_guard locker(m_mutex);
@@ -971,7 +1242,7 @@ int32_t CSipSession::handle_invite(int nCallId,int nTransID,CRtpPortPair* local_
                                      RTSP_CLIENT_VERBOSITY_LEVEL, RTSP_AGENT_NAME);
     if (rtspClient == NULL) {
         ASRtsp2SiptManager::instance().releas_env(index);
-        return NULL;
+        return AS_ERROR_CODE_FAIL;
     }
 
     ASRtsp2RtpChannel* AsRtspChannel = (ASRtsp2RtpChannel*)rtspClient;
@@ -1012,14 +1283,14 @@ int32_t  CSipSession::handle_bye(int nCallId)
     CALLRTSPCHANNELMAP::iterator iter = m_callRtspMap.find(nCallId);
     if(iter == m_callRtspMap.end())
     {
-		return AS_ERROR_CODE_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
 
     ASRtsp2RtpChannel* AsRtspChannel = iter->second;
     ASRtsp2SiptManager::instance().releas_env(AsRtspChannel->index());
     AsRtspChannel->close();
     m_callRtspMap.erase(iter);
-	return AS_ERROR_CODE_OK;
+    return AS_ERROR_CODE_OK;
 }
 void    CSipSession::handle_ack(int nCallId,sdp_message_t *remote_sdp/* = NULL */)
 {
@@ -1071,7 +1342,7 @@ void    CSipSession::close_all()
     {
         AsRtspChannel = iter->second;
         ASRtsp2SiptManager::instance().releas_env(AsRtspChannel->index());
-        AsRtspChannel->close();        
+        AsRtspChannel->close();
     }
     m_callRtspMap.clear();
     return;
@@ -1167,6 +1438,8 @@ ASRtsp2SiptManager::~ASRtsp2SiptManager()
 
 int32_t ASRtsp2SiptManager::init()
 {
+    int oRtplevelmask = ORTP_WARNING;
+    osip_trace_level_t oSipLogLevel = OSIP_WARNING;
 
     /* read the system config file */
     if (AS_ERROR_CODE_OK != read_system_conf()) {
@@ -1178,6 +1451,40 @@ int32_t ASRtsp2SiptManager::init()
     ASSetLogFilePathName(RTSP2SIP_LOG_FILE);
     ASStartLog();
 
+
+    if (AS_LOG_DEBUG == m_ulLogLM) {
+        oRtplevelmask = ORTP_DEBUG | ORTP_MESSAGE | ORTP_WARNING | ORTP_ERROR | ORTP_FATAL | ORTP_TRACE;
+        oSipLogLevel = OSIP_INFO4;
+    }
+    else if (AS_LOG_INFO == m_ulLogLM) {
+        oRtplevelmask = ORTP_MESSAGE | ORTP_WARNING | ORTP_ERROR | ORTP_FATAL | ORTP_TRACE;
+        oSipLogLevel = OSIP_INFO3;
+    }
+    else if (AS_LOG_NOTICE == m_ulLogLM) {
+        oRtplevelmask = ORTP_MESSAGE | ORTP_WARNING | ORTP_ERROR | ORTP_FATAL ;
+        oSipLogLevel = OSIP_INFO1;
+    }
+    else if (AS_LOG_WARNING == m_ulLogLM) {
+        oRtplevelmask =  ORTP_WARNING | ORTP_ERROR | ORTP_FATAL ;
+        oSipLogLevel = OSIP_WARNING;
+    }
+    else if (AS_LOG_ERROR == m_ulLogLM) {
+        oRtplevelmask = ORTP_ERROR | ORTP_FATAL;
+        oSipLogLevel = OSIP_ERROR;
+    }
+    else if (AS_LOG_CRITICAL == m_ulLogLM) {
+        oRtplevelmask = ORTP_FATAL;
+        oSipLogLevel = OSIP_BUG;
+    }
+    else if (AS_LOG_ALERT == m_ulLogLM) {
+        oRtplevelmask = ORTP_FATAL ;
+        oSipLogLevel = OSIP_FATAL;
+    }
+    else if (AS_LOG_EMERGENCY == m_ulLogLM) {
+        oRtplevelmask = ORTP_FATAL;
+        oSipLogLevel = OSIP_FATAL;
+    }
+
     /* init the port pair */
     if(AS_ERROR_CODE_OK != init_port_pairs()) {
         return AS_ERROR_CODE_FAIL;
@@ -1185,11 +1492,8 @@ int32_t ASRtsp2SiptManager::init()
 
     /* init the ortp log call back */
     ortp_set_log_handler(ortp_log_callback);
-	ortp_scheduler_init();
-	payload_type_h264;
-#ifdef _AS_DEBUG_
-	ortp_set_log_level_mask(ORTP_DEBUG | ORTP_MESSAGE | ORTP_WARNING | ORTP_ERROR | ORTP_FATAL | ORTP_TRACE);
-#endif
+    ortp_set_log_level_mask(oRtplevelmask);
+    ortp_scheduler_init();
 
     m_mutex = as_create_mutex();
     if(NULL == m_mutex) {
@@ -1198,10 +1502,9 @@ int32_t ASRtsp2SiptManager::init()
 
 
     /* init the sip context */
-    
     m_pEXosipCtx = eXosip_malloc();
-    TRACE_ENABLE_LEVEL(TRACE_LEVEL6);
-    TRACE_INITIALIZE(TRACE_LEVEL6, stderr);
+    TRACE_ENABLE_LEVEL(oSipLogLevel);
+    osip_trace_initialize_func(oSipLogLevel, osip_trace_log_callback);
     if (eXosip_init (m_pEXosipCtx)) {
         return AS_ERROR_CODE_FAIL;
     }
@@ -1487,12 +1790,12 @@ void ASRtsp2SiptManager::sip_env_thread()
         eXosip_execute (m_pEXosipCtx);
 #endif
 
-		eXosip_lock(m_pEXosipCtx);
-		eXosip_automatic_action(m_pEXosipCtx);
+        eXosip_lock(m_pEXosipCtx);
+        eXosip_automatic_action(m_pEXosipCtx);
 
-		deal_sip_event(event);
-		eXosip_event_free(event);
-		eXosip_unlock(m_pEXosipCtx);
+        deal_sip_event(event);
+        eXosip_event_free(event);
+        eXosip_unlock(m_pEXosipCtx);
     }
 
     AS_LOG(AS_LOG_INFO,"ASRtsp2SiptManager::sip_env_thread end.");
@@ -1892,7 +2195,7 @@ int32_t ASRtsp2SiptManager::handle_add_session(const XMLElement *session)
         {
             return AS_ERROR_CODE_FAIL;
         }
-        pSession->Init();
+        pSession->Init(strSessionID);
         m_SipSessionMap.insert(SIPSESSIONMAP::value_type(strSessionID,pSession));
     }
     else
@@ -2224,111 +2527,111 @@ void ASRtsp2SiptManager::send_invit_200_ok(int nTransID,CRtpPortPair*local_ports
     char localip[SIP_LOCAL_IP_LENS] = {0};
     char localsdp[SIP_SDP_LENS_MAX] = {0};
     /*2.build the response message and sdp info*/
-	eXosip_lock(m_pEXosipCtx);
+    eXosip_lock(m_pEXosipCtx);
     int i = eXosip_call_build_answer(m_pEXosipCtx, nTransID, 200, &answer);
     if (i != 0) {
         AS_LOG (AS_LOG_ERROR, "failed to create the 200 OK message.");
         eXosip_call_send_answer(m_pEXosipCtx,nTransID, 400, NULL);
-		eXosip_unlock(m_pEXosipCtx);
+        eXosip_unlock(m_pEXosipCtx);
         return;
     }
 
     eXosip_guess_localip(m_pEXosipCtx,AF_INET, localip, SIP_LOCAL_IP_LENS);
 
-	snprintf (localsdp, SIP_SDP_LENS_MAX,
-	"v=0\r\n"
-	"o=allcam 1 0 IN IP4 %s\r\n"
-	"s=-\r\n"
-	"c=IN IP4 %s\r\n"
-	"b=CT:2048\r\n"
-	"t=0 0\r\n"
-	"m=audio %d RTP/AVP 100 98 117 118 119 121 9 0 8 15 97\r\n"
-	"a=rtpmap:100 MP4A-LATM/90000\r\n"
-	"a=fmtp:100 bitrate=256000;profile-level-id=25;object=23\r\n"
-	"a=rtpmap:98 MP4A-LATM/90000\r\n"
-	"a=fmtp:98 bitrate=64000;profile-level-id=24;object=23\r\n"
-	"a=rtpmap:117 G7221/16000\r\n"
-	"a=fmtp:117 bitrate=32000\r\n"
-	"a=rtpmap:118 G7221/32000\r\n"
-	"a=fmtp:118 bitrate=48000\r\n"
-	"a=rtpmap:119 G7221/16000\r\n"
-	"a=fmtp:119 bitrate=24000\r\n"
-	"a=rtpmap:121 G719/48000/1\r\n"
-	"a=fmtp:121 CBR=64000\r\n"
-	"a=rtpmap:9 G722/8000\r\n"
-	"a=rtpmap:0 PCMU/8000\r\n"
-	"a=rtpmap:8 PCMA/8000\r\n"
-	"a=rtpmap:15 G728/8000\r\n"
-	"a=rtpmap:97 telephone-event/8000\r\n"
-	"a=fmtp:97 0-15\r\n"
-	"a=sendrecv\r\n"
-	"m=video %d RTP/AVP 107 108 34 105\r\n"
-	"b=AS:2048\r\n"
-	"a=rtpmap:107 H264/90000\r\n"
-	"a=fmtp:107 profile-level-id=420028;max-br=2048;max-mbps=491500;max-fs=8192\r\n"
-	"a=rtpmap:108 H264/90000\r\n"
-	"a=fmtp:108 profile-level-id=420028;max-br=2048;max-mbps=491500;max-fs=8192;packetization-mode=1\r\n"
-	"a=rtpmap:34 H263/90000\r\n"
-	"a=fmtp:34 CIF4=1 CIF=1 XMAX=704 YMAX=480 MPI=1 XMAX=352 YMAX=240 MPI=1 XMAX=640 YMAX=480 MPI=6 XMAX=800 YMAX=600 MPI=6 XMAX=1024 YMAX=768 MPI=6\r\n"
-	"a=rtpmap:105 H264/90000\r\n"
-	"a=fmtp:105 profile-level-id=640028;max-br=2048;max-mbps=491500;max-fs=8192;packetization-mode=1\r\n"
-	"a=rtcp-fb:* ccm fir\r\n"
-	"a=rtcp-fb:* ccm tmmbr\r\n"
-	"a=sendrecv\r\n"
-	"a=content:main\r\n"
-	"a=label:11\r\n"
-	"m=application 5071 UDP/BFCP *\r\n"
-	"a=confid:2\r\n"
-	"a=userid:31069\r\n"
-	"a=floorid:2 mstrm:12\r\n"
-	"a=floorctrl:c-s\r\n"
-	"a=setup:actpass\r\n"
-	"a=connection:new\r\n"
-	"m=application 7692 RTP/AVP 100\r\n"
-	"a=rtpmap:100 H224/4800\r\n"
-	"a=sendrecv\r\n"
-	"m=video %d RTP/AVP 107 108 96 34 105\r\n"
-	"b=AS:2048\r\n"
-	"a=rtpmap:107 H264/90000\r\n"
-	"a=fmtp:107 profile-level-id=420028;max-br=2048;max-mbps=491500;max-fs=8192\r\n"
-	"a=rtpmap:108 H264/90000\r\n"
-	"a=fmtp:108 profile-level-id=420028;max-br=2048;max-mbps=491500;max-fs=8192;packetization-mode=1\r\n"
-	"a=rtpmap:96 H263-1998/90000\r\n"
-	"a=fmtp:96 CIF4=1;CIF=1;CUSTOM=704,480,1;CUSTOM=352,240,1;CUSTOM=640,480,6;CUSTOM=800,600,6;CUSTOM=1024,768,6\r\n"
-	"a=rtpmap:34 H263/90000\r\n"
-	"a=fmtp:34 CIF4=1 CIF=1 XMAX=704 YMAX=480 MPI=1 XMAX=352 YMAX=240 MPI=1 XMAX=640 YMAX=480 MPI=6 XMAX=800 YMAX=600 MPI=6 XMAX=1024 YMAX=768 MPI=6\r\n"
-	"a=rtpmap:105 H264/90000\r\n"
-	"a=fmtp:105 profile-level-id=640028;max-br=2048;max-mbps=491500;max-fs=8192;packetization-mode=1\r\n"
-	"a=rtcp-fb:* ccm fir\r\n"
-	"a=rtcp-fb:* ccm tmmbr\r\n"
-	"a=sendrecv\r\n"
-	"a=content:slides\r\n"
-	"a=label:12\r\n",
-	localip, localip, local_ports->getARtpPort(), local_ports->getVRtpPort(), local_ports->getVRtpPort());
-	/*snprintf(localsdp, SIP_SDP_LENS_MAX,
-		"v=0\r\n"
-		"o=allcam 1 0 IN IP4 %s\r\n"
-		"s=-\r\n"
-		"c=IN IP4 %s\r\n"
-		"b=CT:2048\r\n"
-		"t=0 0\r\n"
-		"m=video %d RTP/AVP 107 108 34 105\r\n"
-		"b=AS:2048\r\n"
-		"a=rtpmap:107 H264/90000\r\n"
-		"a=fmtp:107 profile-level-id=420028;max-br=2048;max-mbps=491500;max-fs=8192\r\n"
-		"a=rtpmap:108 H264/90000\r\n"
-		"a=fmtp:108 profile-level-id=420028;max-br=2048;max-mbps=491500;max-fs=8192;packetization-mode=1\r\n"
-		"a=rtpmap:34 H263/90000\r\n"
-		"a=fmtp:34 CIF4=1 CIF=1 XMAX=704 YMAX=480 MPI=1 XMAX=352 YMAX=240 MPI=1 XMAX=640 YMAX=480 MPI=6 XMAX=800 YMAX=600 MPI=6 XMAX=1024 YMAX=768 MPI=6\r\n"
-		"a=rtpmap:105 H264/90000\r\n"
-		"a=fmtp:105 profile-level-id=640028;max-br=2048;max-mbps=491500;max-fs=8192;packetization-mode=1\r\n"
-		"a=rtcp-fb:* ccm fir\r\n"
-		"a=rtcp-fb:* ccm tmmbr\r\n"
-		"a=sendrecv\r\n"
-		"a=content:main\r\n"
-		"a=label:11\r\n",
-		localip, localip, local_ports->getVRtpPort());
-		*/
+    snprintf (localsdp, SIP_SDP_LENS_MAX,
+    "v=0\r\n"
+    "o=allcam 1 0 IN IP4 %s\r\n"
+    "s=-\r\n"
+    "c=IN IP4 %s\r\n"
+    "b=CT:2048\r\n"
+    "t=0 0\r\n"
+    "m=audio %d RTP/AVP 100 98 117 118 119 121 9 0 8 15 97\r\n"
+    "a=rtpmap:100 MP4A-LATM/90000\r\n"
+    "a=fmtp:100 bitrate=256000;profile-level-id=25;object=23\r\n"
+    "a=rtpmap:98 MP4A-LATM/90000\r\n"
+    "a=fmtp:98 bitrate=64000;profile-level-id=24;object=23\r\n"
+    "a=rtpmap:117 G7221/16000\r\n"
+    "a=fmtp:117 bitrate=32000\r\n"
+    "a=rtpmap:118 G7221/32000\r\n"
+    "a=fmtp:118 bitrate=48000\r\n"
+    "a=rtpmap:119 G7221/16000\r\n"
+    "a=fmtp:119 bitrate=24000\r\n"
+    "a=rtpmap:121 G719/48000/1\r\n"
+    "a=fmtp:121 CBR=64000\r\n"
+    "a=rtpmap:9 G722/8000\r\n"
+    "a=rtpmap:0 PCMU/8000\r\n"
+    "a=rtpmap:8 PCMA/8000\r\n"
+    "a=rtpmap:15 G728/8000\r\n"
+    "a=rtpmap:97 telephone-event/8000\r\n"
+    "a=fmtp:97 0-15\r\n"
+    "a=sendrecv\r\n"
+    "m=video %d RTP/AVP 107 108 34 105\r\n"
+    "b=AS:2048\r\n"
+    "a=rtpmap:107 H264/90000\r\n"
+    "a=fmtp:107 profile-level-id=420028;max-br=2048;max-mbps=491500;max-fs=8192\r\n"
+    "a=rtpmap:108 H264/90000\r\n"
+    "a=fmtp:108 profile-level-id=420028;max-br=2048;max-mbps=491500;max-fs=8192;packetization-mode=1\r\n"
+    "a=rtpmap:34 H263/90000\r\n"
+    "a=fmtp:34 CIF4=1 CIF=1 XMAX=704 YMAX=480 MPI=1 XMAX=352 YMAX=240 MPI=1 XMAX=640 YMAX=480 MPI=6 XMAX=800 YMAX=600 MPI=6 XMAX=1024 YMAX=768 MPI=6\r\n"
+    "a=rtpmap:105 H264/90000\r\n"
+    "a=fmtp:105 profile-level-id=640028;max-br=2048;max-mbps=491500;max-fs=8192;packetization-mode=1\r\n"
+    "a=rtcp-fb:* ccm fir\r\n"
+    "a=rtcp-fb:* ccm tmmbr\r\n"
+    "a=sendrecv\r\n"
+    "a=content:main\r\n"
+    "a=label:11\r\n"
+    "m=application 5071 UDP/BFCP *\r\n"
+    "a=confid:2\r\n"
+    "a=userid:31069\r\n"
+    "a=floorid:2 mstrm:12\r\n"
+    "a=floorctrl:c-s\r\n"
+    "a=setup:actpass\r\n"
+    "a=connection:new\r\n"
+    "m=application 7692 RTP/AVP 100\r\n"
+    "a=rtpmap:100 H224/4800\r\n"
+    "a=sendrecv\r\n"
+    "m=video %d RTP/AVP 107 108 96 34 105\r\n"
+    "b=AS:2048\r\n"
+    "a=rtpmap:107 H264/90000\r\n"
+    "a=fmtp:107 profile-level-id=420028;max-br=2048;max-mbps=491500;max-fs=8192\r\n"
+    "a=rtpmap:108 H264/90000\r\n"
+    "a=fmtp:108 profile-level-id=420028;max-br=2048;max-mbps=491500;max-fs=8192;packetization-mode=1\r\n"
+    "a=rtpmap:96 H263-1998/90000\r\n"
+    "a=fmtp:96 CIF4=1;CIF=1;CUSTOM=704,480,1;CUSTOM=352,240,1;CUSTOM=640,480,6;CUSTOM=800,600,6;CUSTOM=1024,768,6\r\n"
+    "a=rtpmap:34 H263/90000\r\n"
+    "a=fmtp:34 CIF4=1 CIF=1 XMAX=704 YMAX=480 MPI=1 XMAX=352 YMAX=240 MPI=1 XMAX=640 YMAX=480 MPI=6 XMAX=800 YMAX=600 MPI=6 XMAX=1024 YMAX=768 MPI=6\r\n"
+    "a=rtpmap:105 H264/90000\r\n"
+    "a=fmtp:105 profile-level-id=640028;max-br=2048;max-mbps=491500;max-fs=8192;packetization-mode=1\r\n"
+    "a=rtcp-fb:* ccm fir\r\n"
+    "a=rtcp-fb:* ccm tmmbr\r\n"
+    "a=sendrecv\r\n"
+    "a=content:slides\r\n"
+    "a=label:12\r\n",
+    localip, localip, local_ports->getARtpPort(), local_ports->getVRtpPort(), local_ports->getVRtpPort());
+    /*snprintf(localsdp, SIP_SDP_LENS_MAX,
+        "v=0\r\n"
+        "o=allcam 1 0 IN IP4 %s\r\n"
+        "s=-\r\n"
+        "c=IN IP4 %s\r\n"
+        "b=CT:2048\r\n"
+        "t=0 0\r\n"
+        "m=video %d RTP/AVP 107 108 34 105\r\n"
+        "b=AS:2048\r\n"
+        "a=rtpmap:107 H264/90000\r\n"
+        "a=fmtp:107 profile-level-id=420028;max-br=2048;max-mbps=491500;max-fs=8192\r\n"
+        "a=rtpmap:108 H264/90000\r\n"
+        "a=fmtp:108 profile-level-id=420028;max-br=2048;max-mbps=491500;max-fs=8192;packetization-mode=1\r\n"
+        "a=rtpmap:34 H263/90000\r\n"
+        "a=fmtp:34 CIF4=1 CIF=1 XMAX=704 YMAX=480 MPI=1 XMAX=352 YMAX=240 MPI=1 XMAX=640 YMAX=480 MPI=6 XMAX=800 YMAX=600 MPI=6 XMAX=1024 YMAX=768 MPI=6\r\n"
+        "a=rtpmap:105 H264/90000\r\n"
+        "a=fmtp:105 profile-level-id=640028;max-br=2048;max-mbps=491500;max-fs=8192;packetization-mode=1\r\n"
+        "a=rtcp-fb:* ccm fir\r\n"
+        "a=rtcp-fb:* ccm tmmbr\r\n"
+        "a=sendrecv\r\n"
+        "a=content:main\r\n"
+        "a=label:11\r\n",
+        localip, localip, local_ports->getVRtpPort());
+        */
 
     AS_LOG(AS_LOG_DEBUG, " local media channel Sdp:[%s]", localsdp);
 
@@ -2336,7 +2639,7 @@ void ASRtsp2SiptManager::send_invit_200_ok(int nTransID,CRtpPortPair*local_ports
     osip_message_set_content_type (answer, "application/sdp");
     AS_LOG(AS_LOG_DEBUG, " send the invite 200 OK.");
     eXosip_call_send_answer(m_pEXosipCtx,nTransID, 200, answer);
-	eXosip_unlock(m_pEXosipCtx);
+    eXosip_unlock(m_pEXosipCtx);
     AS_LOG(AS_LOG_DEBUG, "deal the send invite 200 ok end.");
 }
 
@@ -2394,53 +2697,53 @@ void ASRtsp2SiptManager::deal_call_close_req(eXosip_event_t *event)
     CSipSession* pSession = NULL;
 
     close = event->request;
-	dialog_id = event->did;
-	call_id = event->cid;
-	as_lock_guard locker(m_mutex);
+    dialog_id = event->did;
+    call_id = event->cid;
+    as_lock_guard locker(m_mutex);
 
-	if (NULL != close) {
+    if (NULL != close) {
 
-		std::string strUsername = close->req_uri->username;		
-		SIPSESSIONMAP::iterator iter = m_SipSessionMap.find(strUsername);
-		if (iter == m_SipSessionMap.end())
-		{
-			/* send the 405 reject invite*/
-			i = eXosip_call_build_answer(m_pEXosipCtx, event->tid, 405, &answer);
-			if (i != 0) {
-				AS_LOG(AS_LOG_ERROR, "failed to create the reject message.");
-				return;
-			}
-			osip_free(answer->reason_phrase);
-			answer->reason_phrase = osip_strdup("the camera is not found");
-			i = eXosip_call_send_answer(m_pEXosipCtx, event->tid, 405, answer);
-			if (i != 0) {
-				AS_LOG(AS_LOG_ERROR, "failed to send the reject message.");
-				return;
-			}
-			return;
-		}
-		pSession = iter->second;		
+        std::string strUsername = close->req_uri->username;
+        SIPSESSIONMAP::iterator iter = m_SipSessionMap.find(strUsername);
+        if (iter == m_SipSessionMap.end())
+        {
+            /* send the 405 reject invite*/
+            i = eXosip_call_build_answer(m_pEXosipCtx, event->tid, 405, &answer);
+            if (i != 0) {
+                AS_LOG(AS_LOG_ERROR, "failed to create the reject message.");
+                return;
+            }
+            osip_free(answer->reason_phrase);
+            answer->reason_phrase = osip_strdup("the camera is not found");
+            i = eXosip_call_send_answer(m_pEXosipCtx, event->tid, 405, answer);
+            if (i != 0) {
+                AS_LOG(AS_LOG_ERROR, "failed to send the reject message.");
+                return;
+            }
+            return;
+        }
+        pSession = iter->second;
 
-		pSession->handle_bye(call_id);
-		free_port_pair(call_id);
-	}
-	else {
-		as_lock_guard locker(m_mutex);
-		SIPSESSIONMAP::iterator iter = m_SipSessionMap.begin();
-		for (; iter != m_SipSessionMap.end();++iter)
-		{
-			pSession = iter->second;
-			if (NULL == pSession) {
-				continue;
-			}
-			if (AS_ERROR_CODE_OK != pSession->handle_bye(call_id)) {
-				continue;
-			}
-			free_port_pair(call_id);
-			break;
-		}
-	}
-	
+        pSession->handle_bye(call_id);
+        free_port_pair(call_id);
+    }
+    else {
+        as_lock_guard locker(m_mutex);
+        SIPSESSIONMAP::iterator iter = m_SipSessionMap.begin();
+        for (; iter != m_SipSessionMap.end();++iter)
+        {
+            pSession = iter->second;
+            if (NULL == pSession) {
+                continue;
+            }
+            if (AS_ERROR_CODE_OK != pSession->handle_bye(call_id)) {
+                continue;
+            }
+            free_port_pair(call_id);
+            break;
+        }
+    }
+
 
     AS_LOG (AS_LOG_INFO, "CSipManager::deal_call_close_req,deal CALL CLOSE end");
 }
@@ -2453,8 +2756,8 @@ void ASRtsp2SiptManager::deal_call_cancelled_req(eXosip_event_t *event)
     sdp_media_t      *md_audio = NULL;
     sdp_connection_t *video_con = NULL;
     sdp_media_t      *md_video = NULL;
-	osip_message_t *answer;
-	int i;
+    osip_message_t *answer;
+    int i;
 
 
     int call_id, dialog_id;
@@ -2468,26 +2771,26 @@ void ASRtsp2SiptManager::deal_call_cancelled_req(eXosip_event_t *event)
     SIPSESSIONMAP::iterator iter = m_SipSessionMap.find(strUsername);
     if(iter != m_SipSessionMap.end())
     {
-		pSession = iter->second;
+        pSession = iter->second;
 
-		call_id = event->cid;
-		dialog_id = event->did;
+        call_id = event->cid;
+        dialog_id = event->did;
 
-		pSession->handle_bye(call_id);
-		free_port_pair(call_id);
+        pSession->handle_bye(call_id);
+        free_port_pair(call_id);
     }
-    
 
-	i = eXosip_message_build_answer(m_pEXosipCtx, event->tid, 200, &answer);
-	if (i != 0) {
-		AS_LOG(AS_LOG_ERROR, "failed to create %s", event->request->sip_method);
-		return;
-	}
-	i = eXosip_message_send_answer(m_pEXosipCtx, event->tid, 200, answer);
-	if (i != 0) {
-		AS_LOG(AS_LOG_INFO, "failed to send %s", event->request->sip_method);
-		return;
-	}
+
+    i = eXosip_message_build_answer(m_pEXosipCtx, event->tid, 200, &answer);
+    if (i != 0) {
+        AS_LOG(AS_LOG_ERROR, "failed to create %s", event->request->sip_method);
+        return;
+    }
+    i = eXosip_message_send_answer(m_pEXosipCtx, event->tid, 200, answer);
+    if (i != 0) {
+        AS_LOG(AS_LOG_INFO, "failed to send %s", event->request->sip_method);
+        return;
+    }
 
     AS_LOG (AS_LOG_INFO, "CSipManager::deal_call_cancelled_req,deal CANCELLED end");
 }
@@ -2579,41 +2882,60 @@ u_int32_t ASRtsp2SiptManager::getRecvBufSize()
 }
 void ASRtsp2SiptManager::ortp_log_callback(OrtpLogLevel lev, const char *fmt, va_list args)
 {
-    /*typedef enum {
-        ORTP_DEBUG = 1,
-        ORTP_MESSAGE = 1 << 1,
-        ORTP_WARNING = 1 << 2,
-        ORTP_ERROR = 1 << 3,
-        ORTP_FATAL = 1 << 4,
-        ORTP_TRACE = 1 << 5,
-        ORTP_LOGLEV_END = 1 << 6
-    } OrtpLogLevel;*/
-	char szLogTmp[ORTP_LOG_LENS_MAX] = { 0 };
+
+    char szLogTmp[ORTP_LOG_LENS_MAX] = { 0 };
 #if AS_APP_OS == AS_OS_LINUX
-	(void)::vsnprintf(szLogTmp, ORTP_LOG_LENS_MAX, fmt, args);
+    (void)::vsnprintf(szLogTmp, ORTP_LOG_LENS_MAX, fmt, args);
 #elif AS_APP_OS == AS_OS_WIN32
-	(void)::_vsnprintf(szLogTmp, ORTP_LOG_LENS_MAX, fmt, args);
+    (void)::_vsnprintf(szLogTmp, ORTP_LOG_LENS_MAX, fmt, args);
 #endif
     if (ORTP_DEBUG == lev || ORTP_MESSAGE == lev) {
-		AS_LOG(AS_LOG_DEBUG, "ortp:[%s]", szLogTmp);
+        AS_LOG(AS_LOG_DEBUG, "ortp:[%s]", szLogTmp);
     }
     else if (ORTP_WARNING == lev) {
-		AS_LOG(AS_LOG_WARNING, "ortp:[%s]", szLogTmp);
+        AS_LOG(AS_LOG_WARNING, "ortp:[%s]", szLogTmp);
     }
     else if (ORTP_ERROR == lev) {
-		AS_LOG(AS_LOG_ERROR, "ortp:[%s]", szLogTmp);
+        AS_LOG(AS_LOG_ERROR, "ortp:[%s]", szLogTmp);
     }
     else if (ORTP_FATAL == lev) {
-		AS_LOG(AS_LOG_CRITICAL, "ortp:[%s]", szLogTmp);
+        AS_LOG(AS_LOG_CRITICAL, "ortp:[%s]", szLogTmp);
     }
     else if (ORTP_TRACE == lev) {
-		AS_LOG(AS_LOG_DEBUG, "ortp:[%s]", szLogTmp);
+        AS_LOG(AS_LOG_DEBUG, "ortp:[%s]", szLogTmp);
     }
     else {
         AS_LOG(AS_LOG_DEBUG, fmt, args);
     }
 }
-
+void ASRtsp2SiptManager::osip_trace_log_callback(char *fi, int li, osip_trace_level_t level, char *chfr, va_list ap)
+{
+    char szLogTmp[ORTP_LOG_LENS_MAX] = { 0 };
+#if AS_APP_OS == AS_OS_LINUX
+    (void)::vsnprintf(szLogTmp, ORTP_LOG_LENS_MAX, chfr, ap);
+#elif AS_APP_OS == AS_OS_WIN32
+    (void)::_vsnprintf(szLogTmp, ORTP_LOG_LENS_MAX, chfr, ap);
+#endif
+    if (OSIP_BUG == level || OSIP_INFO1 == level || OSIP_INFO2 == level
+        || OSIP_INFO3 == level || OSIP_INFO4 == level) {
+        AS_LOG(AS_LOG_DEBUG, "osip:[%s:%d][%s]", fi, li,szLogTmp);
+    }
+    else if (OSIP_WARNING == level) {
+        AS_LOG(AS_LOG_WARNING, "osip:[%s:%d][%s]", fi, li, szLogTmp);
+    }
+    else if (OSIP_ERROR == level) {
+        AS_LOG(AS_LOG_ERROR, "osip:[%s:%d][%s]", fi, li, szLogTmp);
+    }
+    else if (OSIP_FATAL == level) {
+        AS_LOG(AS_LOG_CRITICAL, "osip:[%s:%d][%s]", fi, li, szLogTmp);
+    }
+    else if (ORTP_TRACE == level) {
+        AS_LOG(AS_LOG_DEBUG, "osip:[%s]", szLogTmp);
+    }
+    else {
+        AS_LOG(AS_LOG_DEBUG, "osip:[%s:%d][%s]", fi, li, szLogTmp);
+    }
+}
 
 
 

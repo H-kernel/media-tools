@@ -61,6 +61,7 @@
     <ClInclude Include="..\common\as_config.h" />
     <ClInclude Include="..\common\as_event.h" />
     <ClInclude Include="..\common\as_ini_config.h" />
+    <ClInclude Include="..\common\as_json.h" />
     <ClInclude Include="..\common\as_lock_guard.h" />
     <ClInclude Include="..\common\as_log.h" />
     <ClInclude Include="..\common\as_mutex.h" />
@@ -80,6 +81,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\common\as_ini_config.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\common\as_json.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\common\as_lock_guard.cpp">

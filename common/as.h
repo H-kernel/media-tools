@@ -9,6 +9,7 @@ extern "C"{
 #include "as_event.h"
 #include "as_thread.h"
 #include "as_time.h"
+#include "as_json.h"
 }
 #include "as_ini_config.h"
 #include "as_lock_guard.h"
