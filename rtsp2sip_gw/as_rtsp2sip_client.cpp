@@ -1019,9 +1019,18 @@ void    ASEvLiveHttpClient::report_sip_session_status(std::string& strUrl,std::s
 }
 void ASEvLiveHttpClient::handle_remote_read(struct evhttp_request* remote_rsp)
 {
+    if (NULL == remote_rsp){
+        event_base_loopexit(m_pBase, NULL);
+        return;
+    }
     size_t len = evbuffer_get_length(remote_rsp->input_buffer);
     const char * str = (const char*)evbuffer_pullup(remote_rsp->input_buffer, len);
-    m_strRespMsg.append(str,0,len);
+    if ((0 == len) || (NULL == str)) {
+        m_strRespMsg = "";
+        event_base_loopexit(m_pBase, NULL);
+        return;
+    }
+    m_strRespMsg.append(str, 0, len);
     event_base_loopexit(m_pBase, NULL);
 }
 
@@ -1083,12 +1092,13 @@ int32_t ASEvLiveHttpClient::open_http_by_url(std::string& strUrl)
     {
         m_reqPath = path;
     }
-    evhttp_uri_free(uri);
+    
 
 
     m_pBase = event_base_new();
     if (!m_pBase)
     {
+        evhttp_uri_free(uri);
         return AS_ERROR_CODE_FAIL;
     }
 
@@ -1098,11 +1108,12 @@ int32_t ASEvLiveHttpClient::open_http_by_url(std::string& strUrl)
     m_pConn = evhttp_connection_new( host, port);
     if (!m_pConn)
     {
+        evhttp_uri_free(uri);
         return AS_ERROR_CODE_FAIL;
     }
-
+    evhttp_connection_set_base(m_pConn, m_pBase);
     evhttp_connection_set_closecb(m_pConn, remote_connection_close_cb, this);
-
+    evhttp_uri_free(uri);
     return AS_ERROR_CODE_OK;
 }
 
@@ -2228,7 +2239,7 @@ void    ASRtsp2SiptManager::handle_remove_session(std::string &strSessionID)
 
 void ASRtsp2SiptManager::send_sip_regsiter(CSipSession* pSession)
 {
-    if(NULL != pSession)
+    if(NULL == pSession)
     {
         return;
     }
@@ -2279,7 +2290,7 @@ void ASRtsp2SiptManager::send_sip_regsiter(CSipSession* pSession)
 
 void    ASRtsp2SiptManager::send_sip_unregsiter(CSipSession* pSession)
 {
-    if(NULL != pSession)
+    if(NULL == pSession)
     {
         return;
     }
