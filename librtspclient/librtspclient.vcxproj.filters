@@ -45,6 +45,9 @@
     <ClInclude Include="..\common\as_thread.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="..\common\as_lock_guard.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -60,6 +63,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="..\common\as_thread.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\as_lock_guard.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

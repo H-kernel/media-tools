@@ -84,6 +84,42 @@ public:
     Boolean SupportsGetParameter(){return m_bSupportsGetParameter;};
     as_rtsp_callback_t* get_cb(){return m_cb;};
 public:
+    void handleAfterOPTIONS(int resultCode, char* resultString);
+    void handleAfterDESCRIBE(int resultCode, char* resultString);
+    void handleAfterSETUP(int resultCode, char* resultString);
+    void handleAfterPLAY(int resultCode, char* resultString);
+    void handleAfterGET_PARAMETE(int resultCode, char* resultString);
+    void handleAfterPause(int resultCode, char* resultString);
+    void handleAfterSeek(int resultCode, char* resultString);
+    void handleAfterTeardown(int resultCode, char* resultString);
+
+    // Other event handler functions:
+    void handlesubsessionAfterPlaying(MediaSubsession* subsession); // called when a stream's subsession (e.g., audio or video substream) ends
+    void handlesubsessionByeHandler(MediaSubsession* subsession); // called when a RTCP "BYE" is received for a subsession
+    void handlestreamTimerHandler(MediaSubsession* subsession);
+
+    // Used to iterate through each stream's 'subsessions', setting up each one:
+    void setupNextSubsession();
+private:
+    void    destory();
+    // Used to shut down and close a stream (including its "RTSPClient" object):
+    void shutdownStream(int exitCode = 1);
+public:
+    // RTSP 'response handlers':
+    static void continueAfterOPTIONS(RTSPClient* rtspClient, int resultCode, char* resultString);
+    static void continueAfterDESCRIBE(RTSPClient* rtspClient, int resultCode, char* resultString);
+    static void continueAfterSETUP(RTSPClient* rtspClient, int resultCode, char* resultString);
+    static void continueAfterPLAY(RTSPClient* rtspClient, int resultCode, char* resultString);
+    static void continueAfterGET_PARAMETE(RTSPClient* rtspClient, int resultCode, char* resultString);
+    static void continueAfterPause(RTSPClient* rtspClient, int resultCode, char* resultString);
+    static void continueAfterSeek(RTSPClient* rtspClient, int resultCode, char* resultString);
+    static void continueAfterTeardown(RTSPClient* rtspClient, int resultCode, char* resultString);
+
+    // Other event handler functions:
+    static void subsessionAfterPlaying(void* clientData); // called when a stream's subsession (e.g., audio or video substream) ends
+    static void subsessionByeHandler(void* clientData); // called when a RTCP "BYE" is received for a subsession
+    static void streamTimerHandler(void* clientData);
+public:
     ASRtspStreamState   scs;
 private:
     u_int32_t           m_ulEnvIndex;
@@ -92,6 +128,8 @@ private:
     double              m_dStarttime;
     double              m_dEndTime;
     int                 m_curStatus;
+    as_mutex_t         *m_mutex;
+    volatile int32_t    m_ulRefCount;
 };
 
 // Define a data sink (a subclass of "MediaSink") to receive the data for each subsession (i.e., each audio or video 'substream').
@@ -112,6 +150,7 @@ public:
 private:
   ASStreamSink(UsageEnvironment& env, MediaSubsession& subsession, char const* streamId,as_rtsp_callback_t* cb);
     // called only by "createNew()"
+public:
   virtual ~ASStreamSink();
 
   static void afterGettingFrame(void* clientData, unsigned frameSize,
@@ -163,27 +202,6 @@ public:
     u_int32_t getRecvBufSize();
 public:
     void rtsp_env_thread();
-public:
-    // RTSP 'response handlers':
-    static void continueAfterOPTIONS(RTSPClient* rtspClient, int resultCode, char* resultString);
-    static void continueAfterDESCRIBE(RTSPClient* rtspClient, int resultCode, char* resultString);
-    static void continueAfterSETUP(RTSPClient* rtspClient, int resultCode, char* resultString);
-    static void continueAfterPLAY(RTSPClient* rtspClient, int resultCode, char* resultString);
-    static void continueAfterGET_PARAMETE(RTSPClient* rtspClient, int resultCode, char* resultString);
-    static void continueAfterPause(RTSPClient* rtspClient, int resultCode, char* resultString);
-    static void continueAfterSeek(RTSPClient* rtspClient, int resultCode, char* resultString);
-    static void continueAfterTeardown(RTSPClient* rtspClient, int resultCode, char* resultString);
-
-    // Other event handler functions:
-    static void subsessionAfterPlaying(void* clientData); // called when a stream's subsession (e.g., audio or video substream) ends
-    static void subsessionByeHandler(void* clientData); // called when a RTCP "BYE" is received for a subsession
-    static void streamTimerHandler(void* clientData);
-
-    // Used to iterate through each stream's 'subsessions', setting up each one:
-    static void setupNextSubsession(RTSPClient* rtspClient);
-
-    // Used to shut down and close a stream (including its "RTSPClient" object):
-    static void shutdownStream(RTSPClient* rtspClient, int exitCode = 1);
 
 protected:
     ASRtspClientManager();

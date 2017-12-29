@@ -379,7 +379,7 @@ RTSPClient::RTSPClient(UsageEnvironment& env, char const* rtspURL,
   }
 
   // Set the "User-Agent:" header to use in each request:
-  char const* const libName = "LIVE555 Streaming Media v";
+  char const* const libName = "all Stream Media v";
   char const* const libVersionStr = LIVEMEDIA_LIBRARY_VERSION_STRING;
   char const* libPrefix; char const* libSuffix;
   if (applicationName == NULL || applicationName[0] == '\0') {
@@ -1616,7 +1616,7 @@ void RTSPClient::handleResponseBytes(int newBytesRead) {
 
   fResponseBufferBytesLeft -= newBytesRead;
   fResponseBytesAlreadySeen += newBytesRead;
-  fResponseBuffer[fResponseBytesAlreadySeen] = '\0';
+  fResponseBuffer[fResponseBytesAlreadySeen+1] = '\0';
   if (fVerbosityLevel >= 1 && newBytesRead > 1) envir() << "Received " << newBytesRead << " new bytes of response data.\n";
   
   unsigned numExtraBytesAfterResponse = 0;
