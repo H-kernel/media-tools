@@ -717,14 +717,16 @@ ASRtspClientManager::ASRtspClientManager()
     m_ulTdIndex     = 0;
     m_LoopWatchVar  = 0;
     m_ulRecvBufSize = RTSP_SOCKET_RECV_BUFFER_SIZE_DEFAULT;
+    m_ulModel       = AS_RTSP_MODEL_MUTIL;
 }
 
 ASRtspClientManager::~ASRtspClientManager()
 {
 }
 
-int32_t ASRtspClientManager::init()
+int32_t ASRtspClientManager::init(u_int32_t model)
 {
+    m_ulModel = model;
     // Begin by setting up our usage environment:
     u_int32_t i = 0;
 
@@ -732,17 +734,20 @@ int32_t ASRtspClientManager::init()
     if(NULL == m_mutex) {
         return -1;
     }
-    for(i = 0;i < RTSP_MANAGE_ENV_MAX_COUNT;i++) {
-        m_envArray[i] = NULL;
-        m_clCountArray[i] = 0;
-    }
-    m_LoopWatchVar = 0;
-    for(i = 0;i < RTSP_MANAGE_ENV_MAX_COUNT;i++) {
-        if( AS_ERROR_CODE_OK != as_create_thread((AS_THREAD_FUNC)rtsp_env_invoke,
-                                                 this,&m_ThreadHandle[i],AS_DEFAULT_STACK_SIZE)) {
-            return -1;
-        }
 
+    if(AS_RTSP_MODEL_MUTIL == m_ulModel) {
+        for(i = 0;i < RTSP_MANAGE_ENV_MAX_COUNT;i++) {
+            m_envArray[i] = NULL;
+            m_clCountArray[i] = 0;
+        }
+        m_LoopWatchVar = 0;
+        for(i = 0;i < RTSP_MANAGE_ENV_MAX_COUNT;i++) {
+            if( AS_ERROR_CODE_OK != as_create_thread((AS_THREAD_FUNC)rtsp_env_invoke,
+                                                     this,&m_ThreadHandle[i],AS_DEFAULT_STACK_SIZE)) {
+                return -1;
+            }
+
+        }
     }
 
     return 0;
@@ -792,7 +797,7 @@ void ASRtspClientManager::rtsp_env_thread()
 
 u_int32_t ASRtspClientManager::find_beast_thread()
 {
-    
+
     u_int32_t index = 0;
     u_int32_t count = 0xFFFFFFFF;
     for(u_int32_t i = 0; i < RTSP_MANAGE_ENV_MAX_COUNT;i++) {
@@ -801,7 +806,7 @@ u_int32_t ASRtspClientManager::find_beast_thread()
             count = m_clCountArray[i];
         }
     }
-    
+
     return index;
 }
 
@@ -810,15 +815,26 @@ u_int32_t ASRtspClientManager::find_beast_thread()
 AS_HANDLE ASRtspClientManager::openURL(char const* rtspURL,as_rtsp_callback_t* cb) {
 
     as_mutex_lock(m_mutex);
-    u_int32_t index = find_beast_thread();
-    UsageEnvironment* env = m_envArray[index];
+    TaskScheduler* scheduler = NULL;
+    UsageEnvironment* env = NULL;
+    u_int32_t index =  0;
+    if(AS_RTSP_MODEL_MUTIL == m_ulModel) {
+        index = find_beast_thread();
+        env = m_envArray[index];
+    }
+    else {
+        scheduler = BasicTaskScheduler::createNew();
+        env = BasicUsageEnvironment::createNew(*scheduler);
+    }
 
     RTSPClient* rtspClient = ASRtspClient::createNew(index,*env, rtspURL, RTSP_CLIENT_VERBOSITY_LEVEL, RTSP_AGENT_NAME);
     if (rtspClient == NULL) {
         as_mutex_unlock(m_mutex);
         return NULL;
     }
-    m_clCountArray[index]++;
+    if(AS_RTSP_MODEL_MUTIL == m_ulModel) {
+        m_clCountArray[index]++;
+    }
 
     ASRtspClient* AsRtspClient = (ASRtspClient*)rtspClient;
 
@@ -830,13 +846,23 @@ AS_HANDLE ASRtspClientManager::openURL(char const* rtspURL,as_rtsp_callback_t* c
 void      ASRtspClientManager::closeURL(AS_HANDLE handle)
 {
     as_mutex_lock(m_mutex);
+    TaskScheduler* scheduler = NULL;
+    UsageEnvironment* env = NULL;
+
     ASRtspClient* pAsRtspClient = (ASRtspClient*)handle;
-    u_int32_t index = pAsRtspClient->index();
     pAsRtspClient->close();
-
-	//Medium::close(pAsRtspClient);			//Added by Chris@201712011000;
-
-    m_clCountArray[index]--;
+    if(AS_RTSP_MODEL_MUTIL == m_ulModel) {
+       u_int32_t index = pAsRtspClient->index();
+       m_clCountArray[index]--;
+    }
+    else {
+        env = &pAsRtspClient->envir();
+        scheduler = &env->taskScheduler();
+        env->reclaim();
+        env = NULL;
+        delete scheduler;
+        scheduler = NULL;
+    }
     as_mutex_unlock(m_mutex);
     return;
 }
@@ -862,6 +888,25 @@ void ASRtspClientManager::play(AS_HANDLE handle)
     ASRtspClient* pAsRtspClient = (ASRtspClient*)handle;
     pAsRtspClient->play();
 }
+void ASRtspClientManager::run(AS_HANDLE handle,char* LoopWatchVar)
+{
+    TaskScheduler* scheduler = NULL;
+    UsageEnvironment* env = NULL;
+    if(AS_RTSP_MODEL_MUTIL == m_ulModel) {
+        return;
+    }
+    ASRtspClient* pAsRtspClient = (ASRtspClient*)handle;
+    if(NULL == pAsRtspClient) {
+        return;
+    }
+    env = &pAsRtspClient->envir();
+    if(NULL == env) {
+        return;
+    }
+    env->taskScheduler().doEventLoop(LoopWatchVar);
+    return;
+}
+
 void ASRtspClientManager::setRecvBufSize(u_int32_t ulSize)
 {
     m_ulRecvBufSize = ulSize;

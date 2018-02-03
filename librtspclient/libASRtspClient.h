@@ -14,7 +14,7 @@
 extern "C"
 {
     /* init the rtsp client libary */
-    AS_API int32_t   as_lib_init();
+    AS_API int32_t   as_lib_init(uint32_t model);
     /* release the rtsp client bibary */
     AS_API void      as_lib_release();
     /* set the socket recv buffer size*/
@@ -33,5 +33,7 @@ extern "C"
     AS_API void      as_pause(AS_HANDLE handle);
     /* continue the play */
     AS_API void      as_continue(AS_HANDLE handle);
+    /* run by the caller on the  single model */
+    AS_API void      as_run(AS_HANDLE handle,char* LoopWatchVar);
 }
 #endif /*__LIB_AS_RTSP_CLINET_H__*/

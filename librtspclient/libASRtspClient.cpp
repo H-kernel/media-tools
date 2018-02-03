@@ -4,9 +4,9 @@
 #include "libASRtspClient.h"
 #include "as_rtsp_client.h"
 /* init the rtsp client libary */
-int32_t   as_lib_init()
+int32_t   as_lib_init(uint32_t model)
 {
-    return ASRtspClientManager::instance().init();
+    return ASRtspClientManager::instance().init(model);
 }
 /* release the rtsp client bibary */
 void      as_lib_release()
@@ -54,5 +54,11 @@ void      as_continue(AS_HANDLE handle)
 {
     ASRtspClientManager::instance().play(handle);
 }
+/* run by the caller on the  single model */
+void      as_run(AS_HANDLE handle,char* LoopWatchVar)
+{
+    ASRtspClientManager::instance().run(handle, LoopWatchVar);
+}
+
 
 

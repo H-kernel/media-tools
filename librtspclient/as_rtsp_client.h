@@ -188,7 +188,7 @@ public:
     virtual ~ASRtspClientManager();
 public:
     // init the live Environment
-    int32_t init();
+    int32_t init(u_int32_t model);
     void    release();
     // The main streaming routine (for each "rtsp://" URL):
     AS_HANDLE openURL(char const* rtspURL,as_rtsp_callback_t* cb);
@@ -197,6 +197,7 @@ public:
     void      seek(AS_HANDLE handle,double start);
     void      pause(AS_HANDLE handle);
     void      play(AS_HANDLE handle);
+    void      run(AS_HANDLE handle,char* LoopWatchVar);
     // option set function
     void      setRecvBufSize(u_int32_t ulSize);
     u_int32_t getRecvBufSize();
@@ -217,6 +218,7 @@ private:
     }
     u_int32_t find_beast_thread();
 private:
+    u_int32_t         m_ulModel;
     u_int32_t         m_ulTdIndex;
     as_mutex_t       *m_mutex;
     char              m_LoopWatchVar;

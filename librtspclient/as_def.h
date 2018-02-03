@@ -24,6 +24,12 @@ extern "C" int initializeWinsockIfNecessary();
 
 typedef void*    AS_HANDLE;
 
+enum AS_RTSP_MODEL {
+    AS_RTSP_MODEL_MUTIL      = 0,
+    AS_RTSP_MODEL_SINGLE     = 1,
+};
+
+
 enum AS_RTSP_STATUS {
     AS_RTSP_STATUS_INIT       = 0x00,
     AS_RTSP_STATUS_SETUP      = 0x01,

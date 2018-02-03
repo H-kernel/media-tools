@@ -1616,7 +1616,8 @@ void RTSPClient::handleResponseBytes(int newBytesRead) {
 
   fResponseBufferBytesLeft -= newBytesRead;
   fResponseBytesAlreadySeen += newBytesRead;
-  fResponseBuffer[fResponseBytesAlreadySeen+1] = '\0';
+  fResponseBuffer[fResponseBytesAlreadySeen] = '\0';
+
   if (fVerbosityLevel >= 1 && newBytesRead > 1) envir() << "Received " << newBytesRead << " new bytes of response data.\n";
   
   unsigned numExtraBytesAfterResponse = 0;
