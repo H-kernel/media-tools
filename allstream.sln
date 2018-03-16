@@ -48,6 +48,15 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "osip2", "3rd_party\osip\pla
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "osipparser2", "3rd_party\osip\platform\vsnet\osipparser2.vcxproj", "{44F46B7E-0E51-4304-9735-330DFBAB41E5}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rtsp_guard", "rtsp_guard\rtsp_guard.vcxproj", "{24B481C3-7E23-41F2-94A2-4CE100AB6A31}"
+	ProjectSection(ProjectDependencies) = postProject
+		{08BC9245-0CE6-46F6-A677-FF0724C56217} = {08BC9245-0CE6-46F6-A677-FF0724C56217}
+		{DA758269-B22A-4DD8-9FE2-65AFB06DDDD8} = {DA758269-B22A-4DD8-9FE2-65AFB06DDDD8}
+		{4259EDC5-EC12-4C91-8D32-EC5AA25B7C3E} = {4259EDC5-EC12-4C91-8D32-EC5AA25B7C3E}
+		{3DEBB3E1-F25F-4EC8-8798-4568DE67E20C} = {3DEBB3E1-F25F-4EC8-8798-4568DE67E20C}
+		{D4403CF2-1F2F-4120-9B98-021CA2197AA9} = {D4403CF2-1F2F-4120-9B98-021CA2197AA9}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -136,6 +145,12 @@ Global
 		{44F46B7E-0E51-4304-9735-330DFBAB41E5}.Release|Win32.Build.0 = Release|Win32
 		{44F46B7E-0E51-4304-9735-330DFBAB41E5}.Release|x64.ActiveCfg = Release|x64
 		{44F46B7E-0E51-4304-9735-330DFBAB41E5}.Release|x64.Build.0 = Release|x64
+		{24B481C3-7E23-41F2-94A2-4CE100AB6A31}.Debug|Win32.ActiveCfg = Release|Win32
+		{24B481C3-7E23-41F2-94A2-4CE100AB6A31}.Debug|Win32.Build.0 = Release|Win32
+		{24B481C3-7E23-41F2-94A2-4CE100AB6A31}.Debug|x64.ActiveCfg = Release|Win32
+		{24B481C3-7E23-41F2-94A2-4CE100AB6A31}.Release|Win32.ActiveCfg = Release|Win32
+		{24B481C3-7E23-41F2-94A2-4CE100AB6A31}.Release|Win32.Build.0 = Release|Win32
+		{24B481C3-7E23-41F2-94A2-4CE100AB6A31}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

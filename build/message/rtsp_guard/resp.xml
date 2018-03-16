@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<resp version="1.0" err_code="0" err_msg="success">
+    <check checkid="1234567890" /> <!-- command:start,stop,update -->
+</resp>

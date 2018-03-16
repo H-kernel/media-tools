@@ -15,6 +15,8 @@ LIB_COMMON_DIR = common
 
 LIB_RTSP_CLIENT_DIR = librtspclient
 
+AS_RTSP_GUARD = rtsp_guard
+
 all:
 	cd $(LIVEMEDIA_DIR) ; $(MAKE)
 	cd $(GROUPSOCK_DIR) ; $(MAKE)
@@ -25,6 +27,7 @@ all:
 	cd $(PROXY_SERVER_DIR) ; $(MAKE)
 	cd $(LIB_COMMON_DIR); $(MAKE)
 	cd $(LIB_RTSP_CLIENT_DIR); $(MAKE)
+    cd $(AS_RTSP_GUARD); $(MAKE)
 	@echo
 	@echo "For more information about this source code (including your obligations under the LGPL), please see our FAQ at http://live555.com/liveMedia/faq.html"
 
@@ -38,6 +41,7 @@ install:
 	cd $(PROXY_SERVER_DIR) ; $(MAKE) install
 	cd $(LIB_COMMON_DIR); $(MAKE) install
 	cd $(LIB_RTSP_CLIENT_DIR); $(MAKE) install
+    cd $(AS_RTSP_GUARD); $(MAKE) install
 
 clean:
 	cd $(LIVEMEDIA_DIR) ; $(MAKE) clean
@@ -49,6 +53,7 @@ clean:
 	cd $(PROXY_SERVER_DIR) ; $(MAKE) clean
 	cd $(LIB_COMMON_DIR); $(MAKE) clean
 	cd $(LIB_RTSP_CLIENT_DIR); $(MAKE) clean
+    cd $(AS_RTSP_GUARD); $(MAKE) clean
 
 distclean: clean
 	-rm -f $(LIVEMEDIA_DIR)/Makefile $(GROUPSOCK_DIR)/Makefile \
@@ -56,4 +61,5 @@ distclean: clean
 		$(TESTPROGS_DIR)/Makefile $(MEDIA_SERVER_DIR)/Makefile \
 		$(PROXY_SERVER_DIR)/Makefile Makefile \
 		$(LIB_RTSP_CLIENT_DIR)/Makefile Makefile \
+        $(AS_RTSP_GUARD)/Makefile Makefile \
 		$(LIB_COMMON_DIR)/Makefile Makefile
