@@ -3,7 +3,7 @@
     <check checkid="1234567890"> <!-- command:add,remove -->
 	    <report interval="60" url="http://127.55.92.246:18080/abc/liveCallback" />
 		<cameralist>
-            <camera ID="01234567890123456789",streamType="1" />
+            <camera ID="01234567890123456789" streamType="1" />
 		</cameralist>
     </check>
 </req>

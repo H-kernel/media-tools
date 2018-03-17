@@ -1344,21 +1344,21 @@ int32_t ASRtspGuardManager::handle_check(std::string &strReqMsg,std::string &str
     XMLError xmlerr = doc.Parse(strReqMsg.c_str(),strReqMsg.length());
     if(XML_SUCCESS != xmlerr)
     {
-        AS_LOG(AS_LOG_INFO, "ASRtspGuardManager::handle_check,parse xml msg:[%s] fail.",strReqMsg.c_str());
+        AS_LOG(AS_LOG_WARNING, "ASRtspGuardManager::handle_check,parse xml msg:[%s] fail.",strReqMsg.c_str());
         return AS_ERROR_CODE_FAIL;
     }
 
     XMLElement *req = doc.RootElement();
     if(NULL == req)
     {
-        AS_LOG(AS_LOG_INFO, "ASRtspGuardManager::handle_check,get xml req node fail.");
+        AS_LOG(AS_LOG_WARNING, "ASRtspGuardManager::handle_check,get xml req node fail.");
         return AS_ERROR_CODE_FAIL;
     }
 
     XMLElement *check = req->FirstChildElement("check");
     if(NULL == check)
     {
-        AS_LOG(AS_LOG_INFO, "ASRtspGuardManager::handle_check,get xml session node fail.");
+        AS_LOG(AS_LOG_WARNING, "ASRtspGuardManager::handle_check,get xml session node fail.");
         return AS_ERROR_CODE_FAIL;
     }
 
@@ -1368,7 +1368,7 @@ int32_t ASRtspGuardManager::handle_check(std::string &strReqMsg,std::string &str
     const char* checkid = check->Attribute("checkid");
     if(NULL == checkid)
     {
-        AS_LOG(AS_LOG_INFO, "ASRtspGuardManager::handle_check,get xml check id fail.");
+        AS_LOG(AS_LOG_WARNING, "ASRtspGuardManager::handle_check,get xml check id fail.");
         return AS_ERROR_CODE_FAIL;
     }
     strCheckID = checkid;
