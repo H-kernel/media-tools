@@ -33,13 +33,13 @@
 //#ifndef _BASIC_USAGE_ENVIRONMENT0_HH
 //#include "BasicUsageEnvironment0.hh"
 //#endif
-#define _AS_DEBUG_
+//#define _AS_DEBUG_
 #ifndef _AS_DEBUG_
-#define RTSP2SIP_CONF_FILE "../conf/rtsp_guard.conf"
-#define RTSP2SIP_LOG_FILE  "../logs/rtsp_guard.log"
+#define RTSPGUARS_CONF_FILE "../conf/rtsp_guard.conf"
+#define RTSPGUARS_LOG_FILE  "../logs/rtsp_guard.log"
 #else
-#define RTSP2SIP_CONF_FILE "E:\\build\\conf\\rtsp_guard.conf"
-#define RTSP2SIP_LOG_FILE  "E:\\build\\logs\\rtsp_guard.log"
+#define RTSPGUARS_CONF_FILE "E:\\build\\conf\\rtsp_guard.conf"
+#define RTSPGUARS_LOG_FILE  "E:\\build\\logs\\rtsp_guard.log"
 #endif
 #define HTTP_SERVER_URI    "/check/req"
 
@@ -204,7 +204,7 @@ public:
     static void streamTimerHandler(void* clientData);
 
 public:
-    ASRtsp2SipStreamState   scs;
+    ASRtspCheckStreamState   scs;
 private:
     u_int32_t             m_ulEnvIndex;
     Boolean               m_bSupportsGetParameter;

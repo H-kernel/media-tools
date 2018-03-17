@@ -2,12 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "as_rtsp_guard.h"
-#include "as_config.h"
-#if AS_APP_OS == AS_OS_LINUX
-#include "as_daemon.h"
-#endif
-#include "as_common.h"
-#include "as_time.h"
+#include "as.h"
 
 
 long creat_daemon(void);
@@ -25,10 +20,15 @@ int main(int argc, char *argv[])
         runType = enForeGround;
     }
 
-    as_run_service(workFunc, runType, server_exit,RTSP2SIP_LOG_FILE, 99);
+    as_run_service(workFunc, runType, server_exit,RTSPGUARS_CONF_FILE, 99);
 #else
     workFunc();
 #endif
+    as_sleep(10000);
+    while (true)
+    {
+        as_sleep(100);
+    }
     return 0;
 }
 
@@ -59,10 +59,6 @@ void workFunc()
     {
         return ;
     }
-    as_sleep(10000);
-    while (true)
-    {
-        as_sleep(100);
-    }
+
     return ;
 }

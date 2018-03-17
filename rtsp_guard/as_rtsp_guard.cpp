@@ -33,6 +33,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #include "as_timer.h"
 #include "as_mem.h"
 
+using namespace tinyxml2;
 
 
 #if defined(__WIN32__) || defined(_WIN32)
@@ -100,10 +101,9 @@ void ASRtsp2RtpChannel::play()
     if (AS_RTSP_STATUS_SETUP != m_enStatus){
         return;
     }
-    Groupsock* rtpGroupsock = NULL;
+
     if(scs.session != NULL) {
         /* open the send rtp sik */
-        Boolean someSubsessionsWereActive = False;
         MediaSubsessionIterator iter(*scs.session);
         MediaSubsession* subsession;
 
@@ -496,11 +496,7 @@ void ASRtspCheckVideoSink::afterGettingFrame(void* clientData, unsigned frameSiz
 void ASRtspCheckVideoSink::afterGettingFrame(unsigned frameSize, unsigned numTruncatedBytes,
                   struct timeval presentationTime, unsigned /*durationInMicroseconds*/) {
 
-    unsigned int size = frameSize;
-    int  sendBytes = 0;
-    uint32_t valid_len = frameSize;
-    unsigned char NALU = fMediaBuffer[prefixSize];
-    m_lastTS += m_rtpTimestampdiff;
+    /* TODO: */
 
     continuePlaying();
 }
@@ -753,7 +749,7 @@ int32_t ASEvLiveHttpClient::send_live_url_request(std::string& strCameraID,
 
     time_t ulTick = time(NULL);
     char szTime[AC_MSS_SIGN_TIME_LEN] = { 0 };
-    as_strftime(szTime, AC_MSS_SIGN_TIME_LEN, "%Y%m%d%H%M%S", ulTick);
+    as_strftime((char*)&szTime[0], AC_MSS_SIGN_TIME_LEN, "%Y%m%d%H%M%S", ulTick);
     cJSON_AddItemToObject(root, "msgtimestamp", cJSON_CreateString((char*)&szTime[0]));
 
     cJSON_AddItemToObject(root, "cameraId", cJSON_CreateString(strCameraID.c_str()));
@@ -782,7 +778,6 @@ int32_t ASEvLiveHttpClient::send_live_url_request(std::string& strCameraID,
         return AS_ERROR_CODE_FAIL;
     }
 
-    int nResultCode = atoi(resultCode->string);
     if(0 != strncmp(AC_MSS_ERROR_CODE_OK,resultCode->string,strlen(AC_MSS_ERROR_CODE_OK))) {
         cJSON_Delete(root);
         return AS_ERROR_CODE_FAIL;
@@ -808,6 +803,7 @@ void    ASEvLiveHttpClient::report_check_task_status(std::string& strUrl,ASRtspC
     XMLPrinter printer;
     XMLDeclaration *declare = report.NewDeclaration();
     XMLElement *RepoetEl = report.NewElement("report");
+    report.InsertEndChild(declare);
     report.InsertEndChild(RepoetEl);
     RepoetEl->SetAttribute("version", "1.0");
     XMLElement *SesEle = report.NewElement("session");
@@ -1019,7 +1015,7 @@ int32_t ASRtspGuardManager::init()
 
     /* start the log module */
     ASSetLogLevel(m_ulLogLM);
-    ASSetLogFilePathName(RTSP2SIP_LOG_FILE);
+    ASSetLogFilePathName(RTSPGUARS_LOG_FILE);
     ASStartLog();
 
 
@@ -1079,7 +1075,6 @@ void ASRtspGuardManager::close()
 AS_HANDLE ASRtspGuardManager::openURL(char const* rtspURL,ASRtspStatusObervser* observer)
 {
     as_mutex_lock(m_mutex);
-    TaskScheduler* scheduler = NULL;
     UsageEnvironment* env = NULL;
     u_int32_t index =  0;
 
@@ -1105,8 +1100,6 @@ AS_HANDLE ASRtspGuardManager::openURL(char const* rtspURL,ASRtspStatusObervser* 
 void      ASRtspGuardManager::closeURL(AS_HANDLE handle)
 {
     as_mutex_lock(m_mutex);
-    TaskScheduler* scheduler = NULL;
-    UsageEnvironment* env = NULL;
     ASRtsp2RtpChannel* pAsRtspClient = (ASRtsp2RtpChannel*)handle;
 
     u_int32_t index = pAsRtspClient->index();
@@ -1121,7 +1114,7 @@ int32_t ASRtspGuardManager::read_system_conf()
 {
     as_ini_config config;
     std::string   strValue="";
-    if(INI_SUCCESS != config.ReadIniFile(RTSP2SIP_CONF_FILE))
+    if(INI_SUCCESS != config.ReadIniFile(RTSPGUARS_CONF_FILE))
     {
         return AS_ERROR_CODE_FAIL;
     }
@@ -1386,6 +1379,7 @@ int32_t ASRtspGuardManager::handle_check(std::string &strReqMsg,std::string &str
     XMLPrinter printer;
     XMLDeclaration *declare = resp.NewDeclaration();
     XMLElement *respEle = resp.NewElement("resp");
+    resp.InsertEndChild(declare);
     resp.InsertEndChild(respEle);
     respEle->SetAttribute("version", "1.0");
     XMLElement *SesEle = resp.NewElement("check");
@@ -1412,12 +1406,11 @@ int32_t ASRtspGuardManager::handle_check(std::string &strReqMsg,std::string &str
 }
 int32_t ASRtspGuardManager::handle_check_task(const XMLElement *check)
 {
-    bool bRegister            = false;
     std::string strReportURL  = "";
     std::string strCheckID    = "";
     std::string strCameraID   = "";
     std::string strStreamType = "";
-    u_int32_t   ulInterval    = GW_REPORT_DEFAULT;
+    uint32_t    ulInterval    = 0;
     ASRtspCheckTask* task     = NULL;
 
 

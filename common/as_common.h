@@ -7,6 +7,9 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <signal.h>
+#include <errno.h>
+#include <memory.h>
+
 
 #define  AS_DEFAULT_STACK_SIZE (128*1024)
 

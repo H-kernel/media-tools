@@ -18,12 +18,9 @@
 #ifndef WIN32
 #include <sys/epoll.h>
 #include <linux/tcp.h>
-#include "CConnMgr.h"
 #endif
 
-#ifdef WIN32
-#include "../inc/CConnMgr.h"
-#endif
+#include "as_conn_manage.h"
 
 #include <stdarg.h>
 
@@ -60,7 +57,7 @@ void CONN_WRITE_LOG(long lLevel, const char *format, ...)
     va_list args;
     va_start (args, format);
     long lPrefix = snprintf (buff, MAX_CONN_LOG_LENTH, "errno:%d.thread(%lu):",
-        CONN_ERRNO, (long)SVS_pthread_self());
+        CONN_ERRNO, (long)as_thread_self());
     if(lPrefix < MAX_CONN_LOG_LENTH)
     {
         (void)vsnprintf (buff + lPrefix, (ULONG)(MAX_CONN_LOG_LENTH - lPrefix),
@@ -115,16 +112,16 @@ CHandle::CHandle()
     m_lSockFD = InvalidSocket;
     m_pHandleNode = NULL;
     m_ulEvents = EPOLLIN;
-#if SVS_APP_OS == SVS_OS_LINUX
+#if AS_APP_OS == AS_OS_LINUX
     m_lEpfd = InvalidFd;
 #endif //#if
 
-#if SVS_APP_OS == SVS_OS_WIN32
-    m_bReadSelected = SVS_FALSE;
-    m_bWriteSelected = SVS_FALSE;
+#if AS_APP_OS == AS_OS_WIN32
+    m_bReadSelected = AS_FALSE;
+    m_bWriteSelected = AS_FALSE;
 #endif  //#if
 
-    m_pMutexHandle = SVS_CreateMutex();
+    m_pMutexHandle = as_create_mutex();
 }
 
 /*******************************************************************************
@@ -142,13 +139,13 @@ CHandle::~CHandle()
     {
         if(NULL != m_pHandleNode)
         {
-            SVS_DELETE(m_pHandleNode);
+            AS_DELETE(m_pHandleNode);
             m_pHandleNode = NULL;
         }
 
         if(NULL != m_pMutexHandle)
         {
-            (void)SVS_DestroyMutex(m_pMutexHandle);
+            (void)as_destroy_mutex(m_pMutexHandle);
             m_pMutexHandle = NULL;
         }
     }
@@ -165,8 +162,8 @@ CHandle::~CHandle()
   Input:          无
   Output:         无
   Return:
-  SVS_SUCCESS: init success
-  SVS_FAIL: init fail
+  AS_ERROR_CODE_OK: init success
+  AS_ERROR_CODE_FAIL: init fail
 *******************************************************************************/
 long CHandle::initHandle(void)
 {
@@ -178,21 +175,21 @@ long CHandle::initHandle(void)
 
     m_lSockFD = InvalidSocket;
     m_pHandleNode = NULL;
-#if SVS_APP_OS == SVS_OS_LINUX
+#if AS_APP_OS == AS_OS_LINUX
     m_lEpfd = InvalidFd;
 #endif
     m_ulEvents = EPOLLIN;
     if(NULL == m_pMutexHandle)
     {
-        m_pMutexHandle = SVS_CreateMutex();
+        m_pMutexHandle = as_create_mutex();
     }
 
     if(NULL == m_pMutexHandle)
     {
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
 
-    return SVS_SUCCESS;
+    return AS_ERROR_CODE_OK;
 }
 
 /*******************************************************************************
@@ -204,18 +201,18 @@ long CHandle::initHandle(void)
   Output:         无
   Return:         无
 *******************************************************************************/
-void CHandle::setHandleSend(SVS_BOOLEAN bHandleSend)
+void CHandle::setHandleSend(AS_BOOLEAN bHandleSend)
 {
     if(m_pMutexHandle != NULL)
     {
-        if(SVS_OK != SVS_MutexLock(m_pMutexHandle))
+        if(AS_ERROR_CODE_OK != as_mutex_lock(m_pMutexHandle))
         {
             return;
         }
     }
 
     //设置要处理的事件类型
-    if(SVS_FALSE == bHandleSend)
+    if(AS_FALSE == bHandleSend)
     {
         m_ulEvents = m_ulEvents & (~EPOLLOUT);
     }
@@ -226,7 +223,7 @@ void CHandle::setHandleSend(SVS_BOOLEAN bHandleSend)
 
     if((m_pHandleNode != NULL) && (m_lSockFD != InvalidSocket))
     {
-#if SVS_APP_OS == SVS_OS_LINUX
+#if AS_APP_OS == AS_OS_LINUX
         //将handle添加到epoll的集合中
         struct epoll_event epEvent;
         memset(&epEvent, 0, sizeof(epEvent));
@@ -246,7 +243,7 @@ void CHandle::setHandleSend(SVS_BOOLEAN bHandleSend)
 
     if(m_pMutexHandle != NULL)
     {
-        (void)SVS_MutexUnlock(m_pMutexHandle);
+        (void)as_mutex_unlock(m_pMutexHandle);
     }
 }
 
@@ -258,21 +255,21 @@ void CHandle::setHandleSend(SVS_BOOLEAN bHandleSend)
   Input:          bHandleRecv: SVS_TRUE表示检测，SVS_FALSE表示不检测
   Output:         无
   Return:
-  SVS_SUCCESS: init success
-  SVS_FAIL: init fail
+  AS_ERROR_CODE_OK: init success
+  AS_ERROR_CODE_FAIL: init fail
 *******************************************************************************/
-void CHandle::setHandleRecv(SVS_BOOLEAN bHandleRecv)
+void CHandle::setHandleRecv(AS_BOOLEAN bHandleRecv)
 {
     if(m_pMutexHandle != NULL)
     {
-        if(SVS_OK != SVS_MutexLock(m_pMutexHandle))
+        if(AS_ERROR_CODE_OK != as_mutex_lock(m_pMutexHandle))
         {
             return;
         }
     }
 
     //设置要处理的事件类型
-    if(SVS_FALSE == bHandleRecv)
+    if(AS_FALSE == bHandleRecv)
     {
         m_ulEvents = m_ulEvents & (~EPOLLIN);
     }
@@ -283,7 +280,7 @@ void CHandle::setHandleRecv(SVS_BOOLEAN bHandleRecv)
 
     if((m_pHandleNode != NULL) && (m_lSockFD != InvalidSocket))
     {
-#if SVS_APP_OS == SVS_OS_LINUX
+#if AS_APP_OS == AS_OS_LINUX
         //将handle添加到epoll的集合中
         struct epoll_event epEvent;
         memset(&epEvent, 0, sizeof(epEvent));
@@ -303,7 +300,7 @@ void CHandle::setHandleRecv(SVS_BOOLEAN bHandleRecv)
 
     if(m_pMutexHandle != NULL)
     {
-        (void)SVS_MutexUnlock(m_pMutexHandle);
+        (void)as_mutex_unlock(m_pMutexHandle);
     }
 }
 
@@ -352,16 +349,16 @@ CNetworkHandle::CNetworkHandle()
 *******************************************************************************/
 long CNetworkHandle::initHandle(void)
 {
-    if (SVS_SUCCESS != CHandle::initHandle())
+    if (AS_ERROR_CODE_OK != CHandle::initHandle())
     {
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
     m_lSockFD = InvalidSocket;
 
-    return SVS_SUCCESS;
+    return AS_ERROR_CODE_OK;
 }
 
-#if SVS_APP_OS == SVS_OS_LINUX
+#if AS_APP_OS == AS_OS_LINUX
 /*******************************************************************************
   Function:       CNetworkHandle::sendMsg()
   Description:    发送矢量数据
@@ -432,18 +429,18 @@ CTcpConnHandle::~CTcpConnHandle()
   Input:          无
   Output:         无
   Return:
-  SVS_SUCCESS: init success
-  SVS_FAIL: init fail
+  AS_ERROR_CODE_OK: init success
+  AS_ERROR_CODE_FAIL: init fail
 *******************************************************************************/
 long CTcpConnHandle::initHandle(void)
 {
-    if (SVS_SUCCESS != CNetworkHandle::initHandle())
+    if (AS_ERROR_CODE_OK != CNetworkHandle::initHandle())
     {
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
 
     m_lConnStatus = enIdle;
-    return SVS_SUCCESS;
+    return AS_ERROR_CODE_OK;
 }
 
 /*******************************************************************************
@@ -455,8 +452,8 @@ long CTcpConnHandle::initHandle(void)
                   bSyncConn: SVS_TRUE表示同步连接，SVS_FALSE表示异步连接
   Output:         无
   Return:
-  SVS_SUCCESS: connect success
-  SVS_FAIL: connect fail
+  AS_ERROR_CODE_OK: connect success
+  AS_ERROR_CODE_FAIL: connect fail
 *******************************************************************************/
 long CTcpConnHandle::conn(const CNetworkAddr *pLocalAddr,
     const CNetworkAddr *pPeerAddr, const EnumSyncAsync bSyncConn, ULONG ulTimeOut)
@@ -468,7 +465,7 @@ long CTcpConnHandle::conn(const CNetworkAddr *pLocalAddr,
     {
         CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
             "opening client socket error(%d)", _FL_, CONN_ERRNO);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
     //setSendBufSize
     long lSendBufSize = DEFAULT_TCP_SENDRECV_SIZE;
@@ -479,7 +476,7 @@ long CTcpConnHandle::conn(const CNetworkAddr *pLocalAddr,
         (void)CLOSESOCK((SOCKET)lSockFd);
         CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
             "setSendBufSize client socket error(%d)", _FL_, CONN_ERRNO);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
     //setRecBufSize
     long lRecvBufSize = DEFAULT_TCP_SENDRECV_SIZE;
@@ -490,7 +487,7 @@ long CTcpConnHandle::conn(const CNetworkAddr *pLocalAddr,
         (void)CLOSESOCK((SOCKET)lSockFd);
         CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
             "setRecvBufSize client socket error(%d)", _FL_, CONN_ERRNO);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
 
     long flag = 1;
@@ -500,7 +497,7 @@ long CTcpConnHandle::conn(const CNetworkAddr *pLocalAddr,
         (void)CLOSESOCK((SOCKET)lSockFd);
         CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
             "set TCP_NODELAY client socket error(%d)", _FL_, CONN_ERRNO);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
 
     //setReuseAddr();
@@ -511,7 +508,7 @@ long CTcpConnHandle::conn(const CNetworkAddr *pLocalAddr,
         (void)CLOSESOCK((SOCKET)lSockFd);
         CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
             "setsockopt client socket error(%d)", _FL_, CONN_ERRNO);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
 
     //绑定本地地址
@@ -526,11 +523,11 @@ long CTcpConnHandle::conn(const CNetworkAddr *pLocalAddr,
         errno = 0;
         if (0 > bind ((SOCKET)lSockFd, (struct sockaddr *)&serverAddr, sizeof(serverAddr)))
         {
-#if SVS_APP_OS == SVS_OS_LINUX
+#if AS_APP_OS == AS_OS_LINUX
             char szServerAddr[INET_ADDRSTRLEN];
             if (NULL != inet_ntop(AF_INET, &serverAddr.sin_addr, szServerAddr,
                 sizeof(szServerAddr)))
-#elif SVS_APP_OS == SVS_OS_WIN32
+#elif AS_APP_OS == AS_OS_WIN32
             char *szServerAddr = inet_ntoa(serverAddr.sin_addr);
             if (NULL != szServerAddr)
 #endif
@@ -547,7 +544,7 @@ long CTcpConnHandle::conn(const CNetworkAddr *pLocalAddr,
             }
 
             (void)CLOSESOCK((SOCKET)lSockFd);
-            return SVS_FAIL;
+            return AS_ERROR_CODE_FAIL;
         }
     }
 
@@ -555,20 +552,20 @@ long CTcpConnHandle::conn(const CNetworkAddr *pLocalAddr,
     errno = 0;
     if((enAsyncOp == bSyncConn) || (ulTimeOut > 0))
     {
-#if SVS_APP_OS == SVS_OS_LINUX
+#if AS_APP_OS == AS_OS_LINUX
         //设置为非阻塞
         if(fcntl(lSockFd, F_SETFL, fcntl(lSockFd, F_GETFL)|O_NONBLOCK) < 0)
-#elif SVS_APP_OS == SVS_OS_WIN32
-        ULONG ulNoBlock = SVS_TRUE;
+#elif AS_APP_OS == AS_OS_WIN32
+        ULONG ulNoBlock = AS_TRUE;
         if (SOCKET_ERROR == ioctlsocket((SOCKET)lSockFd,(long)(long)FIONBIO,&ulNoBlock))
 #endif
         {
             CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
                 "fcntl client socket error(%d)", _FL_, CONN_ERRNO);
             (void)CLOSESOCK((SOCKET)lSockFd);
-            return SVS_FAIL;
+            return AS_ERROR_CODE_FAIL;
         }
-        setHandleSend(SVS_TRUE);
+        setHandleSend(AS_TRUE);
     }
 
     //连接对端
@@ -587,7 +584,7 @@ long CTcpConnHandle::conn(const CNetworkAddr *pLocalAddr,
             CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
                 "SyncConn server fail. error(%d):%s",
                 _FL_, CONN_ERRNO, strerror(CONN_ERRNO));
-            return SVS_FAIL;
+            return AS_ERROR_CODE_FAIL;
 
         }
         if((EINPROGRESS != CONN_ERRNO) && (EWOULDBLOCK != CONN_ERRNO))
@@ -596,7 +593,7 @@ long CTcpConnHandle::conn(const CNetworkAddr *pLocalAddr,
             CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
                 "AsyncConn server fail. error(%d):%s", _FL_,
                 CONN_ERRNO, strerror(CONN_ERRNO));
-            return SVS_FAIL;
+            return AS_ERROR_CODE_FAIL;
         }
 
         if(enSyncOp == bSyncConn)
@@ -614,7 +611,7 @@ long CTcpConnHandle::conn(const CNetworkAddr *pLocalAddr,
                 CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
                     "wait client socket(%d) time out", _FL_, lSockFd);
                 (void)CLOSESOCK((SOCKET)lSockFd);
-                return SVS_FAIL;
+                return AS_ERROR_CODE_FAIL;
             }
             long lErrorNo = 0;
             socklen_t len = sizeof(lErrorNo);
@@ -625,14 +622,14 @@ long CTcpConnHandle::conn(const CNetworkAddr *pLocalAddr,
                     "getsockopt of sockfd(%d) has wrong when wait client",
                     _FL_, lSockFd);
                 (void)CLOSESOCK((SOCKET)lSockFd);
-                return SVS_FAIL;
+                return AS_ERROR_CODE_FAIL;
             }
             else if (lErrorNo != 0)
             {
                 CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
                     "wait client: socket(%d) connect fail", _FL_, lSockFd);
                 (void)CLOSESOCK((SOCKET)lSockFd);
-                return SVS_FAIL;
+                return AS_ERROR_CODE_FAIL;
             }
 
             CONN_WRITE_LOG(CONN_DEBUG,  (char *)"FILE(%s)LINE(%d): "
@@ -649,10 +646,10 @@ long CTcpConnHandle::conn(const CNetworkAddr *pLocalAddr,
     //如果设置为非阻塞模式，恢复为阻塞模式
     if((enAsyncOp == bSyncConn) || (ulTimeOut > 0))
     {
-#if SVS_APP_OS == SVS_OS_LINUX
+#if AS_APP_OS == AS_OS_LINUX
         //恢复为阻塞模式
         if(fcntl(lSockFd, F_SETFL, fcntl(lSockFd, F_GETFL&(~O_NONBLOCK))) < 0)
-#elif SVS_APP_OS == SVS_OS_WIN32
+#elif AS_APP_OS == AS_OS_WIN32
         ULONG ulBlock = 0;
         if (SOCKET_ERROR == ioctlsocket((SOCKET)lSockFd,(long)FIONBIO,&ulBlock))
 #endif
@@ -660,7 +657,7 @@ long CTcpConnHandle::conn(const CNetworkAddr *pLocalAddr,
             CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
                 "fcntl client socket error(%d)", _FL_, CONN_ERRNO);
             (void)CLOSESOCK((SOCKET)lSockFd);
-            return SVS_FAIL;
+            return AS_ERROR_CODE_FAIL;
         }
 
         if(enAsyncOp == bSyncConn)
@@ -683,7 +680,7 @@ long CTcpConnHandle::conn(const CNetworkAddr *pLocalAddr,
         "m_lSockFD = %d, peer_ip(0x%x), peer_port(%d)", _FL_, m_lSockFD,
         ntohl((ULONG)(m_peerAddr.m_lIpAddr)), ntohs(m_peerAddr.m_usPort));
 
-    return SVS_SUCCESS;
+    return AS_ERROR_CODE_OK;
 }
 
 /*******************************************************************************
@@ -713,8 +710,8 @@ long CTcpConnHandle::send(const char *pArrayData, const ULONG ulDataSize,
     if(enSyncOp == bSyncSend)
     {
         //同步发送
-#if SVS_APP_OS == SVS_OS_WIN32
-        ULONG ulBlock = SVS_FALSE;
+#if AS_APP_OS == AS_OS_WIN32
+        ULONG ulBlock = AS_FALSE;
         if (SOCKET_ERROR == ioctlsocket((SOCKET)m_lSockFD,(long)FIONBIO,&ulBlock))
         {
             CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
@@ -727,8 +724,8 @@ long CTcpConnHandle::send(const char *pArrayData, const ULONG ulDataSize,
     else
     {
         //异步发送
-#if SVS_APP_OS == SVS_OS_WIN32
-        ULONG ulBlock = SVS_TRUE;
+#if AS_APP_OS == AS_OS_WIN32
+        ULONG ulBlock = AS_TRUE;
         if (SOCKET_ERROR == ioctlsocket((SOCKET)m_lSockFD,(long)FIONBIO,&ulBlock))
         {
             CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
@@ -739,13 +736,13 @@ long CTcpConnHandle::send(const char *pArrayData, const ULONG ulDataSize,
         lBytesSent = ::send((SOCKET)m_lSockFD, pArrayData, (int)ulDataSize,
             MSG_DONTWAIT|MSG_NOSIGNAL);
         //开始检测是否可以发送数据
-        setHandleSend(SVS_TRUE);
+        setHandleSend(AS_TRUE);
     }
 
     //如果发送失败，首先判断是否是因为阻塞，是的话返回发送0字节，否则关闭连接
     if (lBytesSent < 0)
     {
-#if SVS_APP_OS == SVS_OS_WIN32
+#if AS_APP_OS == AS_OS_WIN32
         if ((EWOULDBLOCK == CONN_ERRNO) || (EAGAIN == CONN_ERRNO) || (WSAEWOULDBLOCK == CONN_ERRNO))
 
 #else
@@ -794,8 +791,8 @@ long CTcpConnHandle::recv(char *pArrayData, CNetworkAddr *pPeerAddr,
     if(enSyncOp == bSyncRecv)
     {
         //同步接收
-#if SVS_APP_OS == SVS_OS_WIN32
-        ULONG ulBlock = SVS_FALSE;
+#if AS_APP_OS == AS_OS_WIN32
+        ULONG ulBlock = AS_FALSE;
         if (SOCKET_ERROR == ioctlsocket((SOCKET)m_lSockFD,(long)FIONBIO,&ulBlock))
         {
             CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
@@ -808,8 +805,8 @@ long CTcpConnHandle::recv(char *pArrayData, CNetworkAddr *pPeerAddr,
     else
     {
         //异步接收
-#if SVS_APP_OS == SVS_OS_WIN32
-        ULONG ulBlock = SVS_TRUE;
+#if AS_APP_OS == AS_OS_WIN32
+        ULONG ulBlock = AS_TRUE;
         if (SOCKET_ERROR == ioctlsocket((SOCKET)m_lSockFD,(long)FIONBIO,&ulBlock))
         {
             CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
@@ -867,7 +864,7 @@ long CTcpConnHandle::recvWithTimeout(char *pArrayData, CNetworkAddr *pPeerAddr,
     ULONG ulWaitTime = ulTimeOut;
     errno = 0;
     //设置socket超时时间
-#if SVS_APP_OS == SVS_OS_WIN32
+#if AS_APP_OS == AS_OS_WIN32
 
     if(setsockopt((SOCKET)m_lSockFD, SOL_SOCKET, SO_RCVTIMEO,
         (char *) &ulWaitTime, sizeof(int)) < 0)
@@ -878,7 +875,7 @@ long CTcpConnHandle::recvWithTimeout(char *pArrayData, CNetworkAddr *pPeerAddr,
         return SendRecvError;
     }
 
-#elif SVS_APP_OS == SVS_OS_LINUX
+#elif AS_APP_OS == AS_OS_LINUX
 
     struct timeval recvWaitTime;
     recvWaitTime.tv_sec = ulWaitTime/CONN_SECOND_IN_MS;
@@ -946,7 +943,7 @@ long CTcpConnHandle::recvWithTimeout(char *pArrayData, CNetworkAddr *pPeerAddr,
     }
 
     //设置socket超时时间为0表示永久等待
-#if SVS_APP_OS == SVS_OS_WIN32
+#if AS_APP_OS == AS_OS_WIN32
 
     ulWaitTime = 0;
     if(setsockopt((SOCKET)m_lSockFD, SOL_SOCKET, SO_RCVTIMEO,
@@ -958,7 +955,7 @@ long CTcpConnHandle::recvWithTimeout(char *pArrayData, CNetworkAddr *pPeerAddr,
         return SendRecvError;
     }
 
-#elif SVS_APP_OS == SVS_OS_LINUX
+#elif AS_APP_OS == AS_OS_LINUX
 
     //设置socket超时时间为0表示永久等待
     recvWaitTime.tv_sec = 0;
@@ -990,7 +987,7 @@ void CTcpConnHandle::close(void)
 {
     if(m_pMutexHandle != NULL)
     {
-        if(SVS_OK != SVS_MutexLock(m_pMutexHandle))
+        if(AS_ERROR_CODE_OK != as_mutex_lock(m_pMutexHandle))
         {
             return;
         }
@@ -1008,7 +1005,7 @@ void CTcpConnHandle::close(void)
 
         //The close of an fd will cause it to be removed from
         //all epoll sets automatically.
-#if SVS_APP_OS == SVS_OS_LINUX
+#if AS_APP_OS == AS_OS_LINUX
         struct epoll_event epEvent;
         memset(&epEvent, 0, sizeof(epEvent));
         epEvent.data.ptr = (void *)NULL;
@@ -1041,7 +1038,7 @@ void CTcpConnHandle::close(void)
 
     if(m_pMutexHandle != NULL)
     {
-        (void)SVS_MutexUnlock(m_pMutexHandle);
+        (void)as_mutex_unlock(m_pMutexHandle);
     }
 
     return;
@@ -1055,8 +1052,8 @@ void CTcpConnHandle::close(void)
   Input:          pLocalAddr:本地地址
   Output:         无
   Return:
-  SVS_SUCCESS: init success
-  SVS_FAIL: init fail
+  AS_ERROR_CODE_OK: init success
+  AS_ERROR_CODE_FAIL: init fail
 *******************************************************************************/
 long CUdpSockHandle::createSock(const CNetworkAddr *pLocalAddr,
                                          const CNetworkAddr *pMultiAddr)
@@ -1068,7 +1065,7 @@ long CUdpSockHandle::createSock(const CNetworkAddr *pLocalAddr,
             "create udp socket failed, errno = %d, Msg = %s",
             _FL_, CONN_ERRNO, strerror(CONN_ERRNO));
 
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
 
     struct sockaddr_in  localAddr;
@@ -1087,11 +1084,11 @@ long CUdpSockHandle::createSock(const CNetworkAddr *pLocalAddr,
     //绑定本地地址
     if (0 > bind ((SOCKET)lSockFd, (struct sockaddr *) &localAddr, sizeof (localAddr)))
     {
-#if SVS_APP_OS == SVS_OS_LINUX
+#if AS_APP_OS == AS_OS_LINUX
         char szLocalAddr[INET_ADDRSTRLEN];
         if (NULL != inet_ntop(AF_INET, &localAddr.sin_addr, szLocalAddr,
             sizeof(szLocalAddr)))
-#elif SVS_APP_OS == SVS_OS_WIN32
+#elif AS_APP_OS == AS_OS_WIN32
         char *szLocalAddr = inet_ntoa(localAddr.sin_addr);
         if (NULL == szLocalAddr)
 #endif
@@ -1107,10 +1104,10 @@ long CUdpSockHandle::createSock(const CNetworkAddr *pLocalAddr,
                 localAddr.sin_addr.s_addr, ntohs(localAddr.sin_port));
         }
         (void)CLOSESOCK((SOCKET)lSockFd);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
 
-#if SVS_APP_OS == SVS_OS_LINUX
+#if AS_APP_OS == AS_OS_LINUX
     long lReuseAddrFlag = 1;
     if(setsockopt((SOCKET)lSockFd, SOL_SOCKET, SO_REUSEADDR, (char*)&lReuseAddrFlag,
         sizeof(lReuseAddrFlag)) < 0)
@@ -1118,7 +1115,7 @@ long CUdpSockHandle::createSock(const CNetworkAddr *pLocalAddr,
         (void)CLOSESOCK((SOCKET)lSockFd);
         CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
             "setSendBufSize client socket error(%d)", _FL_, CONN_ERRNO);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
 #endif
 
@@ -1129,7 +1126,7 @@ long CUdpSockHandle::createSock(const CNetworkAddr *pLocalAddr,
         (void)CLOSESOCK((SOCKET)lSockFd);
         CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
             "setSendBufSize client socket error(%d)", _FL_, CONN_ERRNO);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
     //setRecBufSize
     long lRecvBufSize = DEFAULT_UDP_SENDRECV_SIZE;
@@ -1139,10 +1136,10 @@ long CUdpSockHandle::createSock(const CNetworkAddr *pLocalAddr,
         (void)CLOSESOCK((SOCKET)lSockFd);
         CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
             "setRecvBufSize client socket error(%d)", _FL_, CONN_ERRNO);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
 
-#if SVS_APP_OS == SVS_OS_LINUX
+#if AS_APP_OS == AS_OS_LINUX
     //如果有组播地址，则表明要发送组播
     if(NULL != pMultiAddr)
     {
@@ -1155,13 +1152,13 @@ long CUdpSockHandle::createSock(const CNetworkAddr *pLocalAddr,
             (void)CLOSESOCK((SOCKET)lSockFd);
             CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
                 "set IPPROTO_IP IP_ADD_MEMBERSHIP error(%d)", _FL_, CONN_ERRNO);
-            return SVS_FAIL;
+            return AS_ERROR_CODE_FAIL;
         }
     }
 #endif
     m_lSockFD = lSockFd;
 
-    return SVS_SUCCESS;
+    return AS_ERROR_CODE_OK;
 
 }
 
@@ -1174,8 +1171,8 @@ long CUdpSockHandle::createSock(const CNetworkAddr *pLocalAddr,
                   bSyncSend: SVS_TRUE表示同步发送，SVS_FALSE表示异步发送
   Output:         无
   Return:
-  SVS_SUCCESS: connect success
-  SVS_FAIL: connect fail
+  AS_ERROR_CODE_OK: connect success
+  AS_ERROR_CODE_FAIL: connect fail
 *******************************************************************************/
 long CUdpSockHandle::send(const CNetworkAddr *pPeerAddr, const char *pArrayData,
          const ULONG ulDataSize, const EnumSyncAsync bSyncSend)
@@ -1198,8 +1195,8 @@ long CUdpSockHandle::send(const CNetworkAddr *pPeerAddr, const char *pArrayData,
     if(enSyncOp == bSyncSend)
     {
         //同步发送
-#if SVS_APP_OS == SVS_OS_WIN32
-        ULONG ulBlock = SVS_FALSE;
+#if AS_APP_OS == AS_OS_WIN32
+        ULONG ulBlock = AS_FALSE;
         if (SOCKET_ERROR == ioctlsocket((SOCKET)m_lSockFD,(long)FIONBIO,&ulBlock))
         {
             CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
@@ -1213,8 +1210,8 @@ long CUdpSockHandle::send(const CNetworkAddr *pPeerAddr, const char *pArrayData,
     else
     {
         //异步发送
-#if SVS_APP_OS == SVS_OS_WIN32
-        ULONG ulBlock = SVS_TRUE;
+#if AS_APP_OS == AS_OS_WIN32
+        ULONG ulBlock = AS_TRUE;
         if (SOCKET_ERROR == ioctlsocket((SOCKET)m_lSockFD,(long)FIONBIO,&ulBlock))
         {
             CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
@@ -1225,7 +1222,7 @@ long CUdpSockHandle::send(const CNetworkAddr *pPeerAddr, const char *pArrayData,
         lBytesSent = ::sendto((SOCKET)m_lSockFD, pArrayData, (int)ulDataSize,
             (long) MSG_DONTWAIT|MSG_NOSIGNAL,
             (const struct sockaddr *)&peerAddr, sizeof(peerAddr));
-        setHandleSend(SVS_TRUE);
+        setHandleSend(AS_TRUE);
     }
 
     //如果发送失败，首先判断是否是因为阻塞，是的话返回发送0字节，否则关闭连接
@@ -1276,8 +1273,8 @@ long CUdpSockHandle::recv(char *pArrayData, CNetworkAddr *pPeerAddr,
     if(enSyncOp == bSyncRecv)
     {
         //同步接收
-#if SVS_APP_OS == SVS_OS_WIN32
-        ULONG ulBlock = SVS_FALSE;
+#if AS_APP_OS == AS_OS_WIN32
+        ULONG ulBlock = AS_FALSE;
         if (SOCKET_ERROR == ioctlsocket((SOCKET)m_lSockFD,(long)FIONBIO,&ulBlock))
         {
             CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
@@ -1291,8 +1288,8 @@ long CUdpSockHandle::recv(char *pArrayData, CNetworkAddr *pPeerAddr,
     else
     {
         //异步接收
-#if SVS_APP_OS == SVS_OS_WIN32
-        ULONG ulBlock = SVS_TRUE;
+#if AS_APP_OS == AS_OS_WIN32
+        ULONG ulBlock = AS_TRUE;
         if (SOCKET_ERROR == ioctlsocket((SOCKET)m_lSockFD,(long)FIONBIO,&ulBlock))
         {
             CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
@@ -1327,7 +1324,7 @@ long CUdpSockHandle::recv(char *pArrayData, CNetworkAddr *pPeerAddr,
     pPeerAddr->m_usPort = peerAddr.sin_port;
 
     //连接管理调用接收操作后不再恢复检测读事件，改为由应用程序恢复
-    //setHandleRecv(SVS_TRUE);
+    //setHandleRecv(AS_TRUE);
 
     return lBytesRecv;
 }
@@ -1353,7 +1350,7 @@ long CUdpSockHandle::recvWithTimeout(char *pArrayData, CNetworkAddr *pPeerAddr,
     ULONG ulWaitTime = ulTimeOut;
     errno = 0;
     //设置socket超时时间
-#if SVS_APP_OS == SVS_OS_WIN32
+#if AS_APP_OS == AS_OS_WIN32
 
     ULONG recvWaitTime;
     recvWaitTime = ulWaitTime;
@@ -1366,7 +1363,7 @@ long CUdpSockHandle::recvWithTimeout(char *pArrayData, CNetworkAddr *pPeerAddr,
         return SendRecvError;
     }
 
-#elif SVS_APP_OS == SVS_OS_LINUX
+#elif AS_APP_OS == AS_OS_LINUX
 
     struct timeval recvWaitTime;
     recvWaitTime.tv_sec = ulWaitTime/CONN_SECOND_IN_MS;
@@ -1397,7 +1394,7 @@ long CUdpSockHandle::recvWithTimeout(char *pArrayData, CNetworkAddr *pPeerAddr,
     ulTotalRecvBytes += (ULONG)lRecvBytes;
 
     //设置socket超时时间为0表示永久等待
-#if SVS_APP_OS == SVS_OS_WIN32
+#if AS_APP_OS == AS_OS_WIN32
 
     recvWaitTime = 0;
     if(setsockopt((SOCKET)m_lSockFD, SOL_SOCKET, SO_RCVTIMEO,
@@ -1409,7 +1406,7 @@ long CUdpSockHandle::recvWithTimeout(char *pArrayData, CNetworkAddr *pPeerAddr,
         return SendRecvError;
     }
 
-#elif SVS_APP_OS == SVS_OS_LINUX
+#elif AS_APP_OS == AS_OS_LINUX
 
     //设置socket超时时间为0表示永久等待
     recvWaitTime.tv_sec = 0;
@@ -1440,7 +1437,7 @@ void CUdpSockHandle::close(void)
 {
     if(m_pMutexHandle != NULL)
     {
-        if(SVS_OK != SVS_MutexLock(m_pMutexHandle))
+        if(AS_ERROR_CODE_OK != as_mutex_lock(m_pMutexHandle))
         {
             return;
         }
@@ -1457,7 +1454,7 @@ void CUdpSockHandle::close(void)
 
     if(m_pMutexHandle != NULL)
     {
-        (void)SVS_MutexUnlock(m_pMutexHandle);
+        (void)as_mutex_unlock(m_pMutexHandle);
     }
 
     return;
@@ -1471,8 +1468,8 @@ void CUdpSockHandle::close(void)
   Input:          pLocalAddr: 本地地址
   Output:         无
   Return:
-  SVS_SUCCESS: listen success
-  SVS_FAIL: listen fail
+  AS_ERROR_CODE_OK: listen success
+  AS_ERROR_CODE_FAIL: listen fail
 *******************************************************************************/
 long CTcpServerHandle::listen(const CNetworkAddr *pLocalAddr)
 {
@@ -1481,7 +1478,7 @@ long CTcpServerHandle::listen(const CNetworkAddr *pLocalAddr)
     {
         CONN_WRITE_LOG(CONN_WARNING,  (char *)"FILE(%s)LINE(%d): "
             "opening client socket error(%d)", _FL_, CONN_ERRNO);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
 
     //setSendBufSize
@@ -1493,7 +1490,7 @@ long CTcpServerHandle::listen(const CNetworkAddr *pLocalAddr)
         (void)CLOSESOCK((SOCKET)lSockFd);
         CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
             "setSendBufSize client socket error(%d)", _FL_, CONN_ERRNO);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
 
     //setRecBufSize
@@ -1505,10 +1502,10 @@ long CTcpServerHandle::listen(const CNetworkAddr *pLocalAddr)
         (void)CLOSESOCK((SOCKET)lSockFd);
         CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
             "setRecvBufSize client socket error(%d)", _FL_, CONN_ERRNO);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
 
-#if SVS_APP_OS == SVS_OS_LINUX
+#if AS_APP_OS == AS_OS_LINUX
     //setReuseAddr();
     long lReuseAddrFlag = 1;
     if(setsockopt((SOCKET)lSockFd, SOL_SOCKET, SO_REUSEADDR, (char*)&lReuseAddrFlag,
@@ -1517,7 +1514,7 @@ long CTcpServerHandle::listen(const CNetworkAddr *pLocalAddr)
         (void)CLOSESOCK((SOCKET)lSockFd);
         CONN_WRITE_LOG(CONN_WARNING,  (char *)"FILE(%s)LINE(%d): "
             "setsockopt client socket error(%d)", _FL_, CONN_ERRNO);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
 #endif
     //绑定本地地址
@@ -1529,11 +1526,11 @@ long CTcpServerHandle::listen(const CNetworkAddr *pLocalAddr)
     errno = 0;
     if (0 > bind ((SOCKET)lSockFd, (struct sockaddr *)&serverAddr, sizeof(serverAddr)))
     {
-#if SVS_APP_OS == SVS_OS_LINUX
+#if AS_APP_OS == AS_OS_LINUX
         char szServerAddr[INET_ADDRSTRLEN];
         if (NULL != inet_ntop(AF_INET, &serverAddr.sin_addr, szServerAddr,
             sizeof(szServerAddr)))
-#elif SVS_APP_OS == SVS_OS_WIN32
+#elif AS_APP_OS == AS_OS_WIN32
         char *szServerAddr = inet_ntoa(serverAddr.sin_addr);
         if (NULL != szServerAddr)
 #endif
@@ -1549,7 +1546,7 @@ long CTcpServerHandle::listen(const CNetworkAddr *pLocalAddr)
                 serverAddr.sin_addr.s_addr, ntohs(serverAddr.sin_port));
         }
         (void)CLOSESOCK((SOCKET)lSockFd);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
 
     //启动侦听
@@ -1559,12 +1556,12 @@ long CTcpServerHandle::listen(const CNetworkAddr *pLocalAddr)
         CONN_WRITE_LOG(CONN_WARNING,  (char *)"FILE(%s)LINE(%d): "
             "listen Error(%d):%s.", _FL_, CONN_ERRNO, strerror(CONN_ERRNO));
         (void)CLOSESOCK((SOCKET)lSockFd);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
 
     m_lSockFD = lSockFd;
 
-    return SVS_SUCCESS;
+    return AS_ERROR_CODE_OK;
 }
 
 /*******************************************************************************
@@ -1580,7 +1577,7 @@ void CTcpServerHandle::close(void)
 {
     if(m_pMutexHandle != NULL)
     {
-        if(SVS_OK != SVS_MutexLock(m_pMutexHandle))
+        if(AS_ERROR_CODE_OK != as_mutex_lock(m_pMutexHandle))
         {
             return;
         }
@@ -1597,7 +1594,7 @@ void CTcpServerHandle::close(void)
 
     if(m_pMutexHandle != NULL)
     {
-        (void)SVS_MutexUnlock(m_pMutexHandle);
+        (void)as_mutex_unlock(m_pMutexHandle);
     }
 
     return;
@@ -1615,10 +1612,10 @@ void CTcpServerHandle::close(void)
 CHandleManager::CHandleManager()
 {
     m_pMutexListOfHandle = NULL;
-#if SVS_APP_OS == SVS_OS_LINUX
+#if AS_APP_OS == AS_OS_LINUX
     m_lEpfd = InvalidFd;
     memset(m_epEvents, 0, sizeof(m_epEvents));
-#elif SVS_APP_OS == SVS_OS_WIN32
+#elif AS_APP_OS == AS_OS_WIN32
     //初始化select集
     FD_ZERO(&m_readSet);
     FD_ZERO(&m_writeSet);
@@ -1627,7 +1624,7 @@ CHandleManager::CHandleManager()
 #endif
     m_ulSelectPeriod = DEFAULT_SELECT_PERIOD;
     m_pSVSThread = NULL;
-    m_bExit = SVS_FALSE;
+    m_bExit = AS_FALSE;
     memset(m_szMgrType, 0, sizeof(m_szMgrType));
 }
 
@@ -1644,15 +1641,15 @@ CHandleManager::~CHandleManager()
 {
     try
     {
-    #if SVS_APP_OS == SVS_OS_LINUX
+    #if AS_APP_OS == AS_OS_LINUX
         CONN_WRITE_LOG(CONN_WARNING,  (char *)"FILE(%s)LINE(%d): "
             "CHandleManager::~CHandleManager: "
             "manager type: %s. thread = %d, m_lEpfd = %d",
-            _FL_, m_szMgrType, SVS_pthread_self(), m_lEpfd);
-    #elif SVS_APP_OS == SVS_OS_WIN32
+            _FL_, m_szMgrType, as_thread_self(), m_lEpfd);
+    #elif AS_APP_OS == AS_OS_WIN32
         CONN_WRITE_LOG(CONN_WARNING,   (char *)"FILE(%s)LINE(%d): "
             "CHandleManager::~CHandleManager: "
-            "manager type: %s. thread = %d ", _FL_, m_szMgrType, SVS_pthread_self());
+            "manager type: %s. thread = %d ", _FL_, m_szMgrType, as_thread_self());
     #endif
 
         ListOfHandleIte itListOfHandle = m_listHandle.begin();
@@ -1662,15 +1659,15 @@ CHandleManager::~CHandleManager()
             {
                 (*itListOfHandle)->m_pHandle->close();
             }
-    #if SVS_APP_OS == SVS_OS_LINUX
+    #if AS_APP_OS == AS_OS_LINUX
 
     #endif
             //将对应的HandleNode删除
-            SVS_DELETE(*itListOfHandle);
+            AS_DELETE(*itListOfHandle);
             ++itListOfHandle;
         }
 
-    #if SVS_APP_OS == SVS_OS_LINUX
+    #if AS_APP_OS == AS_OS_LINUX
         if (m_lEpfd != InvalidFd)
         {
             (void)CLOSESOCK(m_lEpfd);
@@ -1680,13 +1677,13 @@ CHandleManager::~CHandleManager()
 
         if(m_pSVSThread != NULL)
         {
-            SVS_free(m_pSVSThread);
+            free(m_pSVSThread);
         }
         m_pSVSThread = NULL;
 
         if(m_pMutexListOfHandle != NULL)
         {
-            if(SVS_OK == SVS_DestroyMutex(m_pMutexListOfHandle))
+            if(AS_ERROR_CODE_OK == as_destroy_mutex(m_pMutexListOfHandle))
             {
                 m_pMutexListOfHandle = NULL;
             }
@@ -1708,8 +1705,8 @@ CHandleManager::~CHandleManager()
   Input:          ulSelectPeriod: 事件检测间隔，单位为ms
   Output:         无
   Return:
-  SVS_SUCCESS: init success
-  SVS_FAIL: init fail
+  AS_ERROR_CODE_OK: init success
+  AS_ERROR_CODE_FAIL: init fail
 *******************************************************************************/
 long CHandleManager::init(const ULONG ulSelectPeriod)
 {
@@ -1722,7 +1719,7 @@ long CHandleManager::init(const ULONG ulSelectPeriod)
         m_ulSelectPeriod = ulSelectPeriod;
     }
 
-#if SVS_APP_OS == SVS_OS_LINUX
+#if AS_APP_OS == AS_OS_LINUX
     m_lEpfd = epoll_create(MAX_EPOLL_FD_SIZE);
 
     if(m_lEpfd < 0)
@@ -1731,9 +1728,9 @@ long CHandleManager::init(const ULONG ulSelectPeriod)
         CONN_WRITE_LOG(CONN_WARNING,  (char *)"FILE(%s)LINE(%d): "
             "CHandleManager::init: create file handle for epoll fail. "
             "manager type: %s", _FL_, m_szMgrType);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
-#elif SVS_APP_OS == SVS_OS_WIN32
+#elif AS_APP_OS == AS_OS_WIN32
     //将ulSelectPeriod转换成timeval结构
     m_stSelectPeriod.tv_sec = (long)(ulSelectPeriod / CONN_SECOND_IN_MS);
     m_stSelectPeriod.tv_usec = (ulSelectPeriod % CONN_SECOND_IN_MS) * CONN_MS_IN_US;
@@ -1743,21 +1740,21 @@ long CHandleManager::init(const ULONG ulSelectPeriod)
     FD_ZERO(&m_writeSet);
 #endif
 
-    m_pMutexListOfHandle = SVS_CreateMutex();
+    m_pMutexListOfHandle = as_create_mutex();
     if(NULL == m_pMutexListOfHandle)
     {
 
-#if SVS_APP_OS == SVS_OS_LINUX
+#if AS_APP_OS == AS_OS_LINUX
         close(m_lEpfd);
         m_lEpfd = InvalidFd;
 #endif
         CONN_WRITE_LOG(CONN_WARNING,  (char *)"FILE(%s)LINE(%d): "
             "CHandleManager::init: create m_pMutexListOfHandle fail. "
             "manager type: %s", _FL_, m_szMgrType);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
 
-    return SVS_SUCCESS;
+    return AS_ERROR_CODE_OK;
 }
 
 /*******************************************************************************
@@ -1768,25 +1765,25 @@ long CHandleManager::init(const ULONG ulSelectPeriod)
   Input:          无
   Output:         无
   Return:
-  SVS_SUCCESS: init success
-  SVS_FAIL: init fail
+  AS_ERROR_CODE_OK: init success
+  AS_ERROR_CODE_FAIL: init fail
 *******************************************************************************/
 long CHandleManager::run()
 {
     errno = 0;
-    if (SVS_OK != SVS_CreateThread((SVS_THREAD_FUNC)invoke, (void *)this,
-        &m_pSVSThread, SVS_DEFAULT_STACK_SIZE))
+    if (AS_ERROR_CODE_OK != as_create_thread((AS_THREAD_FUNC)invoke, (void *)this,
+        &m_pSVSThread, AS_DEFAULT_STACK_SIZE))
     {
         CONN_WRITE_LOG(CONN_WARNING,  (char *)"FILE(%s)LINE(%d): "
             "Create play thread failed. manager type: %s. error(%d):%s",
             _FL_, m_szMgrType, CONN_ERRNO, strerror(CONN_ERRNO));
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
     CONN_WRITE_LOG(CONN_WARNING,  (char *)"FILE(%s)LINE(%d): "
-        "SVS_CreateThread: manager type: %s. create thread %d", _FL_,
+        "as_create_thread: manager type: %s. create thread %d", _FL_,
         m_szMgrType, m_pSVSThread->pthead);
 
-    return SVS_SUCCESS;
+    return AS_ERROR_CODE_OK;
 }
 
 /*******************************************************************************
@@ -1797,8 +1794,8 @@ long CHandleManager::run()
   Input:          argc: 保存对象实例指针
   Output:         无
   Return:
-  SVS_SUCCESS: init success
-  SVS_FAIL: init fail
+  AS_ERROR_CODE_OK: init success
+  AS_ERROR_CODE_FAIL: init fail
 *******************************************************************************/
 void *CHandleManager::invoke(void *argc)
 {
@@ -1806,11 +1803,11 @@ void *CHandleManager::invoke(void *argc)
     CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): %s invoke mainLoop",
          _FL_, pHandleManager->m_szMgrType);
     pHandleManager->mainLoop();
-    SVS_pthread_exit(NULL);
+    as_thread_exit(NULL);
 
     return NULL;
 }
-#if SVS_APP_OS == SVS_OS_WIN32
+#if AS_APP_OS == AS_OS_WIN32
 /*******************************************************************************
   Function:       CHandleManager::mainLoop()
   Description:    事件检测主循环
@@ -1822,13 +1819,13 @@ void *CHandleManager::invoke(void *argc)
 *******************************************************************************/
 void CHandleManager::mainLoop()
 {
-    while(SVS_FALSE == m_bExit)
+    while(AS_FALSE == m_bExit)
     {
         errno = 0;
         long lWaitFds = 0;
 
         //加锁
-        if(SVS_OK != SVS_MutexLock(m_pMutexListOfHandle))
+        if(AS_ERROR_CODE_OK != as_mutex_lock(m_pMutexListOfHandle))
         {
            break;
         }
@@ -1848,10 +1845,10 @@ void CHandleManager::mainLoop()
             CHandle *pHandle = NULL;
             long lSockFd = InvalidSocket;
 
-            if(SVS_TRUE == (*itListOfHandle)->m_bRemoved)
+            if(AS_TRUE == (*itListOfHandle)->m_bRemoved)
             {
                 itListOfHandle = m_listHandle.erase(itListOfHandle);
-                SVS_DELETE(pHandleNode);
+                AS_DELETE(pHandleNode);
                 continue;
             }
             else
@@ -1859,8 +1856,8 @@ void CHandleManager::mainLoop()
                 pHandleNode = *itListOfHandle;
                 pHandle = pHandleNode->m_pHandle;
                 lSockFd = pHandle->m_lSockFD;
-                pHandle->m_bReadSelected = SVS_FALSE;
-                pHandle->m_bWriteSelected = SVS_FALSE;
+                pHandle->m_bReadSelected = AS_FALSE;
+                pHandle->m_bWriteSelected = AS_FALSE;
                 if(lSockFd != InvalidSocket)
                 {
                     ULONG ulEvent = pHandle->getEvents();
@@ -1869,7 +1866,7 @@ void CHandleManager::mainLoop()
                         if(!FD_ISSET(lSockFd,&m_readSet))
                         {
                             FD_SET((SOCKET)lSockFd,&m_readSet);
-                            pHandle->m_bReadSelected = SVS_TRUE;
+                            pHandle->m_bReadSelected = AS_TRUE;
                         }
                     }
 
@@ -1878,7 +1875,7 @@ void CHandleManager::mainLoop()
                         if(!FD_ISSET(lSockFd,&m_writeSet))
                         {
                             FD_SET((SOCKET)lSockFd,&m_writeSet);
-                            pHandle->m_bWriteSelected = SVS_TRUE;
+                            pHandle->m_bWriteSelected = AS_TRUE;
                         }
                     }
                 }
@@ -1887,7 +1884,7 @@ void CHandleManager::mainLoop()
             ++itListOfHandle;
         }
         //解锁
-        (void)SVS_MutexUnlock(m_pMutexListOfHandle);
+        (void)as_mutex_unlock(m_pMutexListOfHandle);
 
 
         //还没有要检测的socket
@@ -1931,7 +1928,7 @@ void CHandleManager::mainLoop()
         }
 
         //加锁
-        if(SVS_OK != SVS_MutexLock(m_pMutexListOfHandle))
+        if(AS_ERROR_CODE_OK != as_mutex_lock(m_pMutexListOfHandle))
         {
            break;
         }
@@ -1941,7 +1938,7 @@ void CHandleManager::mainLoop()
         it != m_listHandle.end(); ++it)
         {
             pHandleNode = *it;
-            if (SVS_TRUE == pHandleNode->m_bRemoved)
+            if (AS_TRUE == pHandleNode->m_bRemoved)
             {
                 continue;
             }
@@ -1951,7 +1948,7 @@ void CHandleManager::mainLoop()
             if (pHandle->m_lSockFD != InvalidSocket)
             {
                 if (FD_ISSET(pHandle->m_lSockFD,&m_readSet)
-                    && (SVS_TRUE == pHandle->m_bReadSelected))
+                    && (AS_TRUE == pHandle->m_bReadSelected))
 
                 {
                     this->checkSelectResult(enEpollRead, pHandleNode->m_pHandle);
@@ -1959,21 +1956,21 @@ void CHandleManager::mainLoop()
 
                 //检查是否为写操作
                 if (FD_ISSET(pHandle->m_lSockFD,&m_writeSet)
-                    && (SVS_TRUE == pHandle->m_bWriteSelected))
+                    && (AS_TRUE == pHandle->m_bWriteSelected))
                 {
                     this->checkSelectResult(enEpollWrite, pHandleNode->m_pHandle);
                 }
             }
         }
         //解锁
-        (void)SVS_MutexUnlock(m_pMutexListOfHandle);
+        (void)as_mutex_unlock(m_pMutexListOfHandle);
     }
 
     return;
 }
 #endif
 
-#if SVS_APP_OS == SVS_OS_LINUX
+#if AS_APP_OS == AS_OS_LINUX
 /*******************************************************************************
   Function:       CHandleManager::mainLoop()
   Description:    事件检测主循环
@@ -1985,7 +1982,7 @@ void CHandleManager::mainLoop()
 *******************************************************************************/
 void CHandleManager::mainLoop()
 {
-    while(SVS_FALSE == m_bExit)
+    while(AS_FALSE == m_bExit)
     {
         errno = 0;
         long lWaitFds = epoll_wait(m_lEpfd, m_epEvents, EPOLL_MAX_EVENT,
@@ -2009,7 +2006,7 @@ void CHandleManager::mainLoop()
         }
 
         //加锁
-        if(SVS_OK != SVS_MutexLock(m_pMutexListOfHandle))
+        if(AS_ERROR_CODE_OK != as_mutex_lock(m_pMutexListOfHandle))
         {
            break;
         }
@@ -2025,9 +2022,9 @@ void CHandleManager::mainLoop()
                 continue;
             }
             //正常情况下m_bRemoved的值只有2种，为了防止内存被改写成其它值，
-            //增加条件:(SVS_FALSE != pHandleNode->m_bRemoved)
-            if((SVS_TRUE == pHandleNode->m_bRemoved) ||
-                (SVS_FALSE != pHandleNode->m_bRemoved))
+            //增加条件:(AS_FALSE != pHandleNode->m_bRemoved)
+            if((AS_TRUE == pHandleNode->m_bRemoved) ||
+                (AS_FALSE != pHandleNode->m_bRemoved))
             {
                 continue;
             }
@@ -2055,7 +2052,7 @@ void CHandleManager::mainLoop()
         ListOfHandleIte itListOfHandle = m_listHandle.begin();
         while(itListOfHandle != m_listHandle.end())
         {
-            if(SVS_TRUE == (*itListOfHandle)->m_bRemoved)
+            if(AS_TRUE == (*itListOfHandle)->m_bRemoved)
             {
                 CONN_WRITE_LOG(CONN_DEBUG,  (char *)"FILE(%s)LINE(%d): "
                     "(*itListOfHandle) removed, pHandleNode = 0x%x", _FL_,
@@ -2064,14 +2061,14 @@ void CHandleManager::mainLoop()
                 //将对应的HandleNode删除
                 pHandleNode = *itListOfHandle;
                 itListOfHandle = m_listHandle.erase(itListOfHandle);
-                SVS_DELETE(pHandleNode);
+                AS_DELETE(pHandleNode);
                 continue;
             }
             ++itListOfHandle;
         }
 
         //解锁
-        (void)SVS_MutexUnlock(m_pMutexListOfHandle);
+        (void)as_mutex_unlock(m_pMutexListOfHandle);
     }
     return;
 }
@@ -2095,10 +2092,10 @@ void CHandleManager::exit()
         return;
     }
 
-    this->m_bExit = SVS_TRUE;
+    this->m_bExit = AS_TRUE;
     errno = 0;
-    long ret_val = SVS_ThreadJoin(m_pSVSThread);
-    if (ret_val != SVS_OK)
+    long ret_val = as_join_thread(m_pSVSThread);
+    if (ret_val != AS_ERROR_CODE_OK)
     {
         CONN_WRITE_LOG(CONN_WARNING,  (char *)"FILE(%s)LINE(%d): "
             "Wait play thread exit failed. ret_val(%d). error(%d):%s",
@@ -2122,61 +2119,61 @@ void CHandleManager::exit()
   Return:         无
 *******************************************************************************/
 long CHandleManager::addHandle(CHandle *pHandle,
-                                  SVS_BOOLEAN bIsListOfHandleLocked)
+                                  AS_BOOLEAN bIsListOfHandleLocked)
 {
     if (NULL == pHandle )
     {
         CONN_WRITE_LOG(CONN_WARNING,  (char *)"FILE(%s)LINE(%d): "
             "CHandleManager::addHandle: pHandle is NULL", _FL_);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
     if(InvalidSocket == pHandle->m_lSockFD)
     {
         CONN_WRITE_LOG(CONN_WARNING,  (char *)"FILE(%s)LINE(%d): "
             "CHandleManager::addHandle: pHandle's socket is invalid", _FL_);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
     CHandleNode *pHandleNode = NULL;
-    (void)SVS_NEW(pHandleNode);
+    (void)AS_NEW(pHandleNode);
     if (NULL == pHandleNode )
     {
         CONN_WRITE_LOG(CONN_WARNING,  (char *)"FILE(%s)LINE(%d): "
             "CHandleManager::addHandle: new pHandleNode fail", _FL_);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
 
     //加锁(如果和mainloop不是同一线程不需要加锁)
-    SVS_BOOLEAN bNeedLock = SVS_FALSE;
-    SVS_BOOLEAN bLocked = SVS_FALSE;
-    if(SVS_FALSE == bIsListOfHandleLocked)//没有加过锁需要加锁
+    AS_BOOLEAN bNeedLock = AS_FALSE;
+    AS_BOOLEAN bLocked = AS_FALSE;
+    if(AS_FALSE == bIsListOfHandleLocked)//没有加过锁需要加锁
     {
         if (NULL == m_pSVSThread)
         {
-            bNeedLock = SVS_TRUE;
+            bNeedLock = AS_TRUE;
         }
         else
         {
-            if(SVS_pthread_self() != m_pSVSThread->pthead)
+            if(as_thread_self() != m_pSVSThread->pthead)
             {
-                bNeedLock = SVS_TRUE;
+                bNeedLock = AS_TRUE;
             }
         }
 
-        if(SVS_TRUE == bNeedLock)
+        if(AS_TRUE == bNeedLock)
         {
-            if (SVS_OK != SVS_MutexLock(m_pMutexListOfHandle))
+            if (AS_ERROR_CODE_OK != as_mutex_lock(m_pMutexListOfHandle))
             {
                 CONN_WRITE_LOG(CONN_WARNING,  (char *)"FILE(%s)LINE(%d): "
                 "CHandleManager::removeHandle: get lock failed", _FL_);
             }
             else
             {
-               bLocked = SVS_TRUE;
+               bLocked = AS_TRUE;
             }
         }
     }
 
-#if SVS_APP_OS == SVS_OS_LINUX
+#if AS_APP_OS == AS_OS_LINUX
     //将handle添加到epoll的集合中
     struct epoll_event epEvent;
     memset(&epEvent, 0, sizeof(epEvent));
@@ -2191,28 +2188,28 @@ long CHandleManager::addHandle(CHandle *pHandle,
         CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
             "CHandleManager::addHandle: add event fail, "
             "errno = %d, error: %s", _FL_, CONN_ERRNO, strerror(CONN_ERRNO));
-        SVS_DELETE(pHandleNode);
+        AS_DELETE(pHandleNode);
 
         //解锁
-        if(SVS_TRUE == bLocked)
+        if(AS_TRUE == bLocked)
         {
-            if (SVS_OK != SVS_MutexUnlock(m_pMutexListOfHandle))
+            if (AS_ERROR_CODE_OK != as_mutex_unlock(m_pMutexListOfHandle))
             {
                 CONN_WRITE_LOG(CONN_WARNING,  (char *)"FILE(%s)LINE(%d): "
                     "CHandleManager::addHandle: release lock failed", _FL_);
             }
         }
 
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
 #endif
     pHandle->m_pHandleNode = pHandleNode;
 
-#if SVS_APP_OS == SVS_OS_LINUX
+#if AS_APP_OS == AS_OS_LINUX
     pHandle->m_lEpfd = m_lEpfd;
 #endif
     pHandleNode->m_pHandle = pHandle;
-#if SVS_APP_OS == SVS_OS_LINUX
+#if AS_APP_OS == AS_OS_LINUX
     CONN_WRITE_LOG(CONN_DEBUG,  (char *)"FILE(%s)LINE(%d): "
             "CHandleManager::addHandle: "
             "new pHandleNode(0x%x) m_pHandle(0x%x) fd(%d) Epfd(%d)"
@@ -2221,7 +2218,7 @@ long CHandleManager::addHandle(CHandle *pHandle,
             pHandleNode->m_pHandle->m_lSockFD, pHandleNode->m_pHandle->m_lEpfd,
             pHandleNode->m_pHandle->m_localAddr.m_lIpAddr,
             pHandleNode->m_pHandle->m_localAddr.m_usPort);
-#elif SVS_APP_OS == SVS_OS_WIN32
+#elif AS_APP_OS == AS_OS_WIN32
     CONN_WRITE_LOG(CONN_DEBUG,  (char *)"FILE(%s)LINE(%d): "
         "CHandleManager::addHandle: "
         "new pHandleNode(0x%x) m_pHandle(0x%x) fd(%d) "
@@ -2234,16 +2231,16 @@ long CHandleManager::addHandle(CHandle *pHandle,
     m_listHandle.push_back(pHandleNode);
 
     //解锁
-    if(SVS_TRUE == bLocked)
+    if(AS_TRUE == bLocked)
     {
-        if (SVS_OK != SVS_MutexUnlock(m_pMutexListOfHandle))
+        if (AS_ERROR_CODE_OK != as_mutex_unlock(m_pMutexListOfHandle))
         {
             CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
                 "CHandleManager::addHandle: release lock failed", _FL_);
         }
     }
 
-    return SVS_SUCCESS;
+    return AS_ERROR_CODE_OK;
 }
 
 /*******************************************************************************
@@ -2265,30 +2262,30 @@ void CHandleManager::removeHandle(CHandle *pHandle)
     }
 
     //加锁(如果和mainloop不是同一线程不需要加锁)
-    SVS_BOOLEAN bNeedLock = SVS_FALSE;
-    SVS_BOOLEAN bLocked = SVS_FALSE;
+    AS_BOOLEAN bNeedLock = AS_FALSE;
+    AS_BOOLEAN bLocked = AS_FALSE;
     if (NULL == m_pSVSThread)
     {
-        bNeedLock = SVS_TRUE;
+        bNeedLock = AS_TRUE;
     }
     else
     {
-        if(SVS_pthread_self() != m_pSVSThread->pthead)
+        if(as_thread_self() != m_pSVSThread->pthead)
         {
-            bNeedLock = SVS_TRUE;
+            bNeedLock = AS_TRUE;
         }
     }
 
-    if(SVS_TRUE == bNeedLock)
+    if(AS_TRUE == bNeedLock)
     {
-        if (SVS_OK != SVS_MutexLock(m_pMutexListOfHandle))
+        if (AS_ERROR_CODE_OK != as_mutex_lock(m_pMutexListOfHandle))
         {
             CONN_WRITE_LOG(CONN_WARNING,  (char *)"FILE(%s)LINE(%d): "
                 "CHandleManager::removeHandle: get lock failed", _FL_);
         }
         else
         {
-            bLocked = SVS_TRUE;
+            bLocked = AS_TRUE;
         }
     }
 
@@ -2299,10 +2296,10 @@ void CHandleManager::removeHandle(CHandle *pHandle)
     }
     else
     {
-        if(pHandle->m_pHandleNode->m_bRemoved != SVS_TRUE)
+        if(pHandle->m_pHandleNode->m_bRemoved != AS_TRUE)
         {
             pHandle->close();
-            pHandle->m_pHandleNode->m_bRemoved = SVS_TRUE;
+            pHandle->m_pHandleNode->m_bRemoved = AS_TRUE;
             pHandle->m_pHandleNode->m_pHandle = NULL;
         }
         else
@@ -2315,9 +2312,9 @@ void CHandleManager::removeHandle(CHandle *pHandle)
     }
 
     //解锁(如果不是同一线程)
-    if(SVS_TRUE == bLocked)
+    if(AS_TRUE == bLocked)
     {
-        if (SVS_OK != SVS_MutexUnlock(m_pMutexListOfHandle))
+        if (AS_ERROR_CODE_OK != as_mutex_unlock(m_pMutexListOfHandle))
         {
             CONN_WRITE_LOG(CONN_WARNING,  (char *)"FILE(%s)LINE(%d): "
                 "CHandleManager::removeHandle: release lock failed", _FL_);
@@ -2338,7 +2335,7 @@ void CHandleManager::removeHandle(CHandle *pHandle)
 *******************************************************************************/
 void CTcpConnMgr::lockListOfHandle()
 {
-    if (SVS_OK != SVS_MutexLock(m_pMutexListOfHandle))
+    if (AS_ERROR_CODE_OK != as_mutex_lock(m_pMutexListOfHandle))
     {
         CONN_WRITE_LOG(CONN_WARNING,  (char *)"FILE(%s)LINE(%d): "
             "CTcpConnMgr::lockListOfHandle: get lock failed", _FL_);
@@ -2355,7 +2352,7 @@ void CTcpConnMgr::lockListOfHandle()
 *******************************************************************************/
 void CTcpConnMgr::unlockListOfHandle()
 {
-    if (SVS_OK != SVS_MutexUnlock(m_pMutexListOfHandle))
+    if (AS_ERROR_CODE_OK != as_mutex_unlock(m_pMutexListOfHandle))
     {
         CONN_WRITE_LOG(CONN_WARNING,  (char *)"FILE(%s)LINE(%d): "
             "CTcpConnMgr::unlockListOfHandle: release lock failed", _FL_);
@@ -2391,7 +2388,7 @@ void CTcpConnMgr::checkSelectResult(const EpollEventType enEpEvent,
     if(enEpollRead == enEpEvent)
     {
         //清除读事件检测
-        pTcpConnHandle->setHandleRecv(SVS_FALSE);
+        pTcpConnHandle->setHandleRecv(AS_FALSE);
         //调用handle处理接收事件
         pTcpConnHandle->handle_recv();
     }
@@ -2400,7 +2397,7 @@ void CTcpConnMgr::checkSelectResult(const EpollEventType enEpEvent,
     if(enEpollWrite == enEpEvent)
     {
         //清除写事件检测
-        pTcpConnHandle->setHandleSend(SVS_FALSE);
+        pTcpConnHandle->setHandleSend(AS_FALSE);
 
         //检测是否连接成功
         if(pTcpConnHandle->getStatus() == enConnecting)
@@ -2461,7 +2458,7 @@ void CUdpSockMgr::checkSelectResult(const EpollEventType enEpEvent,
     if(enEpollRead == enEpEvent)
     {
         //清除读事件检测
-        pUdpSockHandle->setHandleRecv(SVS_FALSE);
+        pUdpSockHandle->setHandleRecv(AS_FALSE);
         //调用handle处理接收事件
         pUdpSockHandle->handle_recv();
     }
@@ -2470,7 +2467,7 @@ void CUdpSockMgr::checkSelectResult(const EpollEventType enEpEvent,
     if(enEpollWrite == enEpEvent)
     {
         //清除写事件检测
-        pUdpSockHandle->setHandleSend(SVS_FALSE);
+        pUdpSockHandle->setHandleSend(AS_FALSE);
         //调用handle处理写事件
         pUdpSockHandle->handle_send();
     }
@@ -2579,7 +2576,7 @@ void CTcpServerMgr::checkSelectResult(const EpollEventType enEpEvent,
 
         /*此处加锁,使得新生成的pTcpConnHandle,与removeTcpClient互斥*/
         m_pTcpConnMgr->lockListOfHandle();
-        if (SVS_SUCCESS != pTcpServerHandle->handle_accept(&clientAddr, pTcpConnHandle))
+        if (AS_ERROR_CODE_OK != pTcpServerHandle->handle_accept(&clientAddr, pTcpConnHandle))
         {
             (void)CLOSESOCK((SOCKET)lClientSockfd);
             CONN_WRITE_LOG(CONN_WARNING,  (char *)"FILE(%s)LINE(%d): "
@@ -2597,7 +2594,7 @@ void CTcpServerMgr::checkSelectResult(const EpollEventType enEpEvent,
             m_pTcpConnMgr->unlockListOfHandle();
             return;
         }
-        if(SVS_SUCCESS != pTcpConnHandle->initHandle())
+        if(AS_ERROR_CODE_OK != pTcpConnHandle->initHandle())
         {
             CONN_WRITE_LOG(CONN_WARNING,  (char *)"FILE(%s)LINE(%d): "
                 "CTcpServerMgr::checkSelectResult: "
@@ -2612,8 +2609,8 @@ void CTcpServerMgr::checkSelectResult(const EpollEventType enEpEvent,
         pTcpConnHandle->m_peerAddr.m_lIpAddr = clientAddr.m_lIpAddr;
         pTcpConnHandle->m_peerAddr.m_usPort = clientAddr.m_usPort;
 
-        SVS_BOOLEAN bIsListOfHandleLocked = SVS_TRUE;
-        if (SVS_SUCCESS != m_pTcpConnMgr->addHandle(pTcpConnHandle,
+        AS_BOOLEAN bIsListOfHandleLocked = AS_TRUE;
+        if (AS_ERROR_CODE_OK != m_pTcpConnMgr->addHandle(pTcpConnHandle,
                                                     bIsListOfHandleLocked))
         {
             CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
@@ -2669,9 +2666,9 @@ CConnMgr::~CConnMgr()
 {
     try
     {
-        SVS_DELETE(m_pTcpConnMgr);
-        SVS_DELETE(m_pUdpSockMgr);
-        SVS_DELETE(m_pTcpServerMgr);
+        AS_DELETE(m_pTcpConnMgr);
+        AS_DELETE(m_pUdpSockMgr);
+        AS_DELETE(m_pTcpServerMgr);
     }
     catch (...)
     {
@@ -2686,13 +2683,13 @@ CConnMgr::~CConnMgr()
   Input:          无
   Output:         无
   Return:
-  SVS_SUCCESS: init success
-  SVS_FAIL: init fail
+  AS_ERROR_CODE_OK: init success
+  AS_ERROR_CODE_FAIL: init fail
 *******************************************************************************/
-long CConnMgr::init(const ULONG ulSelectPeriod, const SVS_BOOLEAN bHasUdpSock,
-            const SVS_BOOLEAN bHasTcpClient, const SVS_BOOLEAN bHasTcpServer)
+long CConnMgr::init(const ULONG ulSelectPeriod, const AS_BOOLEAN bHasUdpSock,
+            const AS_BOOLEAN bHasTcpClient, const AS_BOOLEAN bHasTcpServer)
 {
-#if SVS_APP_OS == SVS_OS_WIN32
+#if AS_APP_OS == AS_OS_WIN32
     WSAData wsaData;
     if (SOCKET_ERROR == WSAStartup(MAKEWORD(2,2),&wsaData))
     {
@@ -2701,59 +2698,59 @@ long CConnMgr::init(const ULONG ulSelectPeriod, const SVS_BOOLEAN bHasUdpSock,
         return SVS_ERR_SYS;
     }
 #endif
-    if(SVS_TRUE == bHasUdpSock)
+    if(AS_TRUE == bHasUdpSock)
     {
-        (void)SVS_NEW(m_pUdpSockMgr);
+        (void)AS_NEW(m_pUdpSockMgr);
         if(NULL == m_pUdpSockMgr)
         {
             CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
                 "CConnMgr::init: create m_pUdpSockMgr fail", _FL_);
-            return SVS_FAIL;
+            return AS_ERROR_CODE_FAIL;
         }
-        if(SVS_SUCCESS != m_pUdpSockMgr->init(ulSelectPeriod))
+        if(AS_ERROR_CODE_OK != m_pUdpSockMgr->init(ulSelectPeriod))
         {
             CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
                 "CConnMgr::init: init m_pUdpSockMgr fail", _FL_);
-            return SVS_FAIL;
+            return AS_ERROR_CODE_FAIL;
         }
     }
 
-    if((SVS_TRUE == bHasTcpClient) || (SVS_TRUE == bHasTcpServer))
+    if((AS_TRUE == bHasTcpClient) || (AS_TRUE == bHasTcpServer))
     {
-        (void)SVS_NEW(m_pTcpConnMgr);
+        (void)AS_NEW(m_pTcpConnMgr);
         if(NULL == m_pTcpConnMgr)
         {
             CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
                 "CConnMgr::init: create m_pTcpConnMgr fail", _FL_);
-            return SVS_FAIL;
+            return AS_ERROR_CODE_FAIL;
         }
-        if(SVS_SUCCESS != m_pTcpConnMgr->init(ulSelectPeriod))
+        if(AS_ERROR_CODE_OK != m_pTcpConnMgr->init(ulSelectPeriod))
         {
             CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
                 "CConnMgr::init: init m_pTcpConnMgr fail", _FL_);
-            return SVS_FAIL;
+            return AS_ERROR_CODE_FAIL;
         }
     }
 
-    if(SVS_TRUE == bHasTcpServer)
+    if(AS_TRUE == bHasTcpServer)
     {
-        (void)SVS_NEW(m_pTcpServerMgr);
+        (void)AS_NEW(m_pTcpServerMgr);
         if(NULL == m_pTcpServerMgr)
         {
             CONN_WRITE_LOG(CONN_WARNING,  (char *)"FILE(%s)LINE(%d): "
                 "CConnMgr::init: create m_pTcpServerMgr fail", _FL_);
-            return SVS_FAIL;
+            return AS_ERROR_CODE_FAIL;
         }
-        if(SVS_SUCCESS != m_pTcpServerMgr->init(ulSelectPeriod))
+        if(AS_ERROR_CODE_OK != m_pTcpServerMgr->init(ulSelectPeriod))
         {
             CONN_WRITE_LOG(CONN_WARNING,  (char *)"FILE(%s)LINE(%d): "
                 "CConnMgr::init: init m_pTcpServerMgr fail", _FL_);
-            return SVS_FAIL;
+            return AS_ERROR_CODE_FAIL;
         }
         m_pTcpServerMgr->setTcpClientMgr(m_pTcpConnMgr);
     }
 
-    return SVS_SUCCESS;
+    return AS_ERROR_CODE_OK;
 }
 
 /*******************************************************************************
@@ -2764,42 +2761,42 @@ long CConnMgr::init(const ULONG ulSelectPeriod, const SVS_BOOLEAN bHasUdpSock,
   Input:          无
   Output:         无
   Return:
-  SVS_SUCCESS: start success
-  SVS_FAIL: start fail
+  AS_ERROR_CODE_OK: start success
+  AS_ERROR_CODE_FAIL: start fail
 *******************************************************************************/
 long CConnMgr::run(void)
 {
     if(NULL != m_pUdpSockMgr)
     {
-        if(SVS_SUCCESS != m_pUdpSockMgr->run())
+        if(AS_ERROR_CODE_OK != m_pUdpSockMgr->run())
         {
             CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
                 "CConnMgr::run: run m_pUdpSockMgr fail", _FL_);
-            return SVS_FAIL;
+            return AS_ERROR_CODE_FAIL;
         }
     }
 
     if(NULL != m_pTcpConnMgr)
     {
-        if(SVS_SUCCESS != m_pTcpConnMgr->run())
+        if(AS_ERROR_CODE_OK != m_pTcpConnMgr->run())
         {
             CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
                 "CConnMgr::run: run m_pTcpConnMgr fail", _FL_);
-            return SVS_FAIL;
+            return AS_ERROR_CODE_FAIL;
         }
     }
 
     if(NULL != m_pTcpServerMgr)
     {
-        if(SVS_SUCCESS != m_pTcpServerMgr->run())
+        if(AS_ERROR_CODE_OK != m_pTcpServerMgr->run())
         {
             CONN_WRITE_LOG(CONN_WARNING,  (char *)"FILE(%s)LINE(%d): "
                 "CConnMgr::run: run m_pTcpServerMgr fail", _FL_);
-            return SVS_FAIL;
+            return AS_ERROR_CODE_FAIL;
         }
     }
 
-    return SVS_SUCCESS;
+    return AS_ERROR_CODE_OK;
 
 }
 
@@ -2818,22 +2815,22 @@ void CConnMgr::exit(void)
     if(NULL != m_pUdpSockMgr)
     {
         m_pUdpSockMgr->exit();
-        SVS_DELETE(m_pUdpSockMgr);
+        AS_DELETE(m_pUdpSockMgr);
     }
 
     if(NULL != m_pTcpServerMgr)
     {
         m_pTcpServerMgr->exit();
-        SVS_DELETE(m_pTcpServerMgr);
+        AS_DELETE(m_pTcpServerMgr);
     }
 
     if(NULL != m_pTcpConnMgr)
     {
         m_pTcpConnMgr->exit();
-        SVS_DELETE(m_pTcpConnMgr);
+        AS_DELETE(m_pTcpConnMgr);
     }
 
-#if SVS_APP_OS == SVS_OS_WIN32
+#if AS_APP_OS == AS_OS_WIN32
     (void)WSACleanup();
 #endif
     return;
@@ -2872,8 +2869,8 @@ void CConnMgr::setDefaultLocalAddr(const char *szLocalIpAddr)
                   bSyncConn: SVS_TRUE表示同步连接，SVS_FALSE表示异步连接
   Output:         无
   Return:
-  SVS_SUCCESS: connect success
-  SVS_FAIL: connect fail
+  AS_ERROR_CODE_OK: connect success
+  AS_ERROR_CODE_FAIL: connect fail
 *******************************************************************************/
 long CConnMgr::regTcpClient( const CNetworkAddr *pLocalAddr,
     const CNetworkAddr *pPeerAddr, CTcpConnHandle *pTcpConnHandle,
@@ -2883,35 +2880,35 @@ long CConnMgr::regTcpClient( const CNetworkAddr *pLocalAddr,
     {
         CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
             "CConnMgr::regTcpClient: pLocalAddr is NULL", _FL_);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
 
     if(NULL == pPeerAddr)
     {
         CONN_WRITE_LOG(CONN_WARNING,  (char *)"FILE(%s)LINE(%d): "
             "CConnMgr::regTcpClient: pPeerAddr is NULL", _FL_);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
 
     if(NULL == pTcpConnHandle)
     {
         CONN_WRITE_LOG(CONN_WARNING,  (char *)"FILE(%s)LINE(%d): "
             "CConnMgr::regTcpClient: pTcpConnHandle is NULL", _FL_);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
 
-    if(SVS_SUCCESS != pTcpConnHandle->initHandle())
+    if(AS_ERROR_CODE_OK != pTcpConnHandle->initHandle())
     {
         CONN_WRITE_LOG(CONN_WARNING,  (char *)"FILE(%s)LINE(%d): "
             "CConnMgr::regTcpClient: pTcpConnHandle init fail", _FL_);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
 
     if(NULL == m_pTcpConnMgr)
     {
         CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
             "CConnMgr::regTcpClient: m_pTcpConnMgr is NULL", _FL_);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
 
     CNetworkAddr localAddr;
@@ -2930,7 +2927,7 @@ long CConnMgr::regTcpClient( const CNetworkAddr *pLocalAddr,
 
     long lRetVal = pTcpConnHandle->conn(&localAddr, pPeerAddr, bSyncConn, ulTimeOut);
 
-    if(lRetVal != SVS_SUCCESS)
+    if(lRetVal != AS_ERROR_CODE_OK)
     {
         CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
             "CConnMgr::regTcpClient: connect peer fail(0x%x:%d)", _FL_,
@@ -2939,7 +2936,7 @@ long CConnMgr::regTcpClient( const CNetworkAddr *pLocalAddr,
     }
 
     lRetVal = m_pTcpConnMgr->addHandle(pTcpConnHandle);
-    if(lRetVal != SVS_SUCCESS)
+    if(lRetVal != AS_ERROR_CODE_OK)
     {
         pTcpConnHandle->close();
         CONN_WRITE_LOG(CONN_WARNING,  (char *)"FILE(%s)LINE(%d): "
@@ -2947,7 +2944,7 @@ long CConnMgr::regTcpClient( const CNetworkAddr *pLocalAddr,
         return lRetVal;
     }
 
-    return SVS_SUCCESS;
+    return AS_ERROR_CODE_OK;
 }
 
 /*******************************************************************************
@@ -3003,8 +3000,8 @@ void CConnMgr::removeTcpClient(CTcpConnHandle *pTcpConnHandle)
                   pTcpServerHandle: TCP服务器对应的handle
   Output:         无
   Return:
-  SVS_SUCCESS: listen success
-  SVS_FAIL: listen fail
+  AS_ERROR_CODE_OK: listen success
+  AS_ERROR_CODE_FAIL: listen fail
 *******************************************************************************/
 long CConnMgr::regTcpServer(const CNetworkAddr *pLocalAddr,
     CTcpServerHandle *pTcpServerHandle)
@@ -3013,35 +3010,35 @@ long CConnMgr::regTcpServer(const CNetworkAddr *pLocalAddr,
     {
         CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
             "CConnMgr::regTcpServer: pLocalAddr is NULL", _FL_);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
 
     if(NULL == pTcpServerHandle)
     {
         CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
             "CConnMgr::regTcpServer: pTcpServerHandle is NULL", _FL_);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
 
-    if(SVS_SUCCESS != pTcpServerHandle->initHandle())
+    if(AS_ERROR_CODE_OK != pTcpServerHandle->initHandle())
     {
         CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
             "CConnMgr::regTcpServer: pTcpServerHandle init fail", _FL_);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
 
     if(NULL == m_pTcpConnMgr)
     {
         CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
             "CConnMgr::regTcpServer: m_pTcpConnMgr is NULL", _FL_);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
 
     if(NULL == m_pTcpServerMgr)
     {
         CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
             "CConnMgr::regTcpServer: m_pTcpServerMgr is NULL", _FL_);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
 
     CNetworkAddr localAddr;
@@ -3060,7 +3057,7 @@ long CConnMgr::regTcpServer(const CNetworkAddr *pLocalAddr,
 
     long lRetVal = pTcpServerHandle->listen(&localAddr);
 
-    if(lRetVal != SVS_SUCCESS)
+    if(lRetVal != AS_ERROR_CODE_OK)
     {
         CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
             "CConnMgr::regTcpServer: listen fail", _FL_);
@@ -3068,7 +3065,7 @@ long CConnMgr::regTcpServer(const CNetworkAddr *pLocalAddr,
     }
 
     lRetVal = m_pTcpServerMgr->addHandle(pTcpServerHandle);
-    if(lRetVal != SVS_SUCCESS)
+    if(lRetVal != AS_ERROR_CODE_OK)
     {
         pTcpServerHandle->close();
         CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
@@ -3076,7 +3073,7 @@ long CConnMgr::regTcpServer(const CNetworkAddr *pLocalAddr,
         return lRetVal;
     }
 
-    return SVS_SUCCESS;
+    return AS_ERROR_CODE_OK;
 }
 
 /*******************************************************************************
@@ -3125,8 +3122,8 @@ void CConnMgr::removeTcpServer(CTcpServerHandle *pTcpServerHandle)
                   pUdpSockHandle: 连接对应的handle
   Output:         无
   Return:
-  SVS_SUCCESS: create success
-  SVS_FAIL: create fail
+  AS_ERROR_CODE_OK: create success
+  AS_ERROR_CODE_FAIL: create fail
 *******************************************************************************/
 long CConnMgr::regUdpSocket(const CNetworkAddr *pLocalAddr,
                                  CUdpSockHandle *pUdpSockHandle,
@@ -3136,28 +3133,28 @@ long CConnMgr::regUdpSocket(const CNetworkAddr *pLocalAddr,
     {
         CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
             "CConnMgr::regUdpSocket: pUdpSockHandle is NULL", _FL_);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
 
     if(NULL == pUdpSockHandle)
     {
         CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
             "CConnMgr::regUdpSocket: pUdpSockHandle is NULL", _FL_);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
 
-    if(SVS_SUCCESS != pUdpSockHandle->initHandle())
+    if(AS_ERROR_CODE_OK != pUdpSockHandle->initHandle())
     {
         CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
             "CConnMgr::regUdpSocket: pUdpSockHandle init fail", _FL_);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
 
     if(NULL == m_pUdpSockMgr)
     {
         CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
             "CConnMgr::regUdpSocket: m_pUdpSockMgr is NULL", _FL_);
-        return SVS_FAIL;
+        return AS_ERROR_CODE_FAIL;
     }
 
     CNetworkAddr localAddr;
@@ -3175,7 +3172,7 @@ long CConnMgr::regUdpSocket(const CNetworkAddr *pLocalAddr,
     pUdpSockHandle->m_localAddr.m_usPort = pLocalAddr->m_usPort;
 
     long lRetVal = pUdpSockHandle->createSock(&localAddr, pMultiAddr);
-    if(lRetVal != SVS_SUCCESS)
+    if(lRetVal != AS_ERROR_CODE_OK)
     {
         CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
             "CConnMgr::regUdpSocket: create UDP socket fail", _FL_);
@@ -3183,7 +3180,7 @@ long CConnMgr::regUdpSocket(const CNetworkAddr *pLocalAddr,
     }
 
     lRetVal = m_pUdpSockMgr->addHandle(pUdpSockHandle);
-    if(lRetVal != SVS_SUCCESS)
+    if(lRetVal != AS_ERROR_CODE_OK)
     {
         pUdpSockHandle->close();
         CONN_WRITE_LOG(CONN_WARNING, (char *)"FILE(%s)LINE(%d): "
@@ -3191,7 +3188,7 @@ long CConnMgr::regUdpSocket(const CNetworkAddr *pLocalAddr,
         return lRetVal;
     }
 
-    return SVS_SUCCESS;
+    return AS_ERROR_CODE_OK;
 }
 
 /*******************************************************************************

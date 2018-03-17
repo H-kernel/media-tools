@@ -6,10 +6,10 @@
   版本号          : 1.0
   作者            : hexin
   生成日期        : 2007-4-02
-  最近修改        : 
-  功能描述        : 
-  函数列表        : 
-  修改历史        : 
+  最近修改        :
+  功能描述        :
+  函数列表        :
+  修改历史        :
   1 日期          : 2007-4-02
     作者          : hexin
     修改内容      : 生成
@@ -25,8 +25,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <sys/epoll.h> 
-#endif //SVS_OS_LINUX
+#include <sys/epoll.h>
+#endif //AS_OS_LINUX
 
  #ifdef WIN32
  //#include <winsock2.h>
@@ -34,10 +34,15 @@
 //#pragma comment(lib,"ws2_32.lib")
 
 #include <list>
-#include "svs_config.h"
-#include "svs_basetype.h"
-#include "svs_common.h"
-#include "svs.h"
+#include <fcntl.h>
+#include <string.h>
+#include <unistd.h>
+#include <stdio.h>
+
+#include "as_config.h"
+#include "as_basetype.h"
+#include "as_common.h"
+#include "as.h"
 
 #define InvalidFd -1
 #define InvalidSocket -1
@@ -57,18 +62,32 @@
 #define LINGER_WAIT_SECONDS 1 //LINGER等待时间(seconds)
 
 //定义连接管理器得错误码
-#if SVS_APP_OS == SVS_OS_LINUX
-#define CONN_ERR_TIMEO      ETIMEDOUT 
+#if AS_APP_OS == AS_OS_LINUX
+#define CONN_ERR_TIMEO      ETIMEDOUT
 #define CONN_ERR_EBADF      EBADF
-#elif SVS_APP_OS == SVS_OS_WIN32
-#define CONN_ERR_EBADF      WSAEINTR 
-#define CONN_ERR_TIMEO      WSAETIMEDOUT 
+#elif AS_APP_OS == AS_OS_WIN32
+#define CONN_ERR_EBADF      WSAEINTR
+#define CONN_ERR_TIMEO      WSAETIMEDOUT
+#endif
+
+#if AS_APP_OS == AS_OS_LINUX
+#define CLOSESOCK(x) ::close(x)
+#define SOCK_OPT_TYPE void
+#define CONN_ERRNO errno
+#elif AS_APP_OS == AS_OS_WIN32
+#define CLOSESOCK(x) closesocket(x)
+#define socklen_t int
+#define SOCK_OPT_TYPE char
+#define CONN_ERRNO WSAGetLastError()
+#define EWOULDBLOCK WSAEWOULDBLOCK
+#define EINPROGRESS WSAEINPROGRESS
 #endif
 
 
 
 
-#if SVS_APP_OS == SVS_OS_WIN32
+
+#if AS_APP_OS == AS_OS_WIN32
 enum tagSockEvent
 {
     EPOLLIN  = 0x1,
@@ -127,7 +146,7 @@ typedef enum tagEpollEventType
     enEpollRead = 0,
     enEpollWrite = 1
 } EpollEventType;
- 
+
 class CHandle;
 class CHandleNode;
 typedef std::list<CHandleNode *> ListOfHandle;
@@ -138,43 +157,43 @@ class CHandle
   public:
     CHandle();
     virtual ~CHandle();
-    
+
   public:
     virtual long initHandle(void);
-    virtual void setHandleSend(SVS_BOOLEAN bHandleSend);
-    virtual void setHandleRecv(SVS_BOOLEAN bHandleRecv);
+    virtual void setHandleSend(AS_BOOLEAN bHandleSend);
+    virtual void setHandleRecv(AS_BOOLEAN bHandleRecv);
     ULONG getEvents(void)
     {
         if(m_pMutexHandle != NULL)
         {
-            (void)SVS_MutexLock(m_pMutexHandle);
+            (void)as_mutex_lock(m_pMutexHandle);
         }
-        
+
         ULONG ulEvents = m_ulEvents;
-        
+
         if(m_pMutexHandle != NULL)
         {
-            (void)SVS_MutexUnlock(m_pMutexHandle);
+            (void)as_mutex_unlock(m_pMutexHandle);
         }
         return ulEvents;
-    }; 
+    };
     virtual void close(void);
-    
+
   public:
     long m_lSockFD;
     CHandleNode *m_pHandleNode;
     CNetworkAddr m_localAddr;
-    
-#if SVS_APP_OS == SVS_OS_WIN32
-    SVS_BOOLEAN m_bReadSelected;
-    SVS_BOOLEAN m_bWriteSelected;
+
+#if AS_APP_OS == AS_OS_WIN32
+    AS_BOOLEAN m_bReadSelected;
+    AS_BOOLEAN m_bWriteSelected;
 #endif  //#if
-    
-#if SVS_APP_OS == SVS_OS_LINUX
+
+#if AS_APP_OS == AS_OS_LINUX
     long m_lEpfd;
 #endif  //#if
     ULONG m_ulEvents;
-    SVS_Mutex *m_pMutexHandle;
+    as_mutex_t *m_pMutexHandle;
 };
 
 class CHandleNode
@@ -183,12 +202,12 @@ class CHandleNode
     CHandleNode()
     {
         m_pHandle = NULL;
-        m_bRemoved = SVS_FALSE;
+        m_bRemoved = AS_FALSE;
     };
-    
+
   public:
     CHandle *m_pHandle;
-    SVS_BOOLEAN m_bRemoved;
+    AS_BOOLEAN m_bRemoved;
 };
 
 class CNetworkHandle : public CHandle
@@ -196,17 +215,17 @@ class CNetworkHandle : public CHandle
   public:
     CNetworkHandle();
     virtual ~CNetworkHandle(){};
-    
+
   public:
     virtual long initHandle(void);
     long getSockFD(void) const    /*lint -e1714*///接口函数，本类不调用
     {
         return m_lSockFD;
     };
-#if SVS_APP_OS == SVS_OS_LINUX
+#if AS_APP_OS == AS_OS_LINUX
     long sendMsg(const struct msghdr *pMsg);
 #endif
-    virtual long recv(char *pArrayData, CNetworkAddr *pPeerAddr, const ULONG ulDataSize, 
+    virtual long recv(char *pArrayData, CNetworkAddr *pPeerAddr, const ULONG ulDataSize,
         const EnumSyncAsync bSyncRecv) = 0;
 
   public:
@@ -219,16 +238,16 @@ class CTcpConnHandle : public CNetworkHandle
   public:
     CTcpConnHandle();
     virtual ~CTcpConnHandle();
-    
+
   public:
     virtual long initHandle(void);
     virtual long conn( const CNetworkAddr *pLocalAddr, const CNetworkAddr *pPeerAddr,
-        const EnumSyncAsync bSyncConn, ULONG ulTimeOut);    
-    virtual long send(const char *pArrayData, const ULONG ulDataSize, 
+        const EnumSyncAsync bSyncConn, ULONG ulTimeOut);
+    virtual long send(const char *pArrayData, const ULONG ulDataSize,
         const EnumSyncAsync bSyncSend);
-    virtual long recv(char *pArrayData, CNetworkAddr *pPeerAddr, const ULONG ulDataSize, 
+    virtual long recv(char *pArrayData, CNetworkAddr *pPeerAddr, const ULONG ulDataSize,
         const EnumSyncAsync bSyncRecv);
-    virtual long recvWithTimeout(char *pArrayData, CNetworkAddr *pPeerAddr, 
+    virtual long recvWithTimeout(char *pArrayData, CNetworkAddr *pPeerAddr,
         const ULONG ulDataSize, const ULONG ulTimeOut, const ULONG ulSleepTime);
     virtual ConnStatus getStatus(void) const
     {
@@ -244,17 +263,17 @@ class CTcpConnHandle : public CNetworkHandle
 class CUdpSockHandle : public CNetworkHandle
 {
   public:
-    virtual long createSock(const CNetworkAddr *pLocalAddr, 
+    virtual long createSock(const CNetworkAddr *pLocalAddr,
                                const CNetworkAddr *pMultiAddr);
     virtual long send(const CNetworkAddr *pPeerAddr, const char *pArrayData,
          const ULONG ulDataSize, const EnumSyncAsync bSyncSend);
-    virtual long recv(char *pArrayData, CNetworkAddr *pPeerAddr, const ULONG ulDataSize, 
+    virtual long recv(char *pArrayData, CNetworkAddr *pPeerAddr, const ULONG ulDataSize,
         const EnumSyncAsync bSyncRecv);
     virtual void close(void);
-    virtual long recvWithTimeout(char *pArrayData, 
-                                        CNetworkAddr *pPeerAddr, 
-                                        const ULONG ulDataSize, 
-                                        const ULONG ulTimeOut, 
+    virtual long recvWithTimeout(char *pArrayData,
+                                        CNetworkAddr *pPeerAddr,
+                                        const ULONG ulDataSize,
+                                        const ULONG ulTimeOut,
                                         const ULONG ulSleepTime);
 };
 
@@ -264,7 +283,7 @@ class CTcpServerHandle : public CHandle
     long listen(const CNetworkAddr *pLocalAddr);
 
   public:
-    virtual long handle_accept(const CNetworkAddr *pRemoteAddr, 
+    virtual long handle_accept(const CNetworkAddr *pRemoteAddr,
         CTcpConnHandle *&pTcpConnHandle) = 0;
     virtual void close(void);
 };
@@ -276,15 +295,15 @@ class  CHandleManager
   public:
     CHandleManager();
     virtual ~CHandleManager();
-    
+
   public:
     long init(const ULONG ulMilSeconds);
     long run();
     void exit();
 
   public:
-    long addHandle(CHandle *pHandle, 
-                      SVS_BOOLEAN bIsListOfHandleLocked = SVS_FALSE);
+    long addHandle(CHandle *pHandle,
+                      AS_BOOLEAN bIsListOfHandleLocked = AS_FALSE);
     void removeHandle(CHandle *pHandle);
     virtual void checkSelectResult(const EpollEventType enEpEvent,
         CHandle *pHandle) = 0;
@@ -292,23 +311,23 @@ class  CHandleManager
   protected:
     static void *invoke(void *argc);
     void mainLoop();
-    
+
   protected:
     ListOfHandle m_listHandle;
-    SVS_Mutex *m_pMutexListOfHandle;
+    as_mutex_t *m_pMutexListOfHandle;
 
-#if SVS_APP_OS == SVS_OS_LINUX
+#if AS_APP_OS == AS_OS_LINUX
     long m_lEpfd; //用于epoll的句柄
     struct epoll_event m_epEvents[EPOLL_MAX_EVENT];
-#elif SVS_APP_OS == SVS_OS_WIN32
-    fd_set m_readSet;        
+#elif AS_APP_OS == AS_OS_WIN32
+    fd_set m_readSet;
     fd_set m_writeSet;
     timeval m_stSelectPeriod;            //select周期
 #endif
 
     ULONG m_ulSelectPeriod;
-    SVS_Thread *m_pSVSThread;
-    SVS_BOOLEAN m_bExit;
+    as_thread_t *m_pSVSThread;
+    AS_BOOLEAN m_bExit;
     char m_szMgrType[MAX_HANDLE_MGR_TYPE_LEN+1];
 };
 
@@ -321,7 +340,7 @@ class CTcpConnMgr : public CHandleManager
     };
     void lockListOfHandle();
     void unlockListOfHandle();
-    
+
   protected:
     virtual void checkSelectResult(const EpollEventType enEpEvent,
                             CHandle *pHandle);  /*lint !e1768*///需要对外屏蔽该接口
@@ -334,7 +353,7 @@ class CUdpSockMgr : public CHandleManager
     {
         (void)strncpy(m_szMgrType, "CUdpSockMgr", MAX_HANDLE_MGR_TYPE_LEN);
     };
-    
+
   protected:
     virtual void checkSelectResult(const EpollEventType enEpEvent,
         CHandle *pHandle);  /*lint !e1768*///需要对外屏蔽该接口
@@ -348,13 +367,13 @@ class CTcpServerMgr : public CHandleManager
         m_pTcpConnMgr = NULL;
         (void)strncpy(m_szMgrType, "CTcpServerMgr", MAX_HANDLE_MGR_TYPE_LEN);
     };
-    
+
   public:
     void setTcpClientMgr(CTcpConnMgr *pTcpConnMgr)
     {
         m_pTcpConnMgr = pTcpConnMgr;
     };
-        
+
   protected:
     virtual void checkSelectResult(const EpollEventType enEpEvent,
         CHandle *pHandle);  /*lint !e1768*///需要对外屏蔽该接口
@@ -381,10 +400,10 @@ enum CONN_LOG_LEVEL
     CONN_DEBUG = 6
 };
 
-class IConnMgrLog 
+class IConnMgrLog
 {
   public:
-    virtual void writeLog(long lType, long llevel, 
+    virtual void writeLog(long lType, long llevel,
         const char *szLogDetail, const long lLogLen) = 0;
 };
 
@@ -403,25 +422,25 @@ class CConnMgr
 protected:
     CConnMgr();
 public:
-    virtual long init(const ULONG ulSelectPeriod, const SVS_BOOLEAN bHasUdpSock, 
-        const SVS_BOOLEAN bHasTcpClient, const SVS_BOOLEAN bHasTcpServer);
+    virtual long init(const ULONG ulSelectPeriod, const AS_BOOLEAN bHasUdpSock,
+        const AS_BOOLEAN bHasTcpClient, const AS_BOOLEAN bHasTcpServer);
     virtual void setLogWriter(IConnMgrLog *pConnMgrLog) const
     {
         g_pConnMgrLog = pConnMgrLog;
     };
     virtual long run(void);
     virtual void exit(void);
-    
+
 public:
-    virtual void setDefaultLocalAddr(const char *szLocalIpAddr); 
-    virtual long regTcpClient( const CNetworkAddr *pLocalAddr, 
-        const CNetworkAddr *pPeerAddr, CTcpConnHandle *pTcpConnHandle, 
-        const EnumSyncAsync bSyncConn, ULONG ulTimeOut);    
+    virtual void setDefaultLocalAddr(const char *szLocalIpAddr);
+    virtual long regTcpClient( const CNetworkAddr *pLocalAddr,
+        const CNetworkAddr *pPeerAddr, CTcpConnHandle *pTcpConnHandle,
+        const EnumSyncAsync bSyncConn, ULONG ulTimeOut);
     virtual void removeTcpClient(CTcpConnHandle *pTcpConnHandle);
-    virtual long regTcpServer(const CNetworkAddr *pLocalAddr, 
+    virtual long regTcpServer(const CNetworkAddr *pLocalAddr,
         CTcpServerHandle *pTcpServerHandle);
     virtual void removeTcpServer(CTcpServerHandle *pTcpServerHandle);
-    virtual long regUdpSocket(const CNetworkAddr *pLocalAddr, 
+    virtual long regUdpSocket(const CNetworkAddr *pLocalAddr,
                                  CUdpSockHandle *pUdpSockHandle,
                                  const CNetworkAddr *pMultiAddr= NULL);
     virtual void removeUdpSocket(CUdpSockHandle *pUdpSockHandle);

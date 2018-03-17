@@ -37,7 +37,7 @@ extern "C"{
 //#ifndef _BASIC_USAGE_ENVIRONMENT0_HH
 //#include "BasicUsageEnvironment0.hh"
 //#endif
-#define _AS_DEBUG_
+//#define _AS_DEBUG_
 #ifndef _AS_DEBUG_
 #define RTSP2SIP_CONF_FILE "../conf/rtsp2sip_gw.conf"
 #define RTSP2SIP_LOG_FILE  "../logs/rtsp2sip_gw.log"

@@ -27,8 +27,8 @@ typedef u_int16_t uint16_t;
 #endif
 
 
-#include "svs_onlyone_process.h"
-#include "svs_daemon.h"
+#include "as_onlyone_process.h"
+#include "as_daemon.h"
 
 using namespace std;
 

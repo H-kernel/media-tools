@@ -30,7 +30,7 @@ enum DELETE_MULTI
     SINGLE = 0,
     MULTI = 1
 };
-    
+
 template<class T>
 void AS_DELETE(T* &m, unsigned long ulMuili = 0)
 {
@@ -38,7 +38,7 @@ void AS_DELETE(T* &m, unsigned long ulMuili = 0)
     {
         return;
     }
-    
+
     try
     {
         if (0 == ulMuili)
@@ -53,7 +53,7 @@ void AS_DELETE(T* &m, unsigned long ulMuili = 0)
     catch(...)
     {
     }
-    
+
     m = NULL;
 };
 
@@ -76,7 +76,7 @@ TBASE* AS_NEW_REAL(TBASE* &m)
 
 //安全释放单实例内存，参数是基类对象指针，但实际删除的是子类对象
 //类型仅限于继承类
-//若基类的析构函数是虚函数，则可直接使用SVS_DELETE
+//若基类的析构函数是虚函数，则可直接使用AS_DELETE
 template<class TBASE, class TREAL>
 void AS_DELETE_REAL(TBASE* &m)
 {

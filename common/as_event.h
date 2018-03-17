@@ -23,10 +23,10 @@ typedef struct tagASEvent
 #endif
 
 as_event_t* as_create_event();
-LONG        as_wait_event(as_event_t *pstASEvent, LONG lTimeOut);
-LONG        as_set_event(as_event_t *pstASEvent);
-LONG        as_reset_event(as_event_t *pstASEvent);
-LONG        as_destroy_event(as_event_t *pstASEvent );
+int32_t   as_wait_event(as_event_t *pstASEvent, int32_t lTimeOut);
+int32_t   as_set_event(as_event_t *pstASEvent);
+int32_t   as_reset_event(as_event_t *pstASEvent);
+int32_t   as_destroy_event(as_event_t *pstASEvent );
 
 #endif
 

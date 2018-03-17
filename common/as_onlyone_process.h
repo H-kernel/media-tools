@@ -2,7 +2,20 @@
 #define _AS_Onlyone_Process_h
 
 #include <stdint.h>
+
+#include <as_log.h>
+#include "as_config.h"
+#include "as_basetype.h"
+#include "as_common.h"
+
+#if AS_APP_OS == AS_OS_LINUX
+#include <sys/types.h>
 #include <sys/ipc.h>
+#include <sys/sem.h>
+//#include <linux/sem.h>
+#endif
+
+
 
 const int32_t SEM_PRMS = 0644;//信号量操作权限，0644即主用户(属主)可读写、组成员及其它成员可读不可写
 
@@ -10,7 +23,7 @@ class as_onlyone_process
 {
 protected:
     as_onlyone_process();
-    virutal ~as_onlyone_process();
+    virtual ~as_onlyone_process();
     as_onlyone_process(const as_onlyone_process& obj);
     as_onlyone_process& operator=(const as_onlyone_process& obj);
 public:

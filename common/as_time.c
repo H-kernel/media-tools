@@ -103,7 +103,7 @@ void  as_delay (uint32_t ulDelayTimeMs)
 void  as_sleep(uint32_t ulMs )
 {
 #if AS_APP_OS == AS_OS_LINUX
-    AS_Delay( ulMs );
+    as_delay( ulMs );
 #elif AS_APP_OS == AS_OS_WIN32
     Sleep(ulMs);
 #endif

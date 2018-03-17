@@ -21,18 +21,21 @@
 #include "as_ring_cache.h"
 #include "as_log.h"
 #include <time.h>
-extern "C"{
-#include "as_mutex.h"
-#include "as_thread.h"
-#include "as_event.h"
-#include "as_common.h"
-#include "as_time.h"
-}
 
 #ifdef WIN32
-#include "atlbase.h"
 #include "atlstr.h"
 #endif
+extern "C"{
+#include "as_config.h"
+#include "as_basetype.h"
+#include "as_common.h"
+#include "as_mutex.h"
+#include "as_event.h"
+#include "as_thread.h"
+#include "as_time.h"
+#include "as_json.h"
+}
+
 
 
 //extern HANDLE g_hDLLModule;                     //动态链接库句柄
@@ -307,7 +310,8 @@ long as_log::Start()
 
     //创建读缓冲写文件线程
     long lResult = as_create_thread(ThreadEntry, this, &m_hWriteThread, AS_DEFAULT_STACK_SIZE);
-    if(NULL == m_hWriteThread)
+    if((AS_ERROR_CODE_OK != lResult)
+        ||(NULL == m_hWriteThread))
     {
         //写线程创建失败，清理资源
         m_bRun = false;

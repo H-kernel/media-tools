@@ -3,9 +3,9 @@
 AS_RTSP_GUARD = rtsp_guard
 
 PREFIX = /usr/local
-ALL = $(LIBRTSPCLINET)
+ALL = $(AS_RTSP_GUARD)
 
-RTSP_LIBS      += -shared -fPIC -Wunused-value -lpthread 
+RTSP_LIBS      += -fPIC -Wunused-value -lpthread 
 RTSP_FLAGS     += -pipe -g -fPIC -Wall -O0 -DENV_LINUX
 
 all: $(ALL)
@@ -15,7 +15,7 @@ all: $(ALL)
 .$(CPP).$(OBJ):
 	$(CPLUSPLUS_COMPILER) -c $(CPLUSPLUS_FLAGS) $(RTSP_FLAGS) $<
 
-AS_RTSP_GUARD_OBJS = as_rtsp_guard.$(OBJ) libASRtspClient.$(OBJ)
+AS_RTSP_GUARD_OBJS = as_rtsp_guard.$(OBJ) main.$(OBJ)
 
 as_rtsp_guard.$(CPP):as_rtsp_guard.h as_def.h 
 main.$(CPP):as_rtsp_guard.h as_def.h
@@ -30,9 +30,13 @@ GROUPSOCK_DIR = ../groupsock
 GROUPSOCK_LIB = $(GROUPSOCK_DIR)/libgroupsock.$(libgroupsock_LIB_SUFFIX)
 COMMON_DIR = ../common
 COMMON_LIB = $(COMMON_DIR)/libcommon.$(libcommon_LIB_SUFFIX)
+LIBEVENT_DIR     = ../extend/linux64/libevent/
+LIBEVENT_INCLUDE = $(LIBEVENT_DIR)include/
+LIBEVENT_LIB     = $(LIBEVENT_DIR)lib/libevent.a $(LIBEVENT_DIR)lib/libevent_core.a \
+                   $(LIBEVENT_DIR)lib/libevent_extra.a $(LIBEVENT_DIR)lib/libevent_pthreads.a
 
 LOCAL_LIBS =    $(LIVEMEDIA_LIB) $(GROUPSOCK_LIB) \
-        $(BASIC_USAGE_ENVIRONMENT_LIB) $(USAGE_ENVIRONMENT_LIB) $(COMMON_LIB)
+        $(BASIC_USAGE_ENVIRONMENT_LIB) $(USAGE_ENVIRONMENT_LIB) $(COMMON_LIB) $(LIBEVENT_LIB)
 LIBS =            $(LOCAL_LIBS) $(LIBS_FOR_CONSOLE_APPLICATION)
 
 $(AS_RTSP_GUARD): $(AS_RTSP_GUARD_OBJS) $(LOCAL_LIBS) \

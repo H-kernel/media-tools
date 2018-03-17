@@ -18,5 +18,6 @@ extern "C"{
 #include "as_timer.h"
 #include "as_tinyxml2.h"
 #include "as_mem.h"
+#include "as_daemon.h"
 using namespace tinyxml2;
 #endif

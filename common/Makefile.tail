@@ -9,10 +9,27 @@ all:	$(ALL)
 .$(CPP).$(OBJ):
 	$(CPLUSPLUS_COMPILER) -c $(CPLUSPLUS_FLAGS) -DENV_LINUX $<
 
-COMMON_LIB_OBJS = as_mutex.$(OBJ) as_thread.$(OBJ) 
+COMMON_LIB_OBJS = as_mutex.$(OBJ) as_thread.$(OBJ) as_event.$(OBJ) \
+                  as_json.$(OBJ) as_queue.$(OBJ) as_time.$(OBJ) as_conn_manage.$(OBJ) \
+                  as_daemon.$(OBJ) as_ini_config.$(OBJ) as_lock_guard.$(OBJ) \
+                  as_log.$(OBJ) as_onlyone_process.$(OBJ) as_ring_cache.$(OBJ) \
+                  as_timer.$(OBJ) as_tinyxml2.$(OBJ)
 
 as_mutex.$(C):	as_mutex.h as_config.h as_common.h
 as_thread.$(C):	as_thread.h as_config.h as_common.h
+as_event.$(C):	as_event.h as_config.h as_common.h
+as_json.$(C):	as_json.h as_config.h as_common.h
+as_queue.$(C):	as_queue.h as_config.h as_common.h
+as_time.$(C):	as_time.h as_config.h as_common.h
+as_conn_manage.$(CPP):	as_conn_manage.h as_config.h as_common.h
+as_daemon.$(CPP):	as_daemon.h as_config.h as_common.h
+as_ini_config.$(CPP):	as_ini_config.h as_config.h as_common.h
+as_lock_guard.$(CPP):	as_lock_guard.h as_config.h as_common.h
+as_log.$(CPP):	as_log.h as_config.h as_common.h
+as_onlyone_process.$(CPP):	as_onlyone_process.h as_config.h as_common.h
+as_ring_cache.$(CPP):	as_ring_cache.h as_config.h as_common.h
+as_timer.$(CPP):	as_timer.h as_config.h as_common.h
+as_tinyxml2.$(CPP):	as_tinyxml2.h as_config.h as_common.h
 
 $(NAME).$(LIB_SUFFIX): $(COMMON_LIB_OBJS) \
     $(PLATFORM_SPECIFIC_LIB_OBJS)

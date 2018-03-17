@@ -6,11 +6,16 @@ extern "C" {
 
 #include "as_event.h"
 #include "as_common.h"
+#if AS_APP_OS == AS_OS_LINUX
+#include <sys/time.h>
+#include <pthread.h>
+#include <errno.h>
+#endif
 
 
 as_event_t* as_create_event()
 {
-    LONG result = AS_ERROR_CODE_OK;
+    int32_t result = AS_ERROR_CODE_OK;
 
     as_event_t *pstASEvent = NULL;
 
@@ -25,7 +30,7 @@ as_event_t* as_create_event()
     result = pthread_mutex_init(&pstASEvent->EventMutex, 0);
     if( AS_ERROR_CODE_OK != result )
     {
-        AS_free(pstASEvent);
+        free(pstASEvent);
         return NULL;
     }
 
@@ -33,7 +38,7 @@ as_event_t* as_create_event()
     if( AS_ERROR_CODE_OK != result )
     {
         pthread_mutex_destroy(&pstASEvent->EventMutex);
-        AS_free(pstASEvent);
+        free(pstASEvent);
         return NULL;
     }
 
@@ -50,9 +55,9 @@ as_event_t* as_create_event()
     return pstASEvent;
 }
 
-LONG as_wait_event(as_event_t *pstASEvent, LONG lTimeOut)
+int32_t as_wait_event(as_event_t *pstASEvent, int32_t lTimeOut)
 {
-    long lResult = AS_ERROR_CODE_OK;
+    int32_t lResult = AS_ERROR_CODE_OK;
 
 #if AS_APP_OS == AS_OS_LINUX
     struct timespec ts;
@@ -96,7 +101,7 @@ LONG as_wait_event(as_event_t *pstASEvent, LONG lTimeOut)
 
 #elif AS_APP_OS == AS_OS_WIN32
 
-    unsigned long ulWaitTime = lTimeOut;
+    uint32_t ulWaitTime = lTimeOut;
     if (0 == lTimeOut)
     {
         ulWaitTime = INFINITE;
@@ -134,15 +139,15 @@ LONG as_wait_event(as_event_t *pstASEvent, LONG lTimeOut)
 /*lint -e818*/ //使用公共平台源代码，是否Const不做要求
 }
 
-LONG as_set_event(as_event_t *pstASEvent)
+int32_t as_set_event(as_event_t *pstASEvent)
 {
-    LONG lResult = AS_ERROR_CODE_OK;
+    int32_t lResult = AS_ERROR_CODE_OK;
 
 #if AS_APP_OS == AS_OS_LINUX
     lResult = pthread_cond_signal(&pstASEvent->EventCond);
     if(AS_ERROR_CODE_OK != lResult)
     {
-        lResult = AS_ERR_SYS;
+        lResult = AS_ERROR_CODE_SYS;
     }
 
 #elif AS_APP_OS == AS_OS_WIN32
@@ -162,22 +167,22 @@ LONG as_set_event(as_event_t *pstASEvent)
 
     return lResult ;
 }
-LONG as_reset_event(as_event_t *pstASEvent)
+int32_t as_reset_event(as_event_t *pstASEvent)
 {
-    LONG lResult = AS_ERROR_CODE_OK;
+    int32_t lResult = AS_ERROR_CODE_OK;
 
 #if AS_APP_OS == AS_OS_LINUX
     lResult = pthread_mutex_init(&pstASEvent->EventMutex, 0);
     if( AS_ERROR_CODE_OK != lResult )
     {
-        return AS_ERR_SYS;
+        return AS_ERROR_CODE_SYS;
     }
 
     lResult = pthread_cond_init(&pstASEvent->EventCond, 0);
     if( AS_ERROR_CODE_OK != lResult )
     {
         pthread_mutex_destroy(&pstASEvent->EventMutex);
-        return AS_ERR_SYS;
+        return AS_ERROR_CODE_SYS;
     }
 #elif AS_APP_OS == AS_OS_WIN32
 
@@ -197,7 +202,7 @@ LONG as_reset_event(as_event_t *pstASEvent)
     return lResult ;
 }
 
-LONG as_destroy_event(as_event_t *pstASEvent )
+int32_t as_destroy_event(as_event_t *pstASEvent )
 {
     if ( NULL == pstASEvent )
     {

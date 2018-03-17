@@ -18,6 +18,16 @@
 
 
 #include "as_ring_cache.h"
+extern "C"{
+#include "as_config.h"
+#include "as_basetype.h"
+#include "as_common.h"
+#include "as_mutex.h"
+#include "as_event.h"
+#include "as_thread.h"
+#include "as_time.h"
+#include "as_json.h"
+}
 
 as_ring_cache::as_ring_cache()
 {

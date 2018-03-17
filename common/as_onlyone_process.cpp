@@ -3,10 +3,9 @@
 #include "Windows.h"
 #endif
 
-#include "svs_onlyone_process.h"
-#include <OS.h>
-#include <OS_NS_Thread.h>
-#include <as_log.h>
+#include "as_onlyone_process.h"
+
+
 
 as_onlyone_process::as_onlyone_process()
 {
@@ -76,10 +75,10 @@ bool as_onlyone_process::exists()
         return false;
     }
 
-    semun semctl_arg;
-    semctl_arg.array = NULL;
+    //union semun semctl_arg;
+    unsigned short array = NULL;
 
-    return semctl(sem_id_, 0, GETVAL, semctl_arg) > 0;
+    return semctl(sem_id_, 0, GETVAL, array) > 0;
 }
 
 bool as_onlyone_process::mark()
@@ -110,9 +109,9 @@ bool as_onlyone_process::unmark()
         return true;
     }
 
-    semun semctl_arg;
-    semctl_arg.val = 0;
-    return semctl(sem_id_, 0, IPC_RMID, semctl_arg) == 0;
+    //union semun semctl_arg;
+    int val = 0;
+    return semctl(sem_id_, 0, IPC_RMID, val) == 0;
 }
 
 bool as_onlyone_process::need_restart(const char *strFileName, int32_t key)
