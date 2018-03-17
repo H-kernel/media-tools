@@ -204,7 +204,7 @@ public:
     static void streamTimerHandler(void* clientData);
 
 public:
-    ASRtspCheckStreamState   scs;
+    ASRtsp2SipStreamState   scs;
 private:
     u_int32_t             m_ulEnvIndex;
     Boolean               m_bSupportsGetParameter;
@@ -218,16 +218,16 @@ private:
 // Or it might be a "FileSink", for outputting the received data into a file (as is done by the "openRTSP" application).
 // In this example code, however, we define a simple 'dummy' sink that receives incoming data, but does nothing with it.
 
-class ASRtspCheckVideoSink : public MediaSink {
+class ASRtspCheckVideoSink: public MediaSink {
 public:
-    static ASRtspCheckVideoSink* createNew(UsageEnvironment& env, MediaSubsession& subsession); // identifies the stream itself (optional)
+  static ASRtspCheckVideoSink* createNew(UsageEnvironment& env, MediaSubsession& subsession); // identifies the stream itself (optional)
 
 private:
-    ASRtspCheckVideoSink(UsageEnvironment& env, MediaSubsession& subsession);
+  ASRtspCheckVideoSink(UsageEnvironment& env, MediaSubsession& subsession);
     // called only by "createNew()"
-    virtual ~ASRtspCheckVideoSink();
+  virtual ~ASRtspCheckVideoSink();
 
-    static void afterGettingFrame(void* clientData, unsigned frameSize,
+  static void afterGettingFrame(void* clientData, unsigned frameSize,
                                 unsigned numTruncatedBytes,
                 struct timeval presentationTime,
                                 unsigned durationInMicroseconds);
@@ -246,14 +246,14 @@ private:
   u_int32_t        m_lastTS;
 };
 
-class ASRtspCheckAudioSink : public MediaSink {
+class ASRtspCheckAudioSink: public MediaSink {
 public:
-    static ASRtspCheckAudioSink* createNew(UsageEnvironment& env, MediaSubsession& subsession); // identifies the stream itself (optional)
+  static ASRtspCheckAudioSink* createNew(UsageEnvironment& env, MediaSubsession& subsession); // identifies the stream itself (optional)
 
 private:
-    ASRtspCheckAudioSink(UsageEnvironment& env, MediaSubsession& subsession);
+  ASRtspCheckAudioSink(UsageEnvironment& env, MediaSubsession& subsession);
     // called only by "createNew()"
-    virtual ~ASRtspCheckAudioSink();
+  virtual ~ASRtspCheckAudioSink();
 
   static void afterGettingFrame(void* clientData, unsigned frameSize,
                                 unsigned numTruncatedBytes,
