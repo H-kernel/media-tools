@@ -174,7 +174,6 @@ protected:
 public:
     int32_t open(uint32_t ulDuration,ASRtspStatusObervser* observer);
     void    close();
-    void    play();
     u_int32_t index(){return m_ulEnvIndex;};
     void    SupportsGetParameter(Boolean bSupportsGetParameter) {m_bSupportsGetParameter = bSupportsGetParameter;};
     Boolean SupportsGetParameter(){return m_bSupportsGetParameter;};

@@ -1,24 +1,3 @@
-/**********
-This library is free software; you can redistribute it and/or modify it under
-the terms of the GNU Lesser General Public License as published by the
-Free Software Foundation; either version 3 of the License, or (at your
-option) any later version. (See <http://www.gnu.org/copyleft/lesser.html>.)
-
-This library is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for
-more details.
-
-You should have received a copy of the GNU Lesser General Public License
-along with this library; if not, write to the Free Software Foundation, Inc.,
-51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
-**********/
-// Copyright (c) 1996-2017, Live Networks, Inc.  All rights reserved
-// A demo application, showing how to create and run a RTSP client (that can potentially receive multiple streams concurrently).
-//
-// NOTE: This code - although it builds a running application - is intended only to illustrate how to develop your own RTSP
-// client application.  For a full-featured RTSP client application - with much more functionality, and many options - see
-// "openRTSP": http://www.live555.com/openRTSP/
 #include "stdafx.h"
 #include "liveMedia.hh"
 #include "RTSPCommon.hh"
@@ -55,7 +34,8 @@ UsageEnvironment& operator<<(UsageEnvironment& env, const MediaSubsession& subse
 
 ASRtsp2RtpChannel* ASRtsp2RtpChannel::createNew(u_int32_t ulEnvIndex,UsageEnvironment& env, char const* rtspURL,
                     int verbosityLevel, char const* applicationName, portNumBits tunnelOverHTTPPortNum) {
-  return new ASRtsp2RtpChannel(ulEnvIndex,env, rtspURL, verbosityLevel, applicationName, tunnelOverHTTPPortNum);
+    AS_LOG(AS_LOG_INFO,"ASRtsp2RtpChannel::createNew,url:[%s].",rtspURL);
+    return new ASRtsp2RtpChannel(ulEnvIndex,env, rtspURL, verbosityLevel, applicationName, tunnelOverHTTPPortNum);
 }
 
 ASRtsp2RtpChannel::ASRtsp2RtpChannel(u_int32_t ulEnvIndex,UsageEnvironment& env, char const* rtspURL,
@@ -72,11 +52,13 @@ ASRtsp2RtpChannel::~ASRtsp2RtpChannel() {
 
 int32_t ASRtsp2RtpChannel::open(uint32_t ulDuration,ASRtspStatusObervser* observer)
 {
+    AS_LOG(AS_LOG_INFO,"ASRtsp2RtpChannel::open,duration:[%d].",ulDuration);
     m_bObervser = observer;
     return sendOptionsCommand(&ASRtsp2RtpChannel::continueAfterOPTIONS);
 }
 void    ASRtsp2RtpChannel::close()
 {
+    AS_LOG(AS_LOG_INFO,"ASRtsp2RtpChannel::close,begin.");
     if (scs.session != NULL) {
         Boolean someSubsessionsWereActive = False;
         MediaSubsessionIterator iter(*scs.session);
@@ -94,14 +76,84 @@ void    ASRtsp2RtpChannel::close()
             sendTeardownCommand(*scs.session, continueAfterTeardown);
         }
     }
+    AS_LOG(AS_LOG_INFO,"ASRtsp2RtpChannel::close,end.");
 }
 
-void ASRtsp2RtpChannel::play()
+
+void    ASRtsp2RtpChannel::handle_after_options(int resultCode, char* resultString)
 {
-    if (AS_RTSP_STATUS_SETUP != m_enStatus){
+    AS_LOG(AS_LOG_INFO,"ASRtsp2RtpChannel::handle_after_options begin.");
+
+    do {
+        if (resultCode != 0) {
+            AS_LOG(AS_LOG_WARNING,"ASRtsp2RtpChannel::handle_after_options,"
+                                  "this result:[%d] is not right.",resultCode);
+            delete[] resultString;
+            break;
+        }
+
+        Boolean serverSupportsGetParameter = RTSPOptionIsSupported("GET_PARAMETER", resultString);
+        delete[] resultString;
+        SupportsGetParameter(serverSupportsGetParameter);
+        sendDescribeCommand(continueAfterDESCRIBE);
+        AS_LOG(AS_LOG_INFO,"ASRtsp2RtpChannel::handle_after_options end.");
+        return;
+    } while (0);
+
+    // An unrecoverable error occurred with this stream.
+    shutdownStream();
+    AS_LOG(AS_LOG_WARNING,"ASRtsp2RtpChannel::handle_after_options exit.");
+    return;
+}
+void    ASRtsp2RtpChannel::handle_after_describe(int resultCode, char* resultString)
+{
+    AS_LOG(AS_LOG_INFO,"ASRtsp2RtpChannel::handle_after_describe begin.");
+    do {
+        if (resultCode != 0) {
+            AS_LOG(AS_LOG_WARNING,"ASRtsp2RtpChannel::handle_after_describe,"
+                                  "this result:[%d] is not right.",resultCode);
+            delete[] resultString;
+            break;
+        }
+
+        m_strRtspSdp = resultString;
+        // Create a media session object from this SDP description:
+        scs.session = MediaSession::createNew(envir(), m_strRtspSdp.c_str());
+        delete[] resultString; // because we don't need it anymore
+        if (scs.session == NULL) {
+            AS_LOG(AS_LOG_WARNING,"ASRtsp2RtpChannel::handle_after_describe,"
+                                  "create the session fail.");
+            break;
+        } else if (!scs.session->hasSubsessions()) {
+            AS_LOG(AS_LOG_WARNING,"ASRtsp2RtpChannel::handle_after_describe,"
+                                  "this is no sub session.");
+            break;
+        }
+
+        // Then, create and set up our data source objects for the session.  We do this by iterating over the session's 'subsessions',
+        // calling "MediaSubsession::initiate()", and then sending a RTSP "SETUP" command, on each one.
+        // (Each 'subsession' will have its own data source.)
+        scs.iter = new MediaSubsessionIterator(*scs.session);
+        setupNextSubsession();
+        AS_LOG(AS_LOG_INFO,"ASRtsp2RtpChannel::handle_after_describe end.");
+        return;
+    } while (0);
+
+    // An unrecoverable error occurred with this stream.
+    shutdownStream();
+    AS_LOG(AS_LOG_WARNING,"ASRtsp2RtpChannel::handle_after_describe exit.");
+    return;
+}
+
+
+void    ASRtsp2RtpChannel::handle_after_setup(int resultCode, char* resultString)
+{
+    AS_LOG(AS_LOG_INFO,"ASRtsp2RtpChannel::handle_after_setup begin.");
+    if(0 != resultCode) {
+        shutdownStream();
         return;
     }
-
+    
     if(scs.session != NULL) {
         /* open the send rtp sik */
         MediaSubsessionIterator iter(*scs.session);
@@ -109,12 +161,15 @@ void ASRtsp2RtpChannel::play()
 
         while ((subsession = iter.next()) != NULL) {
             if (!strcmp(subsession->mediumName(), "video")) {
+                AS_LOG(AS_LOG_INFO,"ASRtsp2RtpChannel::handle_after_setup,create a video sink.");
                 subsession->sink = ASRtspCheckVideoSink::createNew(envir(), *subsession);
            }
             else if (!strcmp(subsession->mediumName(), "audio")){
+                AS_LOG(AS_LOG_INFO,"ASRtsp2RtpChannel::handle_after_setup,create a audio sink.");
                 subsession->sink = ASRtspCheckAudioSink::createNew(envir(), *subsession);
            }
            else {
+               AS_LOG(AS_LOG_INFO,"ASRtsp2RtpChannel::handle_after_setup,this is not video and audio sink.");
                subsession->sink = NULL;
                continue;
            }
@@ -125,6 +180,7 @@ void ASRtsp2RtpChannel::play()
             }
 
             subsession->miscPtr = this; // a hack to let subsession handler functions get the "RTSPClient" from the subsession
+            AS_LOG(AS_LOG_INFO,"ASRtsp2RtpChannel::handle_after_setup,the sink start playing.");
             subsession->sink->startPlaying(*(subsession->readSource()),
                              subsessionAfterPlaying, subsession);
             // Also set a handler to be called if a RTCP "BYE" arrives for this subsession:
@@ -134,107 +190,19 @@ void ASRtsp2RtpChannel::play()
         }
 
     }
-
-    /* send play command */
-    // We've finished setting up all of the subsessions.  Now, send a RTSP "PLAY" command to start the streaming:
-    if (scs.session->absStartTime() != NULL) {
-        // Special case: The stream is indexed by 'absolute' time, so send an appropriate "PLAY" command:
-        sendPlayCommand(*scs.session, continueAfterPLAY, scs.session->absStartTime(), scs.session->absEndTime());
-    } else {
-        scs.duration = scs.session->playEndTime() - scs.session->playStartTime();
-        sendPlayCommand(*scs.session, continueAfterPLAY);
-    }
-}
-
-
-void    ASRtsp2RtpChannel::handle_after_options(int resultCode, char* resultString)
-{
-    if(0 != resultCode) {
-        shutdownStream();
-        return;
-    }
-
-    do {
-        if (resultCode != 0) {
-          delete[] resultString;
-          break;
-        }
-
-        Boolean serverSupportsGetParameter = RTSPOptionIsSupported("GET_PARAMETER", resultString);
+    if(NULL != resultString) {
         delete[] resultString;
-        SupportsGetParameter(serverSupportsGetParameter);
-        sendDescribeCommand(continueAfterDESCRIBE);
-        return;
-    } while (0);
-
-    // An unrecoverable error occurred with this stream.
-    shutdownStream();
-    return;
-}
-void    ASRtsp2RtpChannel::handle_after_describe(int resultCode, char* resultString)
-{
-    if(0 != resultCode) {
-        shutdownStream();
-        return;
     }
-    do {
-        if (resultCode != 0) {
-          delete[] resultString;
-          break;
-        }
-
-        m_strRtspSdp = resultString;
-        // Create a media session object from this SDP description:
-        scs.session = MediaSession::createNew(envir(), m_strRtspSdp.c_str());
-        delete[] resultString; // because we don't need it anymore
-        if (scs.session == NULL) {
-          break;
-        } else if (!scs.session->hasSubsessions()) {
-          break;
-        }
-
-        // Then, create and set up our data source objects for the session.  We do this by iterating over the session's 'subsessions',
-        // calling "MediaSubsession::initiate()", and then sending a RTSP "SETUP" command, on each one.
-        // (Each 'subsession' will have its own data source.)
-        scs.iter = new MediaSubsessionIterator(*scs.session);
-        setupNextSubsession();
-
-        return;
-    } while (0);
-
-    // An unrecoverable error occurred with this stream.
-    shutdownStream();
-
-    return;
-}
-
-
-void    ASRtsp2RtpChannel::handle_after_setup(int resultCode, char* resultString)
-{
-    if(0 != resultCode) {
-        shutdownStream();
-        return;
-    }
-    do {
-
-        if (resultCode != 0) {
-            break;
-        }
-    } while (0);
-    delete[] resultString;
-
     // Set up the next subsession, if any:
     setupNextSubsession();
+    AS_LOG(AS_LOG_INFO,"ASRtsp2RtpChannel::handle_after_setup end.");
     return;
 }
 void    ASRtsp2RtpChannel::handle_after_play(int resultCode, char* resultString)
 {
-
+    AS_LOG(AS_LOG_INFO,"ASRtsp2RtpChannel::handle_after_play begin.");
     Boolean success = False;
-    if(0 != resultCode) {
-        shutdownStream();
-        return;
-    }
+
     do {
 
         if (resultCode != 0) {
@@ -262,18 +230,23 @@ void    ASRtsp2RtpChannel::handle_after_play(int resultCode, char* resultString)
 
     if (!success) {
         // An unrecoverable error occurred with this stream.
+        AS_LOG(AS_LOG_WARNING,"ASRtsp2RtpChannel::handle_after_play,play not success.");
         shutdownStream();
     }
+    AS_LOG(AS_LOG_INFO,"ASRtsp2RtpChannel::handle_after_play end.");
     return;
 }
 void    ASRtsp2RtpChannel::handle_after_teardown(int resultCode, char* resultString)
 {
+    AS_LOG(AS_LOG_INFO,"ASRtsp2RtpChannel::handle_after_teardown begin.");
     shutdownStream(0);
+    AS_LOG(AS_LOG_INFO,"ASRtsp2RtpChannel::handle_after_teardown end.");
     return;
 }
 void    ASRtsp2RtpChannel::handle_subsession_after_playing(MediaSubsession* subsession)
 {
     // Begin by closing this subsession's stream:
+    AS_LOG(AS_LOG_INFO,"ASRtsp2RtpChannel::handle_subsession_after_playing begin.");
     Medium::close(subsession->sink);
     subsession->sink = NULL;
 
@@ -281,15 +254,20 @@ void    ASRtsp2RtpChannel::handle_subsession_after_playing(MediaSubsession* subs
     MediaSession& session = subsession->parentSession();
     MediaSubsessionIterator iter(session);
     while ((subsession = iter.next()) != NULL) {
-        if (subsession->sink != NULL) return; // this subsession is still active
+        if (subsession->sink != NULL) {
+            AS_LOG(AS_LOG_INFO,"ASRtsp2RtpChannel::handle_subsession_after_playing end.");
+            return; // this subsession is still active
+        }
     }
 
     // All subsessions' streams have now been closed, so shutdown the client:
     shutdownStream();
+    AS_LOG(AS_LOG_INFO,"ASRtsp2RtpChannel::handle_subsession_after_playing exit.");
 }
 
 void ASRtsp2RtpChannel::setupNextSubsession() {
-
+    
+    AS_LOG(AS_LOG_INFO,"ASRtsp2RtpChannel::setupNextSubsession begin.");
     scs.subsession = scs.iter->next();
     if (scs.subsession != NULL) {
         if (!scs.subsession->initiate()) {
@@ -318,16 +296,29 @@ void ASRtsp2RtpChannel::setupNextSubsession() {
             // Continue setting up this subsession, by sending a RTSP "SETUP" command:
             sendSetupCommand(*scs.subsession, continueAfterSETUP, False, REQUEST_STREAMING_OVER_TCP);
         }
+        AS_LOG(AS_LOG_INFO,"ASRtsp2RtpChannel::setupNextSubsession end.");
         return;
     }
 
     /* send the play by the control */
-
+    /* send play command */
+    // We've finished setting up all of the subsessions.  Now, send a RTSP "PLAY" command to start the streaming:
+    if (scs.session->absStartTime() != NULL) {
+        // Special case: The stream is indexed by 'absolute' time, so send an appropriate "PLAY" command:
+        AS_LOG(AS_LOG_INFO,"ASRtsp2RtpChannel::setupNextSubsession,send play message,startime:[%s] endtime:[%s].",
+                                               scs.session->absStartTime(),scs.session->absEndTime());
+        sendPlayCommand(*scs.session, continueAfterPLAY, scs.session->absStartTime(), scs.session->absEndTime());
+    } else {
+        scs.duration = scs.session->playEndTime() - scs.session->playStartTime();
+        AS_LOG(AS_LOG_INFO,"ASRtsp2RtpChannel::setupNextSubsession,send play message,duration:[%f].",scs.duration);
+        sendPlayCommand(*scs.session, continueAfterPLAY);
+    }
+    AS_LOG(AS_LOG_INFO,"ASRtsp2RtpChannel::setupNextSubsession exit.");
     return;
 }
 
 void ASRtsp2RtpChannel::shutdownStream(int exitCode) {
-
+    AS_LOG(AS_LOG_INFO,"ASRtsp2RtpChannel::shutdownStream begin,exit code:[%d].",exitCode);
     // First, check whether any subsessions have still to be closed:
     if (scs.session != NULL) {
         Boolean someSubsessionsWereActive = False;
@@ -348,6 +339,7 @@ void ASRtsp2RtpChannel::shutdownStream(int exitCode) {
         if (someSubsessionsWereActive) {
           // Send a RTSP "TEARDOWN" command, to tell the server to shutdown the stream.
           // Don't bother handling the response to the "TEARDOWN".
+          AS_LOG(AS_LOG_INFO,"ASRtsp2RtpChannel::shutdownStream,send teardown command.");
           sendTeardownCommand(*scs.session, NULL);
         }
     }
@@ -360,6 +352,7 @@ void ASRtsp2RtpChannel::shutdownStream(int exitCode) {
             m_bObervser->NotifyStatus(AS_RTSP_STATUS_TEARDOWN);
         }
     }
+    AS_LOG(AS_LOG_INFO,"ASRtsp2RtpChannel::shutdownStream end.");
 
     /* not close here ,it will be closed by the close URL */
     //Medium::close(rtspClient);
@@ -419,6 +412,7 @@ void ASRtsp2RtpChannel::subsessionAfterPlaying(void* clientData) {
 void ASRtsp2RtpChannel::subsessionByeHandler(void* clientData) {
     MediaSubsession* subsession = (MediaSubsession*)clientData;
     // Now act as if the subsession had closed:
+    AS_LOG(AS_LOG_INFO,"ASRtsp2RtpChannel::subsessionByeHandler.");
     subsessionAfterPlaying(subsession);
 }
 
@@ -427,6 +421,7 @@ void ASRtsp2RtpChannel::streamTimerHandler(void* clientData) {
     ASRtspCheckStreamState& scs = rtspClient->scs; // alias
 
     scs.streamTimerTask = NULL;
+    AS_LOG(AS_LOG_INFO,"ASRtsp2RtpChannel::streamTimerHandler.");
 
     // Shut down the stream:
     rtspClient->shutdownStream();
@@ -571,13 +566,15 @@ ASLensInfo::~ASLensInfo()
 }
 void ASLensInfo::setLensInfo(std::string& strCameraID,std::string& strStreamType)
 {
+    AS_LOG(AS_LOG_INFO,"ASLensInfo::setLensInfo,cameraID:[%s],streamType:[%s].",
+                                                strCameraID.c_str(),strStreamType.c_str());
     m_strCameraID = strCameraID;
     m_strStreamType = strStreamType;
 }
 
 void ASLensInfo::check()
 {
-
+    AS_LOG(AS_LOG_INFO,"ASLensInfo::check,status:[%d].",m_Status);
     if(AS_RTSP_CHECK_STATUS_END == m_Status )
     {
         return;
@@ -588,20 +585,24 @@ void ASLensInfo::check()
         time_t cur = time(NULL);
         if(cur > (m_time + RTSP_CLINET_RUN_DURATION))
         {
+            AS_LOG(AS_LOG_INFO,"ASLensInfo::check,the run timeout,so stop the task.");
             stopRtspCheck();
         }
         return;
     }
     if(RTSP_CLINET_HANDLE_MAX <= ASRtspGuardManager::instance().getRtspHandleCount())
     {
+        AS_LOG(AS_LOG_INFO,"ASLensInfo::check,the run task is so big ,so wait ......");
         return;
     }
 
     /* start the lens check */
+    AS_LOG(AS_LOG_INFO,"ASLensInfo::check,start the new rtsp .");
 
     if(AS_ERROR_CODE_OK != StartRtspCheck())
     {
         /* start fail */
+        AS_LOG(AS_LOG_WARNING,"ASLensInfo::check,start the new rtsp fail .");
         return ;
     }
     m_time = time(NULL);
@@ -615,31 +616,39 @@ CHECK_STATUS ASLensInfo::Status()
 }
 void ASLensInfo::NotifyStatus(AS_RTSP_STATUS status)
 {
+    AS_LOG(AS_LOG_INFO,"ASLensInfo::NotifyStatus,rtsp status:[%d].",status);
 }
 
 int32_t ASLensInfo::StartRtspCheck()
 {
+    AS_LOG(AS_LOG_INFO,"ASLensInfo::StartRtspCheck begin.");
     ASEvLiveHttpClient httpHandle;
     std::string strRtspUrl;
     int32_t nRet = httpHandle.send_live_url_request(m_strCameraID,m_strStreamType,strRtspUrl);
     if(nRet != AS_ERROR_CODE_OK)
     {
+        AS_LOG(AS_LOG_WARNING,"ASLensInfo::StartRtspCheck,get the rtsp url fail.");
         return AS_ERROR_CODE_FAIL;
     }
+    AS_LOG(AS_LOG_INFO,"ASLensInfo::StartRtspCheck,get the rtsp url:[%s].",strRtspUrl.c_str());
     m_handle = ASRtspGuardManager::instance().openURL(strRtspUrl.c_str(),this);
     if(NULL == m_handle)
     {
+        AS_LOG(AS_LOG_WARNING,"ASLensInfo::StartRtspCheck,open the rtsp url:[%s] fail.",strRtspUrl.c_str());
         return AS_ERROR_CODE_FAIL;
     }
+    AS_LOG(AS_LOG_INFO,"ASLensInfo::StartRtspCheck end.");
     return AS_ERROR_CODE_OK;
 }
 void    ASLensInfo::stopRtspCheck()
 {
+    AS_LOG(AS_LOG_INFO,"ASLensInfo::stopRtspCheck begin.");
     if(NULL != m_handle)
     {
         ASRtspGuardManager::instance().closeURL(m_handle);
         m_handle = NULL;
     }
+    AS_LOG(AS_LOG_INFO,"ASLensInfo::stopRtspCheck end.");
     return;
 }
 
@@ -650,14 +659,30 @@ ASRtspCheckTask::ASRtspCheckTask()
 }
 ASRtspCheckTask::~ASRtspCheckTask()
 {
+    ASLensInfo* pLenInfo = NULL;
+
+    LENSINFOLISTITRT iter = m_LensList.begin();
+
+    for(; iter != m_LensList.end();++iter)
+    {
+        pLenInfo = *iter;
+        if(NULL !=  pLenInfo)
+        {
+            AS_DELETE(pLenInfo);
+        }
+    }
+    m_LensList.clear();
 }
 void ASRtspCheckTask::setTaskInfo(std::string& strCheckID,std::string& strReportUrl)
 {
     m_strCheckID   = strCheckID;
     m_strReportUrl = strReportUrl;
+    AS_LOG(AS_LOG_INFO,"ASRtspCheckTask::setTaskInfo,checkId:[%s],report url:[%s].",
+                                          m_strCheckID.c_str(),m_strReportUrl.c_str());
 }
 void ASRtspCheckTask::addCamera(std::string& strCameraID,std::string& strStreamTye)
 {
+    AS_LOG(AS_LOG_INFO,"ASRtspCheckTask::addCamera begin.");
     ASLensInfo* pLenInfo = NULL;
     pLenInfo = AS_NEW(pLenInfo);
     if(NULL == pLenInfo)
@@ -666,11 +691,14 @@ void ASRtspCheckTask::addCamera(std::string& strCameraID,std::string& strStreamT
     }
     pLenInfo->setLensInfo(strCameraID, strStreamTye);
     m_LensList.push_back(pLenInfo);
+    AS_LOG(AS_LOG_INFO,"ASRtspCheckTask::addCamera end.");
 }
 void ASRtspCheckTask::checkTask()
 {
+    AS_LOG(AS_LOG_INFO,"ASRtspCheckTask::checkTask begin.");
     if(AS_RTSP_CHECK_STATUS_END == m_Status )
     {
+        AS_LOG(AS_LOG_INFO,"ASRtspCheckTask::checkTask,task is end.");
         return;
     }
 
@@ -691,12 +719,13 @@ void ASRtspCheckTask::checkTask()
 
     if(bRunning)
     {
+        AS_LOG(AS_LOG_INFO,"ASRtspCheckTask::checkTask,task is go running now.");
         return;
     }
 
     //report the task info to the server,and end eth task
 
-
+    AS_LOG(AS_LOG_INFO,"ASRtspCheckTask::checkTask,task is stop ,so report to server.");
     m_Status = AS_RTSP_CHECK_STATUS_END;
 }
 CHECK_STATUS ASRtspCheckTask::TaskStatus()
@@ -1037,16 +1066,16 @@ void    ASRtspGuardManager::release()
 
 int32_t ASRtspGuardManager::open()
 {
-
     // Begin by setting up our usage environment:
     u_int32_t i = 0;
 
-
+    AS_LOG(AS_LOG_INFO,"ASRtspGuardManager::open begin.");
 
     m_LoopWatchVar = 0;
     /* start the http server deal thread */
     if (AS_ERROR_CODE_OK != as_create_thread((AS_THREAD_FUNC)http_env_invoke,
         this, &m_HttpThreadHandle, AS_DEFAULT_STACK_SIZE)) {
+        AS_LOG(AS_LOG_ERROR,"ASRtspGuardManager::open,create the http server thread fail.");
         return AS_ERROR_CODE_FAIL;
     }
     /* start the rtsp client deal thread */
@@ -1058,16 +1087,18 @@ int32_t ASRtspGuardManager::open()
     for(i = 0;i < RTSP_MANAGE_ENV_MAX_COUNT;i++) {
         if( AS_ERROR_CODE_OK != as_create_thread((AS_THREAD_FUNC)rtsp_env_invoke,
                                                  this,&m_ThreadHandle[i],AS_DEFAULT_STACK_SIZE)) {
+            AS_LOG(AS_LOG_ERROR,"ASRtspGuardManager::open,create the rtsp server thread fail.");
             return AS_ERROR_CODE_FAIL;
         }
 
     }
-
+    AS_LOG(AS_LOG_INFO,"ASRtspGuardManager::open end.");
     return 0;
 }
 
 void ASRtspGuardManager::close()
 {
+    AS_LOG(AS_LOG_INFO,"ASRtspGuardManager::close.");
     m_LoopWatchVar = 1;
 
     return;
@@ -1078,13 +1109,15 @@ AS_HANDLE ASRtspGuardManager::openURL(char const* rtspURL,ASRtspStatusObervser* 
     UsageEnvironment* env = NULL;
     u_int32_t index =  0;
 
-
+    
     index = find_beast_thread();
     env = m_envArray[index];
+    AS_LOG(AS_LOG_INFO,"ASRtspGuardManager::openURL:[%s],envIndex:[%d].",rtspURL,index);
 
     ASRtsp2RtpChannel* rtspClient = ASRtsp2RtpChannel::createNew(index,*env, rtspURL,
                                     RTSP_CLIENT_VERBOSITY_LEVEL, RTSP_AGENT_NAME);
     if (rtspClient == NULL) {
+        AS_LOG(AS_LOG_INFO,"ASRtspGuardManager::openURL,create new client fail,url:[%s].",rtspURL);
         as_mutex_unlock(m_mutex);
         return NULL;
     }
@@ -1095,6 +1128,7 @@ AS_HANDLE ASRtspGuardManager::openURL(char const* rtspURL,ASRtspStatusObervser* 
     ASRtsp2RtpChannel* AsRtspClient = (ASRtsp2RtpChannel*)rtspClient;
     AsRtspClient->open(RTSP_CLINET_RUN_DURATION,observer);
     as_mutex_unlock(m_mutex);
+    AS_LOG(AS_LOG_INFO,"ASRtspGuardManager::openURL end.");
     return (AS_HANDLE)AsRtspClient;
 }
 void      ASRtspGuardManager::closeURL(AS_HANDLE handle)
@@ -1106,6 +1140,7 @@ void      ASRtspGuardManager::closeURL(AS_HANDLE handle)
     m_clCountArray[index]--;
     m_ulRtspHandlCount--;
     pAsRtspClient->close();
+    AS_LOG(AS_LOG_INFO,"ASRtspGuardManager::closeURL,envIndex:[%d].",index);
     as_mutex_unlock(m_mutex);
 }
 
