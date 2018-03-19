@@ -51,6 +51,11 @@
 
 #define HTTP_OPTION_TIMEOUT            864000
 #define HTTP_REQUEST_MAX               4096
+#define HTTP_CODE_OK                   200
+#define HTTP_CODE_AUTH                 401
+
+#define HTTP_WWW_AUTH                   "WWW-Authenticate"
+#define HTTP_AUTHENTICATE               "Authenticate"
 
 #define AC_MSS_PORT_DAFAULT            8080
 #define AC_MSS_SIGN_TIME_LEN           16
@@ -359,15 +364,16 @@ private:
     static void readchunk_cb(struct evhttp_request* remote_rsp, void* arg);
     static void remote_connection_close_cb(struct evhttp_connection* connection, void* arg);
 private:
-    int32_t open_http_by_url(std::string& strUrl);
-    int32_t send_http_post_request(std::string& strMsg);
-    int32_t send_http_get_request(std::string& strMsg);
+    int32_t send_http_request(std::string& strUrl,std::string& strMsg,evhttp_cmd_type type = EVHTTP_REQ_POST);
+    std::string createAuthenticatorString(char const* cmd, char const* url);
+    Boolean handleAuthenticationFailure(char const* paramsStr) ;
 private:
     struct evhttp_request   *m_pReq;
     struct event_base       *m_pBase;
     struct evhttp_connection*m_pConn;
     std::string              m_reqPath;
     std::string              m_strRespMsg;
+    Authenticator            m_Authen;
 };
 
 
@@ -395,6 +401,8 @@ public:
     std::string getAppSecret(){return m_strAppSecret;};
     std::string getAppKey(){return m_strAppKey;};
     std::string getLiveUrl(){return m_strLiveUrl;};
+    std::string getUserName(){return m_strUserName;};
+    std::string getPassword(){return m_strPassword;};
     uint32_t    getRtspHandleCount(){return m_ulRtspHandlCount;};
 public:
     void http_env_thread();
@@ -446,6 +454,8 @@ private:
     std::string       m_strAppSecret;
     std::string       m_strAppKey;
     std::string       m_strLiveUrl;
+    std::string       m_strUserName;
+    std::string       m_strPassword;
     ASCHECKTASKLIST   m_TaskList;
 };
 #endif /* __AS_RTSP_CLIENT_MANAGE_H__ */
