@@ -30,21 +30,21 @@ class MPEG2TransportUDPServerMediaSubsession: public OnDemandServerMediaSubsessi
 public:
   static MPEG2TransportUDPServerMediaSubsession*
   createNew(UsageEnvironment& env,
-	    char const* inputAddressStr, // An IP multicast address, or use "0.0.0.0" or NULL for unicast input
-	    Port const& inputPort,
-	    Boolean inputStreamIsRawUDP = False); // otherwise (default) the input stream is RTP/UDP
+        char const* inputAddressStr, // An IP multicast address, or use "0.0.0.0" or NULL for unicast input
+        Port const& inputPort,
+        Boolean inputStreamIsRawUDP = False); // otherwise (default) the input stream is RTP/UDP
 protected:
   MPEG2TransportUDPServerMediaSubsession(UsageEnvironment& env,
-					 char const* inputAddressStr, Port const& inputPort, Boolean inputStreamIsRawUDP);
+                     char const* inputAddressStr, Port const& inputPort, Boolean inputStreamIsRawUDP);
       // called only by createNew();
   virtual ~MPEG2TransportUDPServerMediaSubsession();
 
 protected: // redefined virtual functions
   virtual FramedSource* createNewStreamSource(unsigned clientSessionId,
-					      unsigned& estBitrate);
+                          unsigned& estBitrate);
   virtual RTPSink* createNewRTPSink(Groupsock* rtpGroupsock,
-				    unsigned char rtpPayloadTypeIfDynamic,
-				    FramedSource* inputSource);
+                    unsigned char rtpPayloadTypeIfDynamic,
+                    FramedSource* inputSource);
 protected:
   char const* fInputAddressStr;
   Port fInputPort;

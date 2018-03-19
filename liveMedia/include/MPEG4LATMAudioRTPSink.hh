@@ -30,21 +30,21 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class MPEG4LATMAudioRTPSink: public AudioRTPSink {
 public:
   static MPEG4LATMAudioRTPSink* createNew(UsageEnvironment& env,
-					  Groupsock* RTPgs,
-					  unsigned char rtpPayloadFormat,
-					  u_int32_t rtpTimestampFrequency,
-					  char const* streamMuxConfigString,
-					  unsigned numChannels,
-					  Boolean allowMultipleFramesPerPacket = False);
+                      Groupsock* RTPgs,
+                      unsigned char rtpPayloadFormat,
+                      u_int32_t rtpTimestampFrequency,
+                      char const* streamMuxConfigString,
+                      unsigned numChannels,
+                      Boolean allowMultipleFramesPerPacket = False);
 
 protected:
   MPEG4LATMAudioRTPSink(UsageEnvironment& env, Groupsock* RTPgs,
-			unsigned char rtpPayloadFormat,
-			u_int32_t rtpTimestampFrequency,
-			char const* streamMuxConfigString,
-			unsigned numChannels,
-			Boolean allowMultipleFramesPerPacket);
-	// called only by createNew()
+            unsigned char rtpPayloadFormat,
+            u_int32_t rtpTimestampFrequency,
+            char const* streamMuxConfigString,
+            unsigned numChannels,
+            Boolean allowMultipleFramesPerPacket);
+    // called only by createNew()
 
   virtual ~MPEG4LATMAudioRTPSink();
 
@@ -56,7 +56,7 @@ private: // redefined virtual functions:
                                       unsigned numRemainingBytes);
   virtual Boolean
   frameCanAppearAfterPacketStart(unsigned char const* frameStart,
-				 unsigned numBytesInFrame) const;
+                 unsigned numBytesInFrame) const;
 
   virtual char const* auxSDPLine(); // for the "a=fmtp:" SDP line
 

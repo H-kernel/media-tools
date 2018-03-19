@@ -107,8 +107,8 @@ int main(int argc, char** argv) {
   CNAME[maxCNAMElen] = '\0'; // just in case
   sessionState.rtcpInstance
     = RTCPInstance::createNew(*env, &rtcpGroupsock,
-			      estimatedSessionBandwidth, CNAME,
-			      NULL /* we're a client */, rtpSource);
+                  estimatedSessionBandwidth, CNAME,
+                  NULL /* we're a client */, rtpSource);
   // Note: This starts RTCP running automatically
 
   sessionState.source = rtpSource;

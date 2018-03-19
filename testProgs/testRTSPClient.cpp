@@ -116,13 +116,13 @@ public:
 class ourRTSPClient: public RTSPClient {
 public:
   static ourRTSPClient* createNew(UsageEnvironment& env, char const* rtspURL,
-				  int verbosityLevel = 0,
-				  char const* applicationName = NULL,
-				  portNumBits tunnelOverHTTPPortNum = 0);
+                  int verbosityLevel = 0,
+                  char const* applicationName = NULL,
+                  portNumBits tunnelOverHTTPPortNum = 0);
 
 protected:
   ourRTSPClient(UsageEnvironment& env, char const* rtspURL,
-		int verbosityLevel, char const* applicationName, portNumBits tunnelOverHTTPPortNum);
+        int verbosityLevel, char const* applicationName, portNumBits tunnelOverHTTPPortNum);
     // called only by createNew();
   virtual ~ourRTSPClient();
 
@@ -138,8 +138,8 @@ public:
 class DummySink: public MediaSink {
 public:
   static DummySink* createNew(UsageEnvironment& env,
-			      MediaSubsession& subsession, // identifies the kind of data that's being received
-			      char const* streamId = NULL); // identifies the stream itself (optional)
+                  MediaSubsession& subsession, // identifies the kind of data that's being received
+                  char const* streamId = NULL); // identifies the stream itself (optional)
 
 private:
   DummySink(UsageEnvironment& env, MediaSubsession& subsession, char const* streamId);
@@ -148,10 +148,10 @@ private:
 
   static void afterGettingFrame(void* clientData, unsigned frameSize,
                                 unsigned numTruncatedBytes,
-				struct timeval presentationTime,
+                struct timeval presentationTime,
                                 unsigned durationInMicroseconds);
   void afterGettingFrame(unsigned frameSize, unsigned numTruncatedBytes,
-			 struct timeval presentationTime, unsigned durationInMicroseconds);
+             struct timeval presentationTime, unsigned durationInMicroseconds);
 
 private:
   // redefined virtual functions:
@@ -181,7 +181,7 @@ void openURL(UsageEnvironment& env, char const* progName, char const* rtspURL) {
   // Next, send a RTSP "DESCRIBE" command, to get a SDP description for the stream.
   // Note that this command - like all RTSP commands - is sent asynchronously; we do not block, waiting for a response.
   // Instead, the following function call returns immediately, and we handle the RTSP response later, from within the event loop:
-  rtspClient->sendDescribeCommand(continueAfterDESCRIBE); 
+  rtspClient->sendDescribeCommand(continueAfterDESCRIBE);
 }
 
 
@@ -231,7 +231,7 @@ void continueAfterDESCRIBE(RTSPClient* rtspClient, int resultCode, char* resultS
 void setupNextSubsession(RTSPClient* rtspClient) {
   UsageEnvironment& env = rtspClient->envir(); // alias
   StreamClientState& scs = ((ourRTSPClient*)rtspClient)->scs; // alias
-  
+
   scs.subsession = scs.iter->next();
   if (scs.subsession != NULL) {
     if (!scs.subsession->initiate()) {
@@ -240,9 +240,9 @@ void setupNextSubsession(RTSPClient* rtspClient) {
     } else {
       env << *rtspClient << "Initiated the \"" << *scs.subsession << "\" subsession (";
       if (scs.subsession->rtcpIsMuxed()) {
-	env << "client port " << scs.subsession->clientPortNum();
+    env << "client port " << scs.subsession->clientPortNum();
       } else {
-	env << "client ports " << scs.subsession->clientPortNum() << "-" << scs.subsession->clientPortNum()+1;
+    env << "client ports " << scs.subsession->clientPortNum() << "-" << scs.subsession->clientPortNum()+1;
       }
       env << ")\n";
 
@@ -288,14 +288,14 @@ void continueAfterSETUP(RTSPClient* rtspClient, int resultCode, char* resultStri
       // perhaps use your own custom "MediaSink" subclass instead
     if (scs.subsession->sink == NULL) {
       env << *rtspClient << "Failed to create a data sink for the \"" << *scs.subsession
-	  << "\" subsession: " << env.getResultMsg() << "\n";
+      << "\" subsession: " << env.getResultMsg() << "\n";
       break;
     }
 
     env << *rtspClient << "Created a data sink for the \"" << *scs.subsession << "\" subsession\n";
-    scs.subsession->miscPtr = rtspClient; // a hack to let subsession handler functions get the "RTSPClient" from the subsession 
+    scs.subsession->miscPtr = rtspClient; // a hack to let subsession handler functions get the "RTSPClient" from the subsession
     scs.subsession->sink->startPlaying(*(scs.subsession->readSource()),
-				       subsessionAfterPlaying, scs.subsession);
+                       subsessionAfterPlaying, scs.subsession);
     // Also set a handler to be called if a RTCP "BYE" arrives for this subsession:
     if (scs.subsession->rtcpInstance() != NULL) {
       scs.subsession->rtcpInstance()->setByeHandler(subsessionByeHandler, scs.subsession);
@@ -394,21 +394,21 @@ void shutdownStream(RTSPClient* rtspClient, int exitCode) {
   StreamClientState& scs = ((ourRTSPClient*)rtspClient)->scs; // alias
 
   // First, check whether any subsessions have still to be closed:
-  if (scs.session != NULL) { 
+  if (scs.session != NULL) {
     Boolean someSubsessionsWereActive = False;
     MediaSubsessionIterator iter(*scs.session);
     MediaSubsession* subsession;
 
     while ((subsession = iter.next()) != NULL) {
       if (subsession->sink != NULL) {
-	Medium::close(subsession->sink);
-	subsession->sink = NULL;
+    Medium::close(subsession->sink);
+    subsession->sink = NULL;
 
-	if (subsession->rtcpInstance() != NULL) {
-	  subsession->rtcpInstance()->setByeHandler(NULL, NULL); // in case the server sends a RTCP "BYE" while handling "TEARDOWN"
-	}
+    if (subsession->rtcpInstance() != NULL) {
+      subsession->rtcpInstance()->setByeHandler(NULL, NULL); // in case the server sends a RTCP "BYE" while handling "TEARDOWN"
+    }
 
-	someSubsessionsWereActive = True;
+    someSubsessionsWereActive = True;
       }
     }
 
@@ -435,12 +435,12 @@ void shutdownStream(RTSPClient* rtspClient, int exitCode) {
 // Implementation of "ourRTSPClient":
 
 ourRTSPClient* ourRTSPClient::createNew(UsageEnvironment& env, char const* rtspURL,
-					int verbosityLevel, char const* applicationName, portNumBits tunnelOverHTTPPortNum) {
+                    int verbosityLevel, char const* applicationName, portNumBits tunnelOverHTTPPortNum) {
   return new ourRTSPClient(env, rtspURL, verbosityLevel, applicationName, tunnelOverHTTPPortNum);
 }
 
 ourRTSPClient::ourRTSPClient(UsageEnvironment& env, char const* rtspURL,
-			     int verbosityLevel, char const* applicationName, portNumBits tunnelOverHTTPPortNum)
+                 int verbosityLevel, char const* applicationName, portNumBits tunnelOverHTTPPortNum)
   : RTSPClient(env,rtspURL, verbosityLevel, applicationName, tunnelOverHTTPPortNum, -1) {
 }
 
@@ -489,7 +489,7 @@ DummySink::~DummySink() {
 }
 
 void DummySink::afterGettingFrame(void* clientData, unsigned frameSize, unsigned numTruncatedBytes,
-				  struct timeval presentationTime, unsigned durationInMicroseconds) {
+                  struct timeval presentationTime, unsigned durationInMicroseconds) {
   DummySink* sink = (DummySink*)clientData;
   sink->afterGettingFrame(frameSize, numTruncatedBytes, presentationTime, durationInMicroseconds);
 }
@@ -498,7 +498,7 @@ void DummySink::afterGettingFrame(void* clientData, unsigned frameSize, unsigned
 #define DEBUG_PRINT_EACH_RECEIVED_FRAME 1
 
 void DummySink::afterGettingFrame(unsigned frameSize, unsigned numTruncatedBytes,
-				  struct timeval presentationTime, unsigned /*durationInMicroseconds*/) {
+                  struct timeval presentationTime, unsigned /*durationInMicroseconds*/) {
   // We've just received a frame of data.  (Optionally) print out information about it:
 #ifdef DEBUG_PRINT_EACH_RECEIVED_FRAME
   if (fStreamId != NULL) envir() << "Stream \"" << fStreamId << "\"; ";
@@ -515,7 +515,7 @@ void DummySink::afterGettingFrame(unsigned frameSize, unsigned numTruncatedBytes
 #endif
   envir() << "\n";
 #endif
-  
+
   // Then continue, to request the next frame of data:
   continuePlaying();
 }

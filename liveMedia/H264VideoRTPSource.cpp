@@ -30,7 +30,7 @@ public:
 
 private: // redefined virtual functions
   virtual unsigned nextEnclosedFrameSize(unsigned char*& framePtr,
-					 unsigned dataSize);
+                     unsigned dataSize);
 private:
   H264VideoRTPSource& fOurSource;
 };
@@ -45,18 +45,18 @@ private: // redefined virtual functions
 
 H264VideoRTPSource*
 H264VideoRTPSource::createNew(UsageEnvironment& env, Groupsock* RTPgs,
-			      unsigned char rtpPayloadFormat,
-			      unsigned rtpTimestampFrequency) {
+                  unsigned char rtpPayloadFormat,
+                  unsigned rtpTimestampFrequency) {
   return new H264VideoRTPSource(env, RTPgs, rtpPayloadFormat,
-				rtpTimestampFrequency);
+                rtpTimestampFrequency);
 }
 
 H264VideoRTPSource
 ::H264VideoRTPSource(UsageEnvironment& env, Groupsock* RTPgs,
-		     unsigned char rtpPayloadFormat,
-		     unsigned rtpTimestampFrequency)
+             unsigned char rtpPayloadFormat,
+             unsigned rtpTimestampFrequency)
   : MultiFramedRTPSource(env, RTPgs, rtpPayloadFormat, rtpTimestampFrequency,
-			 new H264BufferedPacketFactory) {
+             new H264BufferedPacketFactory) {
 }
 
 H264VideoRTPSource::~H264VideoRTPSource() {

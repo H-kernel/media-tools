@@ -37,7 +37,7 @@ public:
 
 protected:
   MPEG4VideoFileServerMediaSubsession(UsageEnvironment& env,
-				      char const* fileName, Boolean reuseFirstSource);
+                      char const* fileName, Boolean reuseFirstSource);
       // called only by createNew();
   virtual ~MPEG4VideoFileServerMediaSubsession();
 
@@ -45,12 +45,12 @@ protected:
 
 protected: // redefined virtual functions
   virtual char const* getAuxSDPLine(RTPSink* rtpSink,
-				    FramedSource* inputSource);
+                    FramedSource* inputSource);
   virtual FramedSource* createNewStreamSource(unsigned clientSessionId,
-					      unsigned& estBitrate);
+                          unsigned& estBitrate);
   virtual RTPSink* createNewRTPSink(Groupsock* rtpGroupsock,
                                     unsigned char rtpPayloadTypeIfDynamic,
-				    FramedSource* inputSource);
+                    FramedSource* inputSource);
 
 private:
   char* fAuxSDPLine;

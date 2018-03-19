@@ -32,11 +32,11 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class GroupEId {
 public:
   GroupEId(struct in_addr const& groupAddr,
-	   portNumBits portNum, u_int8_t ttl);
+       portNumBits portNum, u_int8_t ttl);
       // used for a 'source-independent multicast' group
   GroupEId(struct in_addr const& groupAddr,
-	   struct in_addr const& sourceFilterAddr,
-	   portNumBits portNum);
+       struct in_addr const& sourceFilterAddr,
+       portNumBits portNum);
       // used for a 'source-specific multicast' group
 
   struct in_addr const& groupAddress() const { return fGroupAddress; }
@@ -50,9 +50,9 @@ public:
 
 private:
   void init(struct in_addr const& groupAddr,
-	    struct in_addr const& sourceFilterAddr,
-	    portNumBits portNum,
-	    u_int8_t ttl);
+        struct in_addr const& sourceFilterAddr,
+        portNumBits portNum,
+        u_int8_t ttl);
 
 private:
   struct in_addr fGroupAddress;

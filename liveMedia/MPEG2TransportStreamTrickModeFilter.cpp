@@ -34,13 +34,13 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 MPEG2TransportStreamTrickModeFilter* MPEG2TransportStreamTrickModeFilter
 ::createNew(UsageEnvironment& env, FramedSource* inputSource,
-	    MPEG2TransportStreamIndexFile* indexFile, int scale) {
+        MPEG2TransportStreamIndexFile* indexFile, int scale) {
   return new MPEG2TransportStreamTrickModeFilter(env, inputSource, indexFile, scale);
 }
 
 MPEG2TransportStreamTrickModeFilter
 ::MPEG2TransportStreamTrickModeFilter(UsageEnvironment& env, FramedSource* inputSource,
-				      MPEG2TransportStreamIndexFile* indexFile, int scale)
+                      MPEG2TransportStreamIndexFile* indexFile, int scale)
   : FramedFilter(env, inputSource),
     fHaveStarted(False), fIndexFile(indexFile), fScale(scale), fDirection(1),
     fState(SKIPPING_FRAME), fFrameCount(0),
@@ -56,7 +56,7 @@ MPEG2TransportStreamTrickModeFilter::~MPEG2TransportStreamTrickModeFilter() {
 }
 
 Boolean MPEG2TransportStreamTrickModeFilter::seekTo(unsigned long tsPacketNumber,
-						    unsigned long indexRecordNumber) {
+                            unsigned long indexRecordNumber) {
   seekToTransportPacket(tsPacketNumber);
   fNextIndexRecordNum = indexRecordNumber;
   return True;
@@ -87,15 +87,15 @@ void MPEG2TransportStreamTrickModeFilter::doGetNextFrame() {
     float recordPCR;
     Boolean endOfIndexFile = False;
     if (!fIndexFile->readIndexRecordValues(fNextIndexRecordNum,
-					   fDesiredTSPacketNum, fDesiredDataOffset,
-					   fDesiredDataSize, recordPCR,
-					   recordType)) {
+                       fDesiredTSPacketNum, fDesiredDataOffset,
+                       fDesiredDataSize, recordPCR,
+                       recordType)) {
       // We ran off the end of the index file.  If we're not delivering a
       // pre-saved frame, then handle this the same way as if the
       // input Transport Stream source ended.
       if (fState != DELIVERING_SAVED_FRAME) {
-	onSourceClosure1();
-	return;
+    onSourceClosure1();
+    return;
       }
       endOfIndexFile = True;
     } else if (!fHaveStarted) {
@@ -112,77 +112,77 @@ void MPEG2TransportStreamTrickModeFilter::doGetNextFrame() {
     case SAVING_AND_DELIVERING_FRAME: {
       //      if (fState == SKIPPING_FRAME) fprintf(stderr, "\tSKIPPING_FRAME\n"); else fprintf(stderr, "\tSAVING_AND_DELIVERING_FRAME\n");//#####
       if (isIFrameStart(recordType)) {
-	// Save a record of this frame:
-	fSavedFrameIndexRecordStart = fNextIndexRecordNum - fDirection;
-	fUseSavedFrameNextTime = True;
-	//	fprintf(stderr, "\trecording\n");//#####
-	if ((fFrameCount++)%fScale == 0 && fUseSavedFrameNextTime) {
-	  // A frame is due now.
-	  fFrameCount = 1; // reset to avoid overflow
-	  if (fDirection > 0) {
-	    // Begin delivering this frame, as we're scanning it:
-	    fState = SAVING_AND_DELIVERING_FRAME;
-	    //	    fprintf(stderr, "\tdelivering\n");//#####
-	    fDesiredDataPCR = recordPCR; // use this frame's PCR
-	    attemptDeliveryToClient();
-	    return;
-	  } else {
-	    // Deliver this frame, then resume normal scanning:
-	    // (This relies on the index records having begun with an I-frame.)
-	    fState = DELIVERING_SAVED_FRAME;
-	    fSavedSequentialIndexRecordNum = fNextIndexRecordNum;
-	    fDesiredDataPCR = recordPCR;
-	    // use this frame's (not the saved frame's) PCR
-	    fNextIndexRecordNum = fSavedFrameIndexRecordStart;
-	    //	    fprintf(stderr, "\tbeginning delivery of saved frame\n");//#####
-	  }
-	} else {
-	  // No frame is needed now:
-	  fState = SKIPPING_FRAME;
-	}
-      } else if (isNonIFrameStart(recordType)) {
-	if ((fFrameCount++)%fScale == 0 && fUseSavedFrameNextTime) {
-	  // A frame is due now, so begin delivering the one that we had saved:
-	  // (This relies on the index records having begun with an I-frame.)
-	  fFrameCount = 1; // reset to avoid overflow
-	  fState = DELIVERING_SAVED_FRAME;
-	  fSavedSequentialIndexRecordNum = fNextIndexRecordNum;
-	  fDesiredDataPCR = recordPCR;
-	  // use this frame's (not the saved frame's) PCR
-	  fNextIndexRecordNum = fSavedFrameIndexRecordStart;
-	  //	  fprintf(stderr, "\tbeginning delivery of saved frame\n");//#####
-	} else {
-	  // No frame is needed now:
-	  fState = SKIPPING_FRAME;
-	}
+    // Save a record of this frame:
+    fSavedFrameIndexRecordStart = fNextIndexRecordNum - fDirection;
+    fUseSavedFrameNextTime = True;
+    //    fprintf(stderr, "\trecording\n");//#####
+    if ((fFrameCount++)%fScale == 0 && fUseSavedFrameNextTime) {
+      // A frame is due now.
+      fFrameCount = 1; // reset to avoid overflow
+      if (fDirection > 0) {
+        // Begin delivering this frame, as we're scanning it:
+        fState = SAVING_AND_DELIVERING_FRAME;
+        //        fprintf(stderr, "\tdelivering\n");//#####
+        fDesiredDataPCR = recordPCR; // use this frame's PCR
+        attemptDeliveryToClient();
+        return;
       } else {
-	// Not the start of a frame, but deliver it, if it's needed:
-	if (fState == SAVING_AND_DELIVERING_FRAME) {
-	  //	  fprintf(stderr, "\tdelivering\n");//#####
-	  fDesiredDataPCR = recordPCR; // use this frame's PCR
-	  attemptDeliveryToClient();
-	  return;
-	}
+        // Deliver this frame, then resume normal scanning:
+        // (This relies on the index records having begun with an I-frame.)
+        fState = DELIVERING_SAVED_FRAME;
+        fSavedSequentialIndexRecordNum = fNextIndexRecordNum;
+        fDesiredDataPCR = recordPCR;
+        // use this frame's (not the saved frame's) PCR
+        fNextIndexRecordNum = fSavedFrameIndexRecordStart;
+        //        fprintf(stderr, "\tbeginning delivery of saved frame\n");//#####
+      }
+    } else {
+      // No frame is needed now:
+      fState = SKIPPING_FRAME;
+    }
+      } else if (isNonIFrameStart(recordType)) {
+    if ((fFrameCount++)%fScale == 0 && fUseSavedFrameNextTime) {
+      // A frame is due now, so begin delivering the one that we had saved:
+      // (This relies on the index records having begun with an I-frame.)
+      fFrameCount = 1; // reset to avoid overflow
+      fState = DELIVERING_SAVED_FRAME;
+      fSavedSequentialIndexRecordNum = fNextIndexRecordNum;
+      fDesiredDataPCR = recordPCR;
+      // use this frame's (not the saved frame's) PCR
+      fNextIndexRecordNum = fSavedFrameIndexRecordStart;
+      //      fprintf(stderr, "\tbeginning delivery of saved frame\n");//#####
+    } else {
+      // No frame is needed now:
+      fState = SKIPPING_FRAME;
+    }
+      } else {
+    // Not the start of a frame, but deliver it, if it's needed:
+    if (fState == SAVING_AND_DELIVERING_FRAME) {
+      //      fprintf(stderr, "\tdelivering\n");//#####
+      fDesiredDataPCR = recordPCR; // use this frame's PCR
+      attemptDeliveryToClient();
+      return;
+    }
       }
       break;
     }
     case DELIVERING_SAVED_FRAME: {
       //      fprintf(stderr, "\tDELIVERING_SAVED_FRAME\n");//#####
       if (endOfIndexFile
-	  || (isIFrameStart(recordType)
-	      && fNextIndexRecordNum-1 != fSavedFrameIndexRecordStart)
-	  || isNonIFrameStart(recordType)) {
-	//	fprintf(stderr, "\tended delivery of saved frame\n");//#####
-	// We've reached the end of the saved frame, so revert to the
-	// original sequence of index records:
-	fNextIndexRecordNum = fSavedSequentialIndexRecordNum;
-	fUseSavedFrameNextTime = KEEP_ORIGINAL_FRAME_RATE;
-	fState = SKIPPING_FRAME;
+      || (isIFrameStart(recordType)
+          && fNextIndexRecordNum-1 != fSavedFrameIndexRecordStart)
+      || isNonIFrameStart(recordType)) {
+    //    fprintf(stderr, "\tended delivery of saved frame\n");//#####
+    // We've reached the end of the saved frame, so revert to the
+    // original sequence of index records:
+    fNextIndexRecordNum = fSavedSequentialIndexRecordNum;
+    fUseSavedFrameNextTime = KEEP_ORIGINAL_FRAME_RATE;
+    fState = SKIPPING_FRAME;
       } else {
-	// Continue delivering:
-	//	fprintf(stderr, "\tdelivering\n");//#####
-	attemptDeliveryToClient();
-	return;
+    // Continue delivering:
+    //    fprintf(stderr, "\tdelivering\n");//#####
+    attemptDeliveryToClient();
+    return;
       }
       break;
     }
@@ -228,15 +228,15 @@ void MPEG2TransportStreamTrickModeFilter::seekToTransportPacket(unsigned long ts
 void MPEG2TransportStreamTrickModeFilter::readTransportPacket(unsigned long tsPacketNum) {
   seekToTransportPacket(tsPacketNum);
   fInputSource->getNextFrame(fInputBuffer, TRANSPORT_PACKET_SIZE,
-			     afterGettingFrame, this,
-			     onSourceClosure, this);
+                 afterGettingFrame, this,
+                 onSourceClosure, this);
 }
 
 void MPEG2TransportStreamTrickModeFilter
 ::afterGettingFrame(void* clientData, unsigned frameSize,
-		    unsigned /*numTruncatedBytes*/,
-		    struct timeval presentationTime,
-		    unsigned /*durationInMicroseconds*/) {
+            unsigned /*numTruncatedBytes*/,
+            struct timeval presentationTime,
+            unsigned /*durationInMicroseconds*/) {
   MPEG2TransportStreamTrickModeFilter* filter = (MPEG2TransportStreamTrickModeFilter*)clientData;
   filter->afterGettingFrame1(frameSize);
 }

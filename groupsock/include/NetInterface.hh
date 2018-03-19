@@ -43,7 +43,7 @@ public:
   virtual Boolean write(unsigned char* data, unsigned numBytes) = 0;
 
   virtual Boolean SourceAddrOKForRelaying(UsageEnvironment& env,
-					  unsigned addr) = 0;
+                      unsigned addr) = 0;
 
 protected:
   DirectedNetInterface(); // virtual base class
@@ -83,8 +83,8 @@ public:
   void reset(); // closes the socket, and sets "fSocketNum" to -1
 
   virtual Boolean handleRead(unsigned char* buffer, unsigned bufferMaxSize,
-			     unsigned& bytesRead,
-			     struct sockaddr_in& fromAddress) = 0;
+                 unsigned& bytesRead,
+                 struct sockaddr_in& fromAddress) = 0;
       // Returns False on error; resultData == NULL if data ignored
 
   int socketNum() const { return fSocketNum; }

@@ -22,18 +22,18 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 DVVideoRTPSource*
 DVVideoRTPSource::createNew(UsageEnvironment& env,
-			    Groupsock* RTPgs,
-			    unsigned char rtpPayloadFormat,
-			    unsigned rtpTimestampFrequency) {
+                Groupsock* RTPgs,
+                unsigned char rtpPayloadFormat,
+                unsigned rtpTimestampFrequency) {
   return new DVVideoRTPSource(env, RTPgs, rtpPayloadFormat, rtpTimestampFrequency);
 }
 
 DVVideoRTPSource::DVVideoRTPSource(UsageEnvironment& env,
-				   Groupsock* rtpGS,
-				   unsigned char rtpPayloadFormat,
-				   unsigned rtpTimestampFrequency)
+                   Groupsock* rtpGS,
+                   unsigned char rtpPayloadFormat,
+                   unsigned rtpTimestampFrequency)
   : MultiFramedRTPSource(env, rtpGS,
-			 rtpPayloadFormat, rtpTimestampFrequency) {
+             rtpPayloadFormat, rtpTimestampFrequency) {
 }
 
 DVVideoRTPSource::~DVVideoRTPSource() {
@@ -44,10 +44,10 @@ DVVideoRTPSource::~DVVideoRTPSource() {
 
 Boolean DVVideoRTPSource
 ::processSpecialHeader(BufferedPacket* packet,
-		       unsigned& resultSpecialHeaderSize) {
+               unsigned& resultSpecialHeaderSize) {
   unsigned const packetSize = packet->dataSize();
   if (packetSize < DV_DIF_BLOCK_SIZE) return False; // TARFU!
-  
+
   u_int8_t const* data = packet->data();
   fCurrentPacketBeginsFrame = data[0] == DV_SECTION_HEADER && (data[1]&0xf8) == 0 && data[2] == 0; // thanks to Ben Hutchings
 

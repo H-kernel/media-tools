@@ -1,17 +1,17 @@
 /*
   The oSIP library implements the Session Initiation Protocol (SIP -rfc3261-)
   Copyright (C) 2001-2012 Aymeric MOIZARD amoizard@antisip.com
-  
+
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
-  
+
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-  
+
   You should have received a copy of the GNU Lesser General Public
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -59,7 +59,7 @@ main (int argc, char **argv)
   int pos;
   int len;
   int expected_error=OSIP_SUCCESS;
-  
+
   for (pos = 2; pos < argc; pos++) {
     if (0 == strncmp (argv[pos], "-v", 2))
       verbose = 1;
@@ -87,7 +87,7 @@ main (int argc, char **argv)
     fprintf (stdout, "test %s : ============================ FAILED (cannot read file)\n", argv[1]);
     return -999;
   }
-  
+
   ptr=msg;
   if (osip_strncasecmp(msg, "expected_error:", strlen("expected_error:"))==0) {
     ptr+=strlen("expected_error:");
@@ -124,9 +124,9 @@ test_message (char *msg, size_t len, int verbose, int clone, int perf)
   osip_message_t *sip;
   int err=0;
   char *result;
-  
+
   int j = perf;
-  
+
   if (verbose)
     fprintf (stdout, "Trying %i sequentials calls to osip_message_init(), osip_message_parse() and osip_message_free()\n", j);
   while (j != 0) {
@@ -134,14 +134,14 @@ test_message (char *msg, size_t len, int verbose, int clone, int perf)
     osip_message_init (&sip);
     err = osip_message_parse (sip, msg, len);
       if (err != 0) {
-	if (verbose)
-	  fprintf (stdout, "ERROR: failed while parsing!\n");
+    if (verbose)
+      fprintf (stdout, "ERROR: failed while parsing!\n");
         osip_message_free (sip);
         return err;
       }
       osip_message_free (sip);
   }
-  
+
   osip_message_init (&sip);
   err = osip_message_parse (sip, msg, len);
   if (err != 0) {
@@ -152,12 +152,12 @@ test_message (char *msg, size_t len, int verbose, int clone, int perf)
   }
   else {
     size_t length;
-    
+
 #if 0
     sdp_message_t *sdp;
     osip_body_t *oldbody;
     int pos;
-    
+
     pos = 0;
     while (!osip_list_eol (&sip->bodies, pos)) {
       oldbody = (osip_body_t *) osip_list_get (&sip->bodies, pos);
@@ -167,72 +167,72 @@ test_message (char *msg, size_t len, int verbose, int clone, int perf)
       sdp_message_free (sdp);
       sdp = NULL;
       if (err != 0) {
-	if (verbose)
-	  fprintf (stdout, "ERROR: Bad SDP!\n");
-	break;
+    if (verbose)
+      fprintf (stdout, "ERROR: Bad SDP!\n");
+    break;
       }
       else if (verbose)
-	fprintf (stdout, "SUCCESS: Correct SDP!\n");
+    fprintf (stdout, "SUCCESS: Correct SDP!\n");
     }
 #endif
-    
+
     osip_message_force_update (sip);
     err = osip_message_to_str (sip, &result, &length);
     if (err != OSIP_SUCCESS) {
       if (verbose)
-	fprintf (stdout, "ERROR: failed while printing message!\n");
+    fprintf (stdout, "ERROR: failed while printing message!\n");
       osip_message_free (sip);
       return err;
     }
     else {
       if (verbose)
-	fwrite (result, 1, length, stdout);
+    fwrite (result, 1, length, stdout);
       if (clone) {
-	int j = perf;
-	
-	if (verbose)
-	  fprintf (stdout, "Trying %i sequentials calls to osip_message_clone() and osip_message_free()\n", j);
-	while (j != 0) {
-	  osip_message_t *copy;
-	  
-	  j--;
-	  err = osip_message_clone (sip, &copy);
-	  if (err != OSIP_SUCCESS) {
-	    if (verbose)
-	      fprintf (stdout, "ERROR: failed while creating copy of message!\n");
-	    break;
-	  }
-	  else {
-	    char *tmp;
-	    size_t length;
-	    
-	    osip_message_force_update (copy);
-	    err = osip_message_to_str (copy, &tmp, &length);
-	    if (err != OSIP_SUCCESS) {
-	      if (verbose)
-		fprintf (stdout, "ERROR: failed while printing message!\n");
-	    }
-	    else {
-	      if (0 == strcmp (result, tmp)) {
-		if (verbose)
-		  printf ("The osip_message_clone method works perfectly\n");
-	      }
-	      else {
-		printf ("ERROR: The osip_message_clone method DOES NOT works\n");
-		err=-1;
-		if (verbose) {
-		  printf ("Here is the copy: \n");
-		  fwrite (tmp, 1, length, stdout);
-		  printf ("\n");
-		}
-	      }
-	      osip_free (tmp);
-	    }
-	    osip_message_free (copy);
-	  }
-	}
-	if (verbose)
-	  fprintf (stdout, "sequentials calls: done\n");
+    int j = perf;
+
+    if (verbose)
+      fprintf (stdout, "Trying %i sequentials calls to osip_message_clone() and osip_message_free()\n", j);
+    while (j != 0) {
+      osip_message_t *copy;
+
+      j--;
+      err = osip_message_clone (sip, &copy);
+      if (err != OSIP_SUCCESS) {
+        if (verbose)
+          fprintf (stdout, "ERROR: failed while creating copy of message!\n");
+        break;
+      }
+      else {
+        char *tmp;
+        size_t length;
+
+        osip_message_force_update (copy);
+        err = osip_message_to_str (copy, &tmp, &length);
+        if (err != OSIP_SUCCESS) {
+          if (verbose)
+        fprintf (stdout, "ERROR: failed while printing message!\n");
+        }
+        else {
+          if (0 == strcmp (result, tmp)) {
+        if (verbose)
+          printf ("The osip_message_clone method works perfectly\n");
+          }
+          else {
+        printf ("ERROR: The osip_message_clone method DOES NOT works\n");
+        err=-1;
+        if (verbose) {
+          printf ("Here is the copy: \n");
+          fwrite (tmp, 1, length, stdout);
+          printf ("\n");
+        }
+          }
+          osip_free (tmp);
+        }
+        osip_message_free (copy);
+      }
+    }
+    if (verbose)
+      fprintf (stdout, "sequentials calls: done\n");
       }
       osip_free (result);
     }

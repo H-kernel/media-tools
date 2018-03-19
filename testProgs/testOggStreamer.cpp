@@ -113,14 +113,14 @@ void onOggFileCreation(OggFile* newFile, void* clientData) {
         if (trackState[i].sink->estimatedBitrate() > 0) {
           estBitrate = trackState[i].sink->estimatedBitrate(); // hack
         }
-	trackState[i].rtcp
-	  = RTCPInstance::createNew(*env, rtcpGroupsock, estBitrate, CNAME,
-				    trackState[i].sink, NULL /* we're a server */,
-				    True /* we're a SSM source */);
-	  // Note: This starts RTCP running automatically
+    trackState[i].rtcp
+      = RTCPInstance::createNew(*env, rtcpGroupsock, estBitrate, CNAME,
+                    trackState[i].sink, NULL /* we're a server */,
+                    True /* we're a SSM source */);
+      // Note: This starts RTCP running automatically
 
-	// Having set up a track for streaming, add it to our RTSP server's "ServerMediaSession":
-	sms->addSubsession(PassiveServerMediaSubsession::createNew(*trackState[i].sink, trackState[i].rtcp));
+    // Having set up a track for streaming, add it to our RTSP server's "ServerMediaSession":
+    sms->addSubsession(PassiveServerMediaSubsession::createNew(*trackState[i].sink, trackState[i].rtcp));
       }
     }
   }
@@ -157,12 +157,12 @@ void afterPlaying(void* /*clientData*/) {
   for (i = 0; i < numTracks; ++i) {
     if (trackState[i].trackNumber != 0) {
       FramedSource* baseSource
-	= oggDemux->newDemuxedTrack(trackState[i].trackNumber);
+    = oggDemux->newDemuxedTrack(trackState[i].trackNumber);
 
       unsigned estBitrate, numFiltersInFrontOfTrack;
       trackState[i].source
-	= oggFile->createSourceForStreaming(baseSource, trackState[i].trackNumber,
-					    estBitrate, numFiltersInFrontOfTrack);
+    = oggFile->createSourceForStreaming(baseSource, trackState[i].trackNumber,
+                        estBitrate, numFiltersInFrontOfTrack);
     }
   }
 

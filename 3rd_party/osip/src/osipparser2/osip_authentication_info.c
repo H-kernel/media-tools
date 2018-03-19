@@ -1,17 +1,17 @@
 /*
   The oSIP library implements the Session Initiation Protocol (SIP -rfc3261-)
   Copyright (C) 2001-2015 Aymeric MOIZARD amoizard@antisip.com
-  
+
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
-  
+
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-  
+
   You should have received a copy of the GNU Lesser General Public
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -77,17 +77,17 @@ osip_message_set_authentication_info (osip_message_t * sip, const char *hvalue)
 int
 osip_authentication_info_parse (osip_authentication_info_t * ainfo, const char *hvalue)
 {
-	const char *space, *hack;
+    const char *space, *hack;
   const char *next = NULL;
   int i;
 
   space = strchr (hvalue, ' ');
   hack = strchr( hvalue, '=');
   if(space && hack && hack > space) {
-	  ainfo->auth_type = (char *) osip_malloc (space - hvalue + 1);
-	  if (ainfo->auth_type==NULL)
-		  return OSIP_NOMEM;
-	  osip_strncpy (ainfo->auth_type, hvalue, space - hvalue);
+      ainfo->auth_type = (char *) osip_malloc (space - hvalue + 1);
+      if (ainfo->auth_type==NULL)
+          return OSIP_NOMEM;
+      osip_strncpy (ainfo->auth_type, hvalue, space - hvalue);
   }
   else
     space = hvalue;
@@ -308,70 +308,70 @@ osip_authentication_info_set_qop_options (osip_authentication_info_t * authentic
 
 char *
 osip_authentication_info_get_snum (osip_authentication_info_t *
-				   authentication_info)
+                   authentication_info)
 {
   return authentication_info->snum;
 }
 
 void
 osip_authentication_info_set_snum (osip_authentication_info_t *
-				   authentication_info, char *snum)
+                   authentication_info, char *snum)
 {
   authentication_info->snum = (char *) snum;
 }
 
 char *
 osip_authentication_info_get_srand (osip_authentication_info_t *
-				   authentication_info)
+                   authentication_info)
 {
   return authentication_info->srand;
 }
 
 void
 osip_authentication_info_set_srand (osip_authentication_info_t *
-				   authentication_info, char *srand)
+                   authentication_info, char *srand)
 {
   authentication_info->srand = (char *) srand;
 }
 
 char *
 osip_authentication_info_get_targetname (osip_authentication_info_t *
-				   authentication_info)
+                   authentication_info)
 {
   return authentication_info->targetname;
 }
 
 void
 osip_authentication_info_set_targetname (osip_authentication_info_t *
-				   authentication_info, char *targetname)
+                   authentication_info, char *targetname)
 {
   authentication_info->targetname = (char *) targetname;
 }
 
 char *
 osip_authentication_info_get_realm (osip_authentication_info_t *
-				   authentication_info)
+                   authentication_info)
 {
   return authentication_info->realm;
 }
 
 void
 osip_authentication_info_set_realm (osip_authentication_info_t *
-				   authentication_info, char *realm)
+                   authentication_info, char *realm)
 {
   authentication_info->realm = (char *) realm;
 }
 
 char *
 osip_authentication_info_get_opaque (osip_authentication_info_t *
-				   authentication_info)
+                   authentication_info)
 {
   return authentication_info->opaque;
 }
 
 void
 osip_authentication_info_set_opaque (osip_authentication_info_t *
-				   authentication_info, char *opaque)
+                   authentication_info, char *opaque)
 {
   authentication_info->opaque = (char *) opaque;
 }

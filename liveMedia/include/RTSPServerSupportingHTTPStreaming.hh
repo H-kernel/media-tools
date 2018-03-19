@@ -34,16 +34,16 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class RTSPServerSupportingHTTPStreaming: public RTSPServer {
 public:
   static RTSPServerSupportingHTTPStreaming* createNew(UsageEnvironment& env, Port rtspPort = 554,
-						      UserAuthenticationDatabase* authDatabase = NULL,
-						      unsigned reclamationTestSeconds = 65);
+                              UserAuthenticationDatabase* authDatabase = NULL,
+                              unsigned reclamationTestSeconds = 65);
 
   Boolean setHTTPPort(Port httpPort) { return setUpTunnelingOverHTTP(httpPort); }
 
 protected:
   RTSPServerSupportingHTTPStreaming(UsageEnvironment& env,
-				    int ourSocket, Port ourPort,
-				    UserAuthenticationDatabase* authDatabase,
-				    unsigned reclamationTestSeconds);
+                    int ourSocket, Port ourPort,
+                    UserAuthenticationDatabase* authDatabase,
+                    unsigned reclamationTestSeconds);
       // called only by createNew();
   virtual ~RTSPServerSupportingHTTPStreaming();
 

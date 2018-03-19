@@ -1,17 +1,17 @@
 /*
   The oSIP library implements the Session Initiation Protocol (SIP -rfc3261-)
   Copyright (C) 2001-2015 Aymeric MOIZARD amoizard@antisip.com
-  
+
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
-  
+
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-  
+
   You should have received a copy of the GNU Lesser General Public
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -146,7 +146,7 @@ extern "C"
  */
 #define osip_to_get_tag(header,dest) osip_generic_param_get_byname((&(header)->gen_params), "tag",dest)
 
-#ifndef DOXYGEN			/* avoid DOXYGEN warning */
+#ifndef DOXYGEN            /* avoid DOXYGEN warning */
 /* Compare the username, host and tag part of the two froms */
 #define osip_to_compare(header1, header2) osip_from_compare((osip_from_t *)header1, (osip_from_t *)header2)
 #endif

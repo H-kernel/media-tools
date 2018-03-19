@@ -39,7 +39,7 @@ T140TextRTPSink::~T140TextRTPSink() {
 
 T140TextRTPSink*
 T140TextRTPSink::createNew(UsageEnvironment& env, Groupsock* RTPgs,
-			    unsigned char rtpPayloadFormat) {
+                unsigned char rtpPayloadFormat) {
   return new T140TextRTPSink(env, RTPgs, rtpPayloadFormat);
 }
 
@@ -57,10 +57,10 @@ Boolean T140TextRTPSink::continuePlaying() {
 }
 
 void T140TextRTPSink::doSpecialFrameHandling(unsigned /*fragmentationOffset*/,
-					     unsigned char* /*frameStart*/,
-					     unsigned numBytesInFrame,
-					     struct timeval framePresentationTime,
-					     unsigned /*numRemainingBytes*/) {
+                         unsigned char* /*frameStart*/,
+                         unsigned numBytesInFrame,
+                         struct timeval framePresentationTime,
+                         unsigned /*numRemainingBytes*/) {
   // Set the RTP 'M' (marker) bit if we have just ended an idle period - i.e., if we were in an idle period, but just got data:
   if (fAreInIdlePeriod && numBytesInFrame > 0) setMarkerBit();
   fAreInIdlePeriod = numBytesInFrame == 0;
@@ -107,16 +107,16 @@ void T140IdleFilter::doGetNextFrame() {
 }
 
 void T140IdleFilter::afterGettingFrame(void* clientData, unsigned frameSize,
-				       unsigned numTruncatedBytes,
-				       struct timeval presentationTime,
-				       unsigned durationInMicroseconds) {
+                       unsigned numTruncatedBytes,
+                       struct timeval presentationTime,
+                       unsigned durationInMicroseconds) {
   ((T140IdleFilter*)clientData)->afterGettingFrame(frameSize, numTruncatedBytes, presentationTime, durationInMicroseconds);
 }
 
 void T140IdleFilter::afterGettingFrame(unsigned frameSize,
-				       unsigned numTruncatedBytes,
-				       struct timeval presentationTime,
-				       unsigned durationInMicroseconds) {
+                       unsigned numTruncatedBytes,
+                       struct timeval presentationTime,
+                       unsigned durationInMicroseconds) {
   // First, cancel any pending idle timer:
   envir().taskScheduler().unscheduleDelayedTask(fIdleTimerTask);
 
@@ -155,14 +155,14 @@ void T140IdleFilter::deliverFromBuffer() {
   } else {
     fNumTruncatedBytes = fBufferedNumTruncatedBytes + fNumBufferedBytes - fMaxSize;
     fFrameSize = fMaxSize;
-  }  
+  }
 
   memmove(fTo, fBuffer, fFrameSize);
   fPresentationTime = fBufferedDataPresentationTime;
   fDurationInMicroseconds = fBufferedDataDurationInMicroseconds;
 
   fNumBufferedBytes = 0; // reset buffer
-  
+
   FramedSource::afterGetting(this); // complete delivery
 }
 

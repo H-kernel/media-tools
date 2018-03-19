@@ -66,13 +66,13 @@ public:
   virtual void setResultMsg(MsgString msg1, MsgString msg2) = 0;
   virtual void setResultMsg(MsgString msg1, MsgString msg2, MsgString msg3) = 0;
   virtual void setResultErrMsg(MsgString msg, int err = 0) = 0;
-	// like setResultMsg(), except that an 'errno' message is appended.  (If "err == 0", the "getErrno()" code is used instead.)
+    // like setResultMsg(), except that an 'errno' message is appended.  (If "err == 0", the "getErrno()" code is used instead.)
 
   virtual void appendToResultMsg(MsgString msg) = 0;
 
   virtual void reportBackgroundError() = 0;
-	// used to report a (previously set) error message within
-	// a background event
+    // used to report a (previously set) error message within
+    // a background event
 
   virtual void internalError(); // used to 'handle' a 'should not occur'-type error condition within the library.
 
@@ -108,22 +108,22 @@ public:
   virtual ~TaskScheduler();
 
   virtual TaskToken scheduleDelayedTask(int64_t microseconds, TaskFunc* proc,
-					void* clientData) = 0;
-	// Schedules a task to occur (after a delay) when we next
-	// reach a scheduling point.
-	// (Does not delay if "microseconds" <= 0)
-	// Returns a token that can be used in a subsequent call to
-	// unscheduleDelayedTask() or rescheduleDelayedTask()
+                    void* clientData) = 0;
+    // Schedules a task to occur (after a delay) when we next
+    // reach a scheduling point.
+    // (Does not delay if "microseconds" <= 0)
+    // Returns a token that can be used in a subsequent call to
+    // unscheduleDelayedTask() or rescheduleDelayedTask()
         // (but only if the task has not yet occurred).
 
   virtual void unscheduleDelayedTask(TaskToken& prevTask) = 0;
-	// (Has no effect if "prevTask" == NULL)
+    // (Has no effect if "prevTask" == NULL)
         // Sets "prevTask" to NULL afterwards.
         // Note: This MUST NOT be called if the scheduled task has already occurred.
 
   virtual void rescheduleDelayedTask(TaskToken& task,
-				     int64_t microseconds, TaskFunc* proc,
-				     void* clientData);
+                     int64_t microseconds, TaskFunc* proc,
+                     void* clientData);
         // Combines "unscheduleDelayedTask()" with "scheduleDelayedTask()"
         // (setting "task" to the new task token).
         // Note: This MUST NOT be called if the scheduled task has already occurred.

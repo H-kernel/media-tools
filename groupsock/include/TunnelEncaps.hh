@@ -28,38 +28,38 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 typedef u_int16_t Cookie;
 
 class TunnelEncapsulationTrailer {
-	// The trailer is layed out as follows:
-	// bytes 0-1:	source 'cookie'
-	// bytes 2-3:	destination 'cookie'
-	// bytes 4-7:	address
-	// bytes 8-9:	port
-	// byte 10:	ttl
-	// byte 11:	command
+    // The trailer is layed out as follows:
+    // bytes 0-1:    source 'cookie'
+    // bytes 2-3:    destination 'cookie'
+    // bytes 4-7:    address
+    // bytes 8-9:    port
+    // byte 10:    ttl
+    // byte 11:    command
 
         // Optionally, there may also be a 4-byte 'auxilliary address'
         // (e.g., for 'source-specific multicast' preceding this)
         // bytes -4 through -1: auxilliary address
 
     public:
-	Cookie& srcCookie()
-		{ return *(Cookie*)byteOffset(0); }
-	Cookie& dstCookie()
-		{ return *(Cookie*)byteOffset(2); }
-	u_int32_t& address()
-		{ return *(u_int32_t*)byteOffset(4); }
-	Port& port()
-		{ return *(Port*)byteOffset(8); }
-	u_int8_t& ttl()
-		{ return *(u_int8_t*)byteOffset(10); }
-	u_int8_t& command()
-		{ return *(u_int8_t*)byteOffset(11); }
+    Cookie& srcCookie()
+        { return *(Cookie*)byteOffset(0); }
+    Cookie& dstCookie()
+        { return *(Cookie*)byteOffset(2); }
+    u_int32_t& address()
+        { return *(u_int32_t*)byteOffset(4); }
+    Port& port()
+        { return *(Port*)byteOffset(8); }
+    u_int8_t& ttl()
+        { return *(u_int8_t*)byteOffset(10); }
+    u_int8_t& command()
+        { return *(u_int8_t*)byteOffset(11); }
 
         u_int32_t& auxAddress()
                 { return *(u_int32_t*)byteOffset(-4); }
 
     private:
-	inline char* byteOffset(int charIndex)
-		{ return ((char*)this) + charIndex; }
+    inline char* byteOffset(int charIndex)
+        { return ((char*)this) + charIndex; }
 };
 
 const unsigned TunnelEncapsulationTrailerSize = 12; // bytes

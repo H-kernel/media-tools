@@ -39,7 +39,7 @@ class MPEG2TransportStreamTrickModeFilter: public FramedFilter {
 public:
   static MPEG2TransportStreamTrickModeFilter*
   createNew(UsageEnvironment& env, FramedSource* inputSource,
-	    MPEG2TransportStreamIndexFile* indexFile, int scale);
+        MPEG2TransportStreamIndexFile* indexFile, int scale);
 
   Boolean seekTo(unsigned long tsPacketNumber, unsigned long indexRecordNumber);
 
@@ -50,7 +50,7 @@ public:
 
 protected:
   MPEG2TransportStreamTrickModeFilter(UsageEnvironment& env, FramedSource* inputSource,
-				      MPEG2TransportStreamIndexFile* indexFile, int scale);
+                      MPEG2TransportStreamIndexFile* indexFile, int scale);
       // called only by createNew()
   virtual ~MPEG2TransportStreamTrickModeFilter();
 
@@ -65,9 +65,9 @@ private:
   void readTransportPacket(unsigned long tsPacketNum); // asynchronously
 
   static void afterGettingFrame(void* clientData, unsigned frameSize,
-				unsigned numTruncatedBytes,
-				struct timeval presentationTime,
-				unsigned durationInMicroseconds);
+                unsigned numTruncatedBytes,
+                struct timeval presentationTime,
+                unsigned durationInMicroseconds);
   void afterGettingFrame1(unsigned frameSize);
 
   static void onSourceClosure(void* clientData);

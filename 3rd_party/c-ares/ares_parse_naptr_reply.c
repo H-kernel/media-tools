@@ -42,7 +42,7 @@
 
 /* AIX portability check */
 #ifndef T_NAPTR
-	#define T_NAPTR 35 /* naming authority pointer */
+    #define T_NAPTR 35 /* naming authority pointer */
 #endif
 
 int

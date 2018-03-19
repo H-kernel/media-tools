@@ -26,14 +26,14 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 WAVAudioFileServerMediaSubsession* WAVAudioFileServerMediaSubsession
 ::createNew(UsageEnvironment& env, char const* fileName, Boolean reuseFirstSource,
-	    Boolean convertToULaw) {
+        Boolean convertToULaw) {
   return new WAVAudioFileServerMediaSubsession(env, fileName,
-					       reuseFirstSource, convertToULaw);
+                           reuseFirstSource, convertToULaw);
 }
 
 WAVAudioFileServerMediaSubsession
 ::WAVAudioFileServerMediaSubsession(UsageEnvironment& env, char const* fileName,
-				    Boolean reuseFirstSource, Boolean convertToULaw)
+                    Boolean reuseFirstSource, Boolean convertToULaw)
   : FileServerMediaSubsession(env, fileName, reuseFirstSource),
     fConvertToULaw(convertToULaw) {
 }
@@ -120,18 +120,18 @@ FramedSource* WAVAudioFileServerMediaSubsession
     resultSource = wavSource; // by default
     if (fAudioFormat == WA_PCM) {
       if (fBitsPerSample == 16) {
-	// Note that samples in the WAV audio file are in little-endian order.
-	if (fConvertToULaw) {
-	  // Add a filter that converts from raw 16-bit PCM audio to 8-bit u-law audio:
-	  resultSource = uLawFromPCMAudioSource::createNew(envir(), wavSource, 1/*little-endian*/);
-	  bitsPerSecond /= 2;
-	} else {
-	  // Add a filter that converts from little-endian to network (big-endian) order:
-	  resultSource = EndianSwap16::createNew(envir(), wavSource);
-	}
+    // Note that samples in the WAV audio file are in little-endian order.
+    if (fConvertToULaw) {
+      // Add a filter that converts from raw 16-bit PCM audio to 8-bit u-law audio:
+      resultSource = uLawFromPCMAudioSource::createNew(envir(), wavSource, 1/*little-endian*/);
+      bitsPerSecond /= 2;
+    } else {
+      // Add a filter that converts from little-endian to network (big-endian) order:
+      resultSource = EndianSwap16::createNew(envir(), wavSource);
+    }
       } else if (fBitsPerSample == 20 || fBitsPerSample == 24) {
-	// Add a filter that converts from little-endian to network (big-endian) order:
-	resultSource = EndianSwap24::createNew(envir(), wavSource);
+    // Add a filter that converts from little-endian to network (big-endian) order:
+    resultSource = EndianSwap24::createNew(envir(), wavSource);
       }
     }
 
@@ -146,64 +146,64 @@ FramedSource* WAVAudioFileServerMediaSubsession
 
 RTPSink* WAVAudioFileServerMediaSubsession
 ::createNewRTPSink(Groupsock* rtpGroupsock,
-		   unsigned char rtpPayloadTypeIfDynamic,
-		   FramedSource* /*inputSource*/) {
+           unsigned char rtpPayloadTypeIfDynamic,
+           FramedSource* /*inputSource*/) {
   do {
     char const* mimeType;
     unsigned char payloadFormatCode = rtpPayloadTypeIfDynamic; // by default, unless a static RTP payload type can be used
     if (fAudioFormat == WA_PCM) {
       if (fBitsPerSample == 16) {
-	if (fConvertToULaw) {
-	  mimeType = "PCMU";
-	  if (fSamplingFrequency == 8000 && fNumChannels == 1) {
-	    payloadFormatCode = 0; // a static RTP payload type
-	  }
-	} else {
-	  mimeType = "L16";
-	  if (fSamplingFrequency == 44100 && fNumChannels == 2) {
-	    payloadFormatCode = 10; // a static RTP payload type
-	  } else if (fSamplingFrequency == 44100 && fNumChannels == 1) {
-	    payloadFormatCode = 11; // a static RTP payload type
-	  }
-	}
+    if (fConvertToULaw) {
+      mimeType = "PCMU";
+      if (fSamplingFrequency == 8000 && fNumChannels == 1) {
+        payloadFormatCode = 0; // a static RTP payload type
+      }
+    } else {
+      mimeType = "L16";
+      if (fSamplingFrequency == 44100 && fNumChannels == 2) {
+        payloadFormatCode = 10; // a static RTP payload type
+      } else if (fSamplingFrequency == 44100 && fNumChannels == 1) {
+        payloadFormatCode = 11; // a static RTP payload type
+      }
+    }
       } else if (fBitsPerSample == 20) {
-	mimeType = "L20";
+    mimeType = "L20";
       } else if (fBitsPerSample == 24) {
-	mimeType = "L24";
+    mimeType = "L24";
       } else { // fBitsPerSample == 8 (we assume that fBitsPerSample == 4 is only for WA_IMA_ADPCM)
-	mimeType = "L8";
+    mimeType = "L8";
       }
     } else if (fAudioFormat == WA_PCMU) {
       mimeType = "PCMU";
       if (fSamplingFrequency == 8000 && fNumChannels == 1) {
-	payloadFormatCode = 0; // a static RTP payload type
+    payloadFormatCode = 0; // a static RTP payload type
       }
     } else if (fAudioFormat == WA_PCMA) {
       mimeType = "PCMA";
       if (fSamplingFrequency == 8000 && fNumChannels == 1) {
-	payloadFormatCode = 8; // a static RTP payload type
+    payloadFormatCode = 8; // a static RTP payload type
       }
     } else if (fAudioFormat == WA_IMA_ADPCM) {
       mimeType = "DVI4";
       // Use a static payload type, if one is defined:
       if (fNumChannels == 1) {
-	if (fSamplingFrequency == 8000) {
-	  payloadFormatCode = 5; // a static RTP payload type
-	} else if (fSamplingFrequency == 16000) {
-	  payloadFormatCode = 6; // a static RTP payload type
-	} else if (fSamplingFrequency == 11025) {
-	  payloadFormatCode = 16; // a static RTP payload type
-	} else if (fSamplingFrequency == 22050) {
-	  payloadFormatCode = 17; // a static RTP payload type
-	}
+    if (fSamplingFrequency == 8000) {
+      payloadFormatCode = 5; // a static RTP payload type
+    } else if (fSamplingFrequency == 16000) {
+      payloadFormatCode = 6; // a static RTP payload type
+    } else if (fSamplingFrequency == 11025) {
+      payloadFormatCode = 16; // a static RTP payload type
+    } else if (fSamplingFrequency == 22050) {
+      payloadFormatCode = 17; // a static RTP payload type
+    }
       }
     } else { //unknown format
       break;
     }
 
     return SimpleRTPSink::createNew(envir(), rtpGroupsock,
-				    payloadFormatCode, fSamplingFrequency,
-				    "audio", mimeType, fNumChannels);
+                    payloadFormatCode, fSamplingFrequency,
+                    "audio", mimeType, fNumChannels);
   } while (0);
 
   // An error occurred:

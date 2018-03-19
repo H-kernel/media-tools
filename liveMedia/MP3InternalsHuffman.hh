@@ -26,16 +26,16 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #endif
 
 void updateSideInfoForHuffman(MP3SideInfo& sideInfo, Boolean isMPEG2,
-			      unsigned char const* mainDataPtr,
-			      unsigned p23L0, unsigned p23L1,
-			      unsigned& part23Length0a,
-			      unsigned& part23Length0aTruncation,
-			      unsigned& part23Length0b,
-			      unsigned& part23Length0bTruncation,
-			      unsigned& part23Length1a,
-			      unsigned& part23Length1aTruncation,
-			      unsigned& part23Length1b,
-			      unsigned& part23Length1bTruncation);
+                  unsigned char const* mainDataPtr,
+                  unsigned p23L0, unsigned p23L1,
+                  unsigned& part23Length0a,
+                  unsigned& part23Length0aTruncation,
+                  unsigned& part23Length0b,
+                  unsigned& part23Length0bTruncation,
+                  unsigned& part23Length1a,
+                  unsigned& part23Length1aTruncation,
+                  unsigned& part23Length1b,
+                  unsigned& part23Length1bTruncation);
 
 #define SSLIMIT 18
 
@@ -53,10 +53,10 @@ public:
 
 /* forward */
 void MP3HuffmanDecode(MP3SideInfo::gr_info_s_t* gr, Boolean isMPEG2,
-		      unsigned char const* fromBasePtr,
-		      unsigned fromBitOffset, unsigned fromLength,
-		      unsigned& scaleFactorsLength,
-		      MP3HuffmanEncodingInfo& hei);
+              unsigned char const* fromBasePtr,
+              unsigned fromBitOffset, unsigned fromLength,
+              unsigned& scaleFactorsLength,
+              MP3HuffmanEncodingInfo& hei);
 
 extern unsigned char huffdec[]; // huffman table data
 
@@ -74,9 +74,9 @@ extern unsigned char huffdec[]; // huffman table data
 
 #ifdef DO_HUFFMAN_ENCODING
 unsigned MP3HuffmanEncode(MP3SideInfo::gr_info_s_t const* gr,
-			  unsigned char const* fromPtr,
-			  unsigned char* toPtr, unsigned toBitOffset,
-			  unsigned numHuffBits);
+              unsigned char const* fromPtr,
+              unsigned char* toPtr, unsigned toBitOffset,
+              unsigned numHuffBits);
 #endif
 
 #endif

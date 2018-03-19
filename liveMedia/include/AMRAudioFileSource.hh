@@ -28,12 +28,12 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class AMRAudioFileSource: public AMRAudioSource {
 public:
   static AMRAudioFileSource* createNew(UsageEnvironment& env,
-				       char const* fileName);
+                       char const* fileName);
 
 private:
   AMRAudioFileSource(UsageEnvironment& env, FILE* fid,
-		     Boolean isWideband, unsigned numChannels);
-	// called only by createNew()
+             Boolean isWideband, unsigned numChannels);
+    // called only by createNew()
 
   virtual ~AMRAudioFileSource();
 

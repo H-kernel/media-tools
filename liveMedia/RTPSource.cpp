@@ -24,8 +24,8 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 ////////// RTPSource //////////
 
 Boolean RTPSource::lookupByName(UsageEnvironment& env,
-				char const* sourceName,
-				RTPSource*& resultSource) {
+                char const* sourceName,
+                RTPSource*& resultSource) {
   resultSource = NULL; // unless we succeed
 
   MediaSource* source;
@@ -49,8 +49,8 @@ Boolean RTPSource::isRTPSource() const {
 }
 
 RTPSource::RTPSource(UsageEnvironment& env, Groupsock* RTPgs,
-		     unsigned char rtpPayloadFormat,
-		     u_int32_t rtpTimestampFrequency)
+             unsigned char rtpPayloadFormat,
+             u_int32_t rtpTimestampFrequency)
   : FramedSource(env),
     fRTPInterface(this, RTPgs),
     fCurPacketHasBeenSynchronizedUsingRTCP(False), fLastReceivedSSRC(0),
@@ -99,11 +99,11 @@ RTPReceptionStatsDB::~RTPReceptionStatsDB() {
 
 void RTPReceptionStatsDB
 ::noteIncomingPacket(u_int32_t SSRC, u_int16_t seqNum,
-		     u_int32_t rtpTimestamp, unsigned timestampFrequency,
-		     Boolean useForJitterCalculation,
-		     struct timeval& resultPresentationTime,
-		     Boolean& resultHasBeenSyncedUsingRTCP,
-		     unsigned packetSize) {
+             u_int32_t rtpTimestamp, unsigned timestampFrequency,
+             Boolean useForJitterCalculation,
+             struct timeval& resultPresentationTime,
+             Boolean& resultHasBeenSyncedUsingRTCP,
+             unsigned packetSize) {
   ++fTotNumPacketsReceived;
   RTPReceptionStats* stats = lookup(SSRC);
   if (stats == NULL) {
@@ -119,15 +119,15 @@ void RTPReceptionStatsDB
   }
 
   stats->noteIncomingPacket(seqNum, rtpTimestamp, timestampFrequency,
-			    useForJitterCalculation,
-			    resultPresentationTime,
-			    resultHasBeenSyncedUsingRTCP, packetSize);
+                useForJitterCalculation,
+                resultPresentationTime,
+                resultHasBeenSyncedUsingRTCP, packetSize);
 }
 
 void RTPReceptionStatsDB
 ::noteIncomingSR(u_int32_t SSRC,
-		 u_int32_t ntpTimestampMSW, u_int32_t ntpTimestampLSW,
-		 u_int32_t rtpTimestamp) {
+         u_int32_t ntpTimestampMSW, u_int32_t ntpTimestampLSW,
+         u_int32_t rtpTimestamp) {
   RTPReceptionStats* stats = lookup(SSRC);
   if (stats == NULL) {
     // This is the first time we've heard of this SSRC.
@@ -168,7 +168,7 @@ RTPReceptionStatsDB::Iterator::next(Boolean includeInactiveSources) {
   do {
     stats = (RTPReceptionStats*)(fIter->next(key));
   } while (stats != NULL && !includeInactiveSources
-	   && stats->numPacketsReceivedSinceLastReset() == 0);
+       && stats->numPacketsReceivedSinceLastReset() == 0);
 
   return stats;
 }
@@ -230,11 +230,11 @@ void RTPReceptionStats::initSeqNum(u_int16_t initialSeqNum) {
 
 void RTPReceptionStats
 ::noteIncomingPacket(u_int16_t seqNum, u_int32_t rtpTimestamp,
-		     unsigned timestampFrequency,
-		     Boolean useForJitterCalculation,
-		     struct timeval& resultPresentationTime,
-		     Boolean& resultHasBeenSyncedUsingRTCP,
-		     unsigned packetSize) {
+             unsigned timestampFrequency,
+             Boolean useForJitterCalculation,
+             struct timeval& resultPresentationTime,
+             Boolean& resultHasBeenSyncedUsingRTCP,
+             unsigned packetSize) {
   if (!fHaveSeenInitialSequenceNumber) initSeqNum(seqNum);
 
   ++fNumPacketsReceivedSinceLastReset;
@@ -252,24 +252,24 @@ void RTPReceptionStats
   unsigned newSeqNum = 0;
   if (seqNumLT((u_int16_t)oldSeqNum, seqNum)) {
     // This packet was not an old packet received out of order, so check it:
-    
+
     if (seqNumDifference >= 0x8000) {
       // The sequence number wrapped around, so start a new cycle:
       seqNumCycle += 0x10000;
     }
-    
+
     newSeqNum = seqNumCycle|seqNum;
     if (newSeqNum > fHighestExtSeqNumReceived) {
       fHighestExtSeqNumReceived = newSeqNum;
     }
   } else if (fTotNumPacketsReceived > 1) {
     // This packet was an old packet received out of order
-    
+
     if ((int)seqNumDifference >= 0x8000) {
       // The sequence number wrapped around, so switch to an old cycle:
       seqNumCycle -= 0x10000;
     }
-    
+
     newSeqNum = seqNumCycle|seqNum;
     if (newSeqNum < fBaseExtSeqNumReceived) {
       fBaseExtSeqNumReceived = newSeqNum;
@@ -283,7 +283,7 @@ void RTPReceptionStats
       || fLastPacketReceptionTime.tv_usec != 0) {
     unsigned gap
       = (timeNow.tv_sec - fLastPacketReceptionTime.tv_sec)*MILLION
-      + timeNow.tv_usec - fLastPacketReceptionTime.tv_usec; 
+      + timeNow.tv_usec - fLastPacketReceptionTime.tv_usec;
     if (gap > fMaxInterPacketGapUS) {
       fMaxInterPacketGapUS = gap;
     }
@@ -367,8 +367,8 @@ void RTPReceptionStats
 }
 
 void RTPReceptionStats::noteIncomingSR(u_int32_t ntpTimestampMSW,
-				       u_int32_t ntpTimestampLSW,
-				       u_int32_t rtpTimestamp) {
+                       u_int32_t ntpTimestampLSW,
+                       u_int32_t rtpTimestamp) {
   fLastReceivedSR_NTPmsw = ntpTimestampMSW;
   fLastReceivedSR_NTPlsw = ntpTimestampLSW;
 

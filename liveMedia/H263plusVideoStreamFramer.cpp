@@ -94,7 +94,7 @@ void H263plusVideoStreamFramer::continueReadProcessing()
 
    acquiredFrameSize = fParser->parse(frameDuration);
 // Calculate some average bitrate information (to be adapted)
-//	avgBitrate = (totalBytes * 8 * H263_TIMESCALE) / totalDuration;
+//    avgBitrate = (totalBytes * 8 * H263_TIMESCALE) / totalDuration;
 
    if (acquiredFrameSize > 0) {
       // We were able to acquire a frame from the input.

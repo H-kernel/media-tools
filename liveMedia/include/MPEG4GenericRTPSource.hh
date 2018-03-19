@@ -29,13 +29,13 @@ class MPEG4GenericRTPSource: public MultiFramedRTPSource {
 public:
   static MPEG4GenericRTPSource*
   createNew(UsageEnvironment& env, Groupsock* RTPgs,
-	    unsigned char rtpPayloadFormat,
-	    unsigned rtpTimestampFrequency,
-	    char const* mediumName,
-	    char const* mode, unsigned sizeLength, unsigned indexLength,
-	    unsigned indexDeltaLength
-	    // add other parameters later
-	    );
+        unsigned char rtpPayloadFormat,
+        unsigned rtpTimestampFrequency,
+        char const* mediumName,
+        char const* mode, unsigned sizeLength, unsigned indexLength,
+        unsigned indexDeltaLength
+        // add other parameters later
+        );
   // mediumName is "audio", "video", or "application"
   // it *cannot* be NULL
 
@@ -44,13 +44,13 @@ protected:
 
 private:
   MPEG4GenericRTPSource(UsageEnvironment& env, Groupsock* RTPgs,
-			unsigned char rtpPayloadFormat,
-			unsigned rtpTimestampFrequency,
-			char const* mediumName,
-			char const* mode,
-			unsigned sizeLength, unsigned indexLength,
-			unsigned indexDeltaLength
-			);
+            unsigned char rtpPayloadFormat,
+            unsigned rtpTimestampFrequency,
+            char const* mediumName,
+            char const* mode,
+            unsigned sizeLength, unsigned indexLength,
+            unsigned indexDeltaLength
+            );
       // called only by createNew()
 
 private:

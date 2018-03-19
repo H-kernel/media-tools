@@ -1,17 +1,17 @@
 /*
   The oSIP library implements the Session Initiation Protocol (SIP -rfc3261-)
   Copyright (C) 2001-2012 Aymeric MOIZARD amoizard@antisip.com
-  
+
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
-  
+
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-  
+
   You should have received a copy of the GNU Lesser General Public
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -25,11 +25,11 @@
 #endif
 
 #if defined(__PALMOS__) && (__PALMOS__ >= 0x06000000)
-#	define HAVE_CTYPE_H 1
-#	define HAVE_STRING_H 1
-#	define HAVE_SYS_TYPES_H 1
-#	define HAVE_TIME_H 1
-#	define HAVE_STDARG_H 1
+#    define HAVE_CTYPE_H 1
+#    define HAVE_STRING_H 1
+#    define HAVE_SYS_TYPES_H 1
+#    define HAVE_TIME_H 1
+#    define HAVE_STDARG_H 1
 
 #elif defined(__VXWORKS_OS__) || defined(__rtems__)
 #define HAVE_STRING_H 1
@@ -133,7 +133,7 @@ struct timeval {
 /* Is there any thread implementation available? */
 /* HAVE_PTHREAD_H is not used any more! I keep it for a while... */
 #if !defined(__VXWORKS_OS__) && !defined(__PSOS__) && \
-	!defined(WIN32) && !defined(_WIN32_WCE) && !defined(HAVE_PTHREAD_WIN32) && \
+    !defined(WIN32) && !defined(_WIN32_WCE) && !defined(HAVE_PTHREAD_WIN32) && \
     !defined(HAVE_PTHREAD) && !defined(HAVE_PTHREAD_H) && !defined(HAVE_PTH_PTHREAD_H)
 #error No thread implementation found!
 #endif
@@ -142,7 +142,7 @@ struct timeval {
 /* - Unix: native Pthreads. */
 /* - Win32: Pthreads for Win32 (http://sources.redhat.com/pthreads-win32). */
 #if defined(HAVE_PTHREAD) || defined(HAVE_PTHREAD_H) || defined(HAVE_PTH_PTHREAD_H) || \
-	defined(HAVE_PTHREAD_WIN32)
+    defined(HAVE_PTHREAD_WIN32)
 #if defined(__arc__)
 #include <ucos_ii_api.h>
 #endif
@@ -210,7 +210,7 @@ typedef struct {
 
 /* Pthreads */
 #if defined(HAVE_PTHREAD) || defined(HAVE_PTHREAD_H) || defined(HAVE_PTH_PTHREAD_H) || \
-	defined(HAVE_PTHREAD_WIN32)
+    defined(HAVE_PTHREAD_WIN32)
 typedef pthread_mutex_t osip_mutex_t;
 #endif
 

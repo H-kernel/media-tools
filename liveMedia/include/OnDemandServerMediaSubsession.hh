@@ -38,47 +38,47 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class OnDemandServerMediaSubsession: public ServerMediaSubsession {
 protected: // we're a virtual base class
   OnDemandServerMediaSubsession(UsageEnvironment& env, Boolean reuseFirstSource,
-				portNumBits initialPortNum = 6970,
-				Boolean multiplexRTCPWithRTP = False);
+                portNumBits initialPortNum = 6970,
+                Boolean multiplexRTCPWithRTP = False);
   virtual ~OnDemandServerMediaSubsession();
 
 protected: // redefined virtual functions
   virtual char const* sdpLines();
   virtual void getStreamParameters(unsigned clientSessionId,
-				   netAddressBits clientAddress,
+                   netAddressBits clientAddress,
                                    Port const& clientRTPPort,
                                    Port const& clientRTCPPort,
-				   int tcpSocketNum,
+                   int tcpSocketNum,
                                    unsigned char rtpChannelId,
                                    unsigned char rtcpChannelId,
                                    netAddressBits& destinationAddress,
-				   u_int8_t& destinationTTL,
+                   u_int8_t& destinationTTL,
                                    Boolean& isMulticast,
                                    Port& serverRTPPort,
                                    Port& serverRTCPPort,
                                    void*& streamToken);
   virtual void startStream(unsigned clientSessionId, void* streamToken,
-			   TaskFunc* rtcpRRHandler,
-			   void* rtcpRRHandlerClientData,
-			   unsigned short& rtpSeqNum,
+               TaskFunc* rtcpRRHandler,
+               void* rtcpRRHandlerClientData,
+               unsigned short& rtpSeqNum,
                            unsigned& rtpTimestamp,
-			   ServerRequestAlternativeByteHandler* serverRequestAlternativeByteHandler,
+               ServerRequestAlternativeByteHandler* serverRequestAlternativeByteHandler,
                            void* serverRequestAlternativeByteHandlerClientData);
   virtual void pauseStream(unsigned clientSessionId, void* streamToken);
   virtual void seekStream(unsigned clientSessionId, void* streamToken, double& seekNPT, double streamDuration, u_int64_t& numBytes);
   virtual void seekStream(unsigned clientSessionId, void* streamToken, char*& absStart, char*& absEnd);
   virtual void nullSeekStream(unsigned clientSessionId, void* streamToken,
-			      double streamEndTime, u_int64_t& numBytes);
+                  double streamEndTime, u_int64_t& numBytes);
   virtual void setStreamScale(unsigned clientSessionId, void* streamToken, float scale);
   virtual float getCurrentNPT(void* streamToken);
   virtual FramedSource* getStreamSource(void* streamToken);
   virtual void getRTPSinkandRTCP(void* streamToken,
-				 RTPSink const*& rtpSink, RTCPInstance const*& rtcp);
+                 RTPSink const*& rtpSink, RTCPInstance const*& rtcp);
   virtual void deleteStream(unsigned clientSessionId, void*& streamToken);
 
 protected: // new virtual functions, possibly redefined by subclasses
   virtual char const* getAuxSDPLine(RTPSink* rtpSink,
-				    FramedSource* inputSource);
+                    FramedSource* inputSource);
   virtual void seekStreamSource(FramedSource* inputSource, double& seekNPT, double streamDuration, u_int64_t& numBytes);
     // This routine is used to seek by relative (i.e., NPT) time.
     // "streamDuration", if >0.0, specifies how much data to stream, past "seekNPT".  (If <=0.0, all remaining data is streamed.)
@@ -94,16 +94,16 @@ protected: // new virtual functions, possibly redefined by subclasses
 
 protected: // new virtual functions, defined by all subclasses
   virtual FramedSource* createNewStreamSource(unsigned clientSessionId,
-					      unsigned& estBitrate) = 0;
+                          unsigned& estBitrate) = 0;
       // "estBitrate" is the stream's estimated bitrate, in kbps
   virtual RTPSink* createNewRTPSink(Groupsock* rtpGroupsock,
-				    unsigned char rtpPayloadTypeIfDynamic,
-				    FramedSource* inputSource) = 0;
+                    unsigned char rtpPayloadTypeIfDynamic,
+                    FramedSource* inputSource) = 0;
 
 protected: // new virtual functions, may be redefined by a subclass:
   virtual Groupsock* createGroupsock(struct in_addr const& addr, Port port);
   virtual RTCPInstance* createRTCP(Groupsock* RTCPgs, unsigned totSessionBW, /* in kbps */
-				   unsigned char const* cname, RTPSink* sink);
+                   unsigned char const* cname, RTPSink* sink);
 
 public:
   void multiplexRTCPWithRTP() { fMultiplexRTCPWithRTP = True; }
@@ -116,7 +116,7 @@ public:
     // (Call with (NULL, NULL) to remove an existing handler - for future clients only)
 
   void sendRTCPAppPacket(u_int8_t subtype, char const* name,
-			 u_int8_t* appDependentData, unsigned appDependentDataSize);
+             u_int8_t* appDependentData, unsigned appDependentDataSize);
     // Sends a custom RTCP "APP" packet to the most recent client (if "reuseFirstSource" was False),
     // or to all current clients (if "reuseFirstSource" was True).
     // The parameters correspond to their
@@ -127,7 +127,7 @@ public:
 
 private:
   void setSDPLinesFromRTPSink(RTPSink* rtpSink, FramedSource* inputSource,
-			      unsigned estBitrate);
+                  unsigned estBitrate);
       // used to implement "sdpLines()"
 
 protected:
@@ -175,18 +175,18 @@ class StreamState {
 public:
   StreamState(OnDemandServerMediaSubsession& master,
               Port const& serverRTPPort, Port const& serverRTCPPort,
-	      RTPSink* rtpSink, BasicUDPSink* udpSink,
-	      unsigned totalBW, FramedSource* mediaSource,
-	      Groupsock* rtpGS, Groupsock* rtcpGS);
+          RTPSink* rtpSink, BasicUDPSink* udpSink,
+          unsigned totalBW, FramedSource* mediaSource,
+          Groupsock* rtpGS, Groupsock* rtcpGS);
   virtual ~StreamState();
 
   void startPlaying(Destinations* destinations, unsigned clientSessionId,
-		    TaskFunc* rtcpRRHandler, void* rtcpRRHandlerClientData,
-		    ServerRequestAlternativeByteHandler* serverRequestAlternativeByteHandler,
+            TaskFunc* rtcpRRHandler, void* rtcpRRHandlerClientData,
+            ServerRequestAlternativeByteHandler* serverRequestAlternativeByteHandler,
                     void* serverRequestAlternativeByteHandlerClientData);
   void pause();
   void sendRTCPAppPacket(u_int8_t subtype, char const* name,
-			 u_int8_t* appDependentData, unsigned appDependentDataSize);
+             u_int8_t* appDependentData, unsigned appDependentDataSize);
   void endPlaying(Destinations* destinations, unsigned clientSessionId);
   void reclaim();
 

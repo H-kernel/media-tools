@@ -86,29 +86,29 @@ private:
 
 typedef ProxyRTSPClient*
 createNewProxyRTSPClientFunc(ProxyServerMediaSession& ourServerMediaSession,
-			     char const* rtspURL,
-			     char const* username, char const* password,
-			     portNumBits tunnelOverHTTPPortNum, int verbosityLevel,
-			     int socketNumToServer);
+                 char const* rtspURL,
+                 char const* username, char const* password,
+                 portNumBits tunnelOverHTTPPortNum, int verbosityLevel,
+                 int socketNumToServer);
 ProxyRTSPClient*
 defaultCreateNewProxyRTSPClientFunc(ProxyServerMediaSession& ourServerMediaSession,
-				    char const* rtspURL,
-				    char const* username, char const* password,
-				    portNumBits tunnelOverHTTPPortNum, int verbosityLevel,
-				    int socketNumToServer);
+                    char const* rtspURL,
+                    char const* username, char const* password,
+                    portNumBits tunnelOverHTTPPortNum, int verbosityLevel,
+                    int socketNumToServer);
 
 class ProxyServerMediaSession: public ServerMediaSession {
 public:
   static ProxyServerMediaSession* createNew(UsageEnvironment& env,
-					    GenericMediaServer* ourMediaServer, // Note: We can be used by just one server
-					    char const* inputStreamURL, // the "rtsp://" URL of the stream we'll be proxying
-					    char const* streamName = NULL,
-					    char const* username = NULL, char const* password = NULL,
-					    portNumBits tunnelOverHTTPPortNum = 0,
-					        // for streaming the *proxied* (i.e., back-end) stream
-					    int verbosityLevel = 0,
-					    int socketNumToServer = -1,
-					    MediaTranscodingTable* transcodingTable = NULL);
+                        GenericMediaServer* ourMediaServer, // Note: We can be used by just one server
+                        char const* inputStreamURL, // the "rtsp://" URL of the stream we'll be proxying
+                        char const* streamName = NULL,
+                        char const* username = NULL, char const* password = NULL,
+                        portNumBits tunnelOverHTTPPortNum = 0,
+                            // for streaming the *proxied* (i.e., back-end) stream
+                        int verbosityLevel = 0,
+                        int socketNumToServer = -1,
+                        MediaTranscodingTable* transcodingTable = NULL);
       // Hack: "tunnelOverHTTPPortNum" == 0xFFFF (i.e., all-ones) means: Stream RTP/RTCP-over-TCP, but *not* using HTTP
       // "verbosityLevel" == 1 means display basic proxy setup info; "verbosityLevel" == 2 means display RTSP client protocol also.
       // If "socketNumToServer" is >= 0, then it is the socket number of an already-existing TCP connection to the server.
@@ -126,15 +126,15 @@ public:
 
 protected:
   ProxyServerMediaSession(UsageEnvironment& env, GenericMediaServer* ourMediaServer,
-			  char const* inputStreamURL, char const* streamName,
-			  char const* username, char const* password,
-			  portNumBits tunnelOverHTTPPortNum, int verbosityLevel,
-			  int socketNumToServer,
-			  MediaTranscodingTable* transcodingTable,
-			  createNewProxyRTSPClientFunc* ourCreateNewProxyRTSPClientFunc
-			  = defaultCreateNewProxyRTSPClientFunc,
-			  portNumBits initialPortNum = 6970,
-			  Boolean multiplexRTCPWithRTP = False);
+              char const* inputStreamURL, char const* streamName,
+              char const* username, char const* password,
+              portNumBits tunnelOverHTTPPortNum, int verbosityLevel,
+              int socketNumToServer,
+              MediaTranscodingTable* transcodingTable,
+              createNewProxyRTSPClientFunc* ourCreateNewProxyRTSPClientFunc
+              = defaultCreateNewProxyRTSPClientFunc,
+              portNumBits initialPortNum = 6970,
+              Boolean multiplexRTCPWithRTP = False);
 
   // If you subclass "ProxyRTSPClient", then you will also need to define your own function
   // - with signature "createNewProxyRTSPClientFunc" (see above) - that creates a new object
@@ -147,7 +147,7 @@ protected:
   // to create subclassed "Groupsock" and/or "RTCPInstance" objects:
   virtual Groupsock* createGroupsock(struct in_addr const& addr, Port port);
   virtual RTCPInstance* createRTCP(Groupsock* RTCPgs, unsigned totSessionBW, /* in kbps */
-				   unsigned char const* cname, RTPSink* sink);
+                   unsigned char const* cname, RTPSink* sink);
 
   virtual Boolean allowProxyingForSubsession(MediaSubsession const& mss);
   // By default, this function always returns True.  However, a subclass may redefine this
@@ -189,7 +189,7 @@ public:
 private:
   friend class PresentationTimeSessionNormalizer;
   PresentationTimeSubsessionNormalizer(PresentationTimeSessionNormalizer& parent, FramedSource* inputSource, RTPSource* rtpSource,
-				       char const* codecName, PresentationTimeSubsessionNormalizer* next);
+                       char const* codecName, PresentationTimeSubsessionNormalizer* next);
       // called only from within "PresentationTimeSessionNormalizer"
   virtual ~PresentationTimeSubsessionNormalizer();
 
@@ -198,9 +198,9 @@ private:
                                 struct timeval presentationTime,
                                 unsigned durationInMicroseconds);
   void afterGettingFrame(unsigned frameSize,
-			 unsigned numTruncatedBytes,
-			 struct timeval presentationTime,
-			 unsigned durationInMicroseconds);
+             unsigned numTruncatedBytes,
+             struct timeval presentationTime,
+             unsigned durationInMicroseconds);
 
 private: // redefined virtual functions:
   virtual void doGetNextFrame();
@@ -224,7 +224,7 @@ public:
 private: // called only from within "~PresentationTimeSubsessionNormalizer":
   friend class PresentationTimeSubsessionNormalizer;
   void normalizePresentationTime(PresentationTimeSubsessionNormalizer* ssNormalizer,
-				 struct timeval& toPT, struct timeval const& fromPT);
+                 struct timeval& toPT, struct timeval const& fromPT);
   void removePresentationTimeSubsessionNormalizer(PresentationTimeSubsessionNormalizer* ssNormalizer);
 
 private:

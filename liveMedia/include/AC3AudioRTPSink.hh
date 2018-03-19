@@ -28,21 +28,21 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class AC3AudioRTPSink: public AudioRTPSink {
 public:
   static AC3AudioRTPSink* createNew(UsageEnvironment& env,
-				    Groupsock* RTPgs,
-				    u_int8_t rtpPayloadFormat,
-				    u_int32_t rtpTimestampFrequency);
+                    Groupsock* RTPgs,
+                    u_int8_t rtpPayloadFormat,
+                    u_int32_t rtpTimestampFrequency);
 
 protected:
   AC3AudioRTPSink(UsageEnvironment& env, Groupsock* RTPgs,
-		  u_int8_t rtpPayloadFormat,
-		  u_int32_t rtpTimestampFrequency);
-	// called only by createNew()
+          u_int8_t rtpPayloadFormat,
+          u_int32_t rtpTimestampFrequency);
+    // called only by createNew()
 
   virtual ~AC3AudioRTPSink();
 
 private: // redefined virtual functions:
   virtual Boolean frameCanAppearAfterPacketStart(unsigned char const* frameStart,
-						 unsigned numBytesInFrame) const;
+                         unsigned numBytesInFrame) const;
   virtual void doSpecialFrameHandling(unsigned fragmentationOffset,
                                       unsigned char* frameStart,
                                       unsigned numBytesInFrame,

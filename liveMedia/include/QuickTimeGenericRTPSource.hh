@@ -30,8 +30,8 @@ class QuickTimeGenericRTPSource: public MultiFramedRTPSource {
 public:
   static QuickTimeGenericRTPSource*
   createNew(UsageEnvironment& env, Groupsock* RTPgs,
-	    unsigned char rtpPayloadFormat, unsigned rtpTimestampFrequency,
-	    char const* mimeTypeString);
+        unsigned char rtpPayloadFormat, unsigned rtpTimestampFrequency,
+        char const* mimeTypeString);
 
   // QuickTime-specific information, set from the QuickTime header
   // in each packet.  This, along with the data following the header,
@@ -50,9 +50,9 @@ protected:
 
 private:
   QuickTimeGenericRTPSource(UsageEnvironment& env, Groupsock* RTPgs,
-			    unsigned char rtpPayloadFormat,
-			    unsigned rtpTimestampFrequency,
-			    char const* mimeTypeString);
+                unsigned char rtpPayloadFormat,
+                unsigned rtpTimestampFrequency,
+                char const* mimeTypeString);
       // called only by createNew()
 
 private:

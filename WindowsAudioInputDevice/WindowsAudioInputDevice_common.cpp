@@ -28,10 +28,10 @@ unsigned WindowsAudioInputDevice_common::_bitsPerSample = 16;
 
 WindowsAudioInputDevice_common
 ::WindowsAudioInputDevice_common(UsageEnvironment& env, int inputPortNumber,
-			  unsigned char bitsPerSample,
-			  unsigned char numChannels,
-			  unsigned samplingFrequency,
-			  unsigned granularityInMS)
+              unsigned char bitsPerSample,
+              unsigned char numChannels,
+              unsigned samplingFrequency,
+              unsigned granularityInMS)
   : AudioInputDevice(env, bitsPerSample, numChannels, samplingFrequency, granularityInMS),
     fCurPortIndex(-1), fHaveStarted(False) {
   _bitsPerSample = bitsPerSample;
@@ -81,9 +81,9 @@ double WindowsAudioInputDevice_common::getAverageLevel() const {
       totNumSamples += numSamples;
 
       while (numSamples-- > 0) {
-	short sample = *samplePtr++;
-	if (sample < 0) sample = -sample;
-	levelTotal += (unsigned short)sample;
+    short sample = *samplePtr++;
+    if (sample < 0) sample = -sample;
+    levelTotal += (unsigned short)sample;
       }
 
       if (curHdr == readTail) break;
@@ -114,7 +114,7 @@ void WindowsAudioInputDevice_common::audioReadyPoller1() {
     unsigned const uSecondsToDelay = fGranularityInMS*1000;
     fTotalPollingDelay += uSecondsToDelay;
     nextTask() = envir().taskScheduler().scheduleDelayedTask(uSecondsToDelay,
-							     (TaskFunc*)audioReadyPoller, this);
+                                 (TaskFunc*)audioReadyPoller, this);
   }
 }
 
@@ -134,7 +134,7 @@ void WindowsAudioInputDevice_common::onceAudioIsReady() {
 }
 
 static void CALLBACK waveInCallback(HWAVEIN /*hwi*/, UINT uMsg,
-				    DWORD /*dwInstance*/, DWORD dwParam1, DWORD /*dwParam2*/) {
+                    DWORD /*dwInstance*/, DWORD dwParam1, DWORD /*dwParam2*/) {
   switch (uMsg) {
   case WIM_DATA:
     WAVEHDR* hdr = (WAVEHDR*)dwParam1;
@@ -144,9 +144,9 @@ static void CALLBACK waveInCallback(HWAVEIN /*hwi*/, UINT uMsg,
 }
 
 Boolean WindowsAudioInputDevice_common::openWavInPort(int index, unsigned numChannels, unsigned samplingFrequency, unsigned granularityInMS) {
-	uSecsPerByte = (8*1e6)/(_bitsPerSample*numChannels*samplingFrequency);
+    uSecsPerByte = (8*1e6)/(_bitsPerSample*numChannels*samplingFrequency);
 
-	// Configure the port, based on the specified parameters:
+    // Configure the port, based on the specified parameters:
     WAVEFORMATEX wfx;
     wfx.wFormatTag      = WAVE_FORMAT_PCM;
     wfx.nChannels       = numChannels;
@@ -168,7 +168,7 @@ Boolean WindowsAudioInputDevice_common::openWavInPort(int index, unsigned numCha
     // Set this process's priority high. I'm not sure how much this is really needed,
     // but the "rat" code does this:
     SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
-	return True;
+    return True;
 }
 
 Boolean WindowsAudioInputDevice_common::waveIn_open(unsigned uid, WAVEFORMATEX& wfx) {
@@ -177,7 +177,7 @@ Boolean WindowsAudioInputDevice_common::waveIn_open(unsigned uid, WAVEFORMATEX& 
   do {
     waveIn_reset();
     if (waveInOpen(&shWaveIn, uid, &wfx,
-		   (DWORD)waveInCallback, 0, CALLBACK_FUNCTION) != MMSYSERR_NOERROR) break;
+           (DWORD)waveInCallback, 0, CALLBACK_FUNCTION) != MMSYSERR_NOERROR) break;
 
     // Allocate read buffers, and headers:
     readData = new unsigned char[numBlocks*blockSize];

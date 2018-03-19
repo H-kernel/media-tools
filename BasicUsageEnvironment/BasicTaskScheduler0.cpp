@@ -57,8 +57,8 @@ BasicTaskScheduler0::~BasicTaskScheduler0() {
 }
 
 TaskToken BasicTaskScheduler0::scheduleDelayedTask(int64_t microseconds,
-						 TaskFunc* proc,
-						 void* clientData) {
+                         TaskFunc* proc,
+                         void* clientData) {
   if (microseconds < 0) microseconds = 0;
   DelayInterval timeToDelay((long)(microseconds/1000000), (long)(microseconds%1000000));
   AlarmHandler* alarmHandler = new AlarmHandler(proc, clientData, timeToDelay);
@@ -118,8 +118,8 @@ void BasicTaskScheduler0::deleteEventTrigger(EventTriggerId eventTriggerId) {
     EventTriggerId mask = 0x80000000;
     for (unsigned i = 0; i < MAX_NUM_EVENT_TRIGGERS; ++i) {
       if ((eventTriggerId&mask) != 0) {
-	fTriggeredEventHandlers[i] = NULL;
-	fTriggeredEventClientDatas[i] = NULL;
+    fTriggeredEventHandlers[i] = NULL;
+    fTriggeredEventClientDatas[i] = NULL;
       }
       mask >>= 1;
     }

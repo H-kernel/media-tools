@@ -20,7 +20,7 @@
 #ifndef RTPTIMER_H
 #define RTPTIMER_H
 
-#if	!defined(_WIN32) && !defined(_WIN32_WCE)
+#if    !defined(_WIN32) && !defined(_WIN32_WCE)
 #include <sys/time.h>
 #else
 #include <time.h>
@@ -31,16 +31,16 @@
 
 
 typedef void (*RtpTimerFunc)(void);
-	
+
 struct _RtpTimer
 {
-	int state;
+    int state;
 #define RTP_TIMER_RUNNING 1
 #define RTP_TIMER_STOPPED 0
-	RtpTimerFunc timer_init;
-	RtpTimerFunc timer_do;
-	RtpTimerFunc timer_uninit;
-	struct timeval interval;
+    RtpTimerFunc timer_init;
+    RtpTimerFunc timer_do;
+    RtpTimerFunc timer_uninit;
+    struct timeval interval;
 };
 
 typedef struct _RtpTimer RtpTimer;

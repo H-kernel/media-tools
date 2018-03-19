@@ -42,9 +42,9 @@ public:
   virtual ~OutputSocket();
 
   virtual Boolean write(netAddressBits address, portNumBits portNum/*in network order*/, u_int8_t ttl,
-			unsigned char* buffer, unsigned bufferSize);
+            unsigned char* buffer, unsigned bufferSize);
   Boolean write(struct sockaddr_in& addressAndPort, u_int8_t ttl,
-		unsigned char* buffer, unsigned bufferSize) {
+        unsigned char* buffer, unsigned bufferSize) {
     return write(addressAndPort.sin_addr.s_addr, addressAndPort.sin_port, ttl, buffer, bufferSize);
   }
 
@@ -55,8 +55,8 @@ protected:
 
 private: // redefined virtual function
   virtual Boolean handleRead(unsigned char* buffer, unsigned bufferMaxSize,
-			     unsigned& bytesRead,
-			     struct sockaddr_in& fromAddressAndPort);
+                 unsigned& bytesRead,
+                 struct sockaddr_in& fromAddressAndPort);
 
 private:
   Port fSourcePort;
@@ -66,7 +66,7 @@ private:
 class destRecord {
 public:
   destRecord(struct in_addr const& addr, Port const& port, u_int8_t ttl, unsigned sessionId,
-	     destRecord* next);
+         destRecord* next);
   virtual ~destRecord();
 
 public:
@@ -82,11 +82,11 @@ public:
 class Groupsock: public OutputSocket {
 public:
   Groupsock(UsageEnvironment& env, struct in_addr const& groupAddr,
-	    Port port, u_int8_t ttl);
+        Port port, u_int8_t ttl);
       // used for a 'source-independent multicast' group
   Groupsock(UsageEnvironment& env, struct in_addr const& groupAddr,
-	    struct in_addr const& sourceFilterAddr,
-	    Port port);
+        struct in_addr const& sourceFilterAddr,
+        Port port);
       // used for a 'source-specific multicast' group
   virtual ~Groupsock();
 
@@ -94,8 +94,8 @@ public:
       // Can be redefined by subclasses that also subclass "destRecord"
 
   void changeDestinationParameters(struct in_addr const& newDestAddr,
-				   Port newDestPort, int newDestTTL,
-				   unsigned sessionId = 0);
+                   Port newDestPort, int newDestTTL,
+                   unsigned sessionId = 0);
       // By default, the destination address, port and ttl for
       // outgoing packets are those that were specified in
       // the constructor.  This works OK for multicast sockets,
@@ -129,7 +129,7 @@ public:
   void multicastSendOnly(); // send, but don't receive any multicast packets
 
   virtual Boolean output(UsageEnvironment& env, unsigned char* buffer, unsigned bufferSize,
-			 DirectedNetInterface* interfaceNotToFwdBackTo = NULL);
+             DirectedNetInterface* interfaceNotToFwdBackTo = NULL);
 
   DirectedNetInterfaceSet& members() { return fMembers; }
 
@@ -149,8 +149,8 @@ public:
 
 public: // redefined virtual functions
   virtual Boolean handleRead(unsigned char* buffer, unsigned bufferMaxSize,
-			     unsigned& bytesRead,
-			     struct sockaddr_in& fromAddressAndPort);
+                 unsigned& bytesRead,
+                 struct sockaddr_in& fromAddressAndPort);
 
 protected:
   destRecord* lookupDestRecordFromDestination(struct sockaddr_in const& destAddrAndPort) const;
@@ -159,9 +159,9 @@ private:
   void removeDestinationFrom(destRecord*& dests, unsigned sessionId);
     // used to implement (the public) "removeDestination()", and "changeDestinationParameters()"
   int outputToAllMembersExcept(DirectedNetInterface* exceptInterface,
-			       u_int8_t ttlToFwd,
-			       unsigned char* data, unsigned size,
-			       netAddressBits sourceAddr);
+                   u_int8_t ttlToFwd,
+                   unsigned char* data, unsigned size,
+                   netAddressBits sourceAddr);
 
 protected:
   destRecord* fDests;
@@ -177,17 +177,17 @@ UsageEnvironment& operator<<(UsageEnvironment& s, const Groupsock& g);
 class GroupsockLookupTable {
 public:
   Groupsock* Fetch(UsageEnvironment& env, netAddressBits groupAddress,
-		   Port port, u_int8_t ttl, Boolean& isNew);
+           Port port, u_int8_t ttl, Boolean& isNew);
       // Creates a new Groupsock if none already exists
   Groupsock* Fetch(UsageEnvironment& env, netAddressBits groupAddress,
-		   netAddressBits sourceFilterAddr,
-		   Port port, Boolean& isNew);
+           netAddressBits sourceFilterAddr,
+           Port port, Boolean& isNew);
       // Creates a new Groupsock if none already exists
   Groupsock* Lookup(netAddressBits groupAddress, Port port);
       // Returns NULL if none already exists
   Groupsock* Lookup(netAddressBits groupAddress,
-		    netAddressBits sourceFilterAddr,
-		    Port port);
+            netAddressBits sourceFilterAddr,
+            Port port);
       // Returns NULL if none already exists
   Groupsock* Lookup(UsageEnvironment& env, int sock);
       // Returns NULL if none already exists
@@ -206,9 +206,9 @@ public:
 
 private:
   Groupsock* AddNew(UsageEnvironment& env,
-		    netAddressBits groupAddress,
-		    netAddressBits sourceFilterAddress,
-		    Port port, u_int8_t ttl);
+            netAddressBits groupAddress,
+            netAddressBits sourceFilterAddress,
+            Port port, u_int8_t ttl);
 
 private:
   friend class Iterator;

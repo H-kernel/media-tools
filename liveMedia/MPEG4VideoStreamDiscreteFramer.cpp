@@ -25,14 +25,14 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 MPEG4VideoStreamDiscreteFramer*
 MPEG4VideoStreamDiscreteFramer::createNew(UsageEnvironment& env,
-				  FramedSource* inputSource, Boolean leavePresentationTimesUnmodified) {
+                  FramedSource* inputSource, Boolean leavePresentationTimesUnmodified) {
   // Need to add source type checking here???  #####
   return new MPEG4VideoStreamDiscreteFramer(env, inputSource, leavePresentationTimesUnmodified);
 }
 
 MPEG4VideoStreamDiscreteFramer
 ::MPEG4VideoStreamDiscreteFramer(UsageEnvironment& env,
-				 FramedSource* inputSource, Boolean leavePresentationTimesUnmodified)
+                 FramedSource* inputSource, Boolean leavePresentationTimesUnmodified)
   : MPEG4VideoStreamFramer(env, inputSource, False/*don't create a parser*/),
     fLeavePresentationTimesUnmodified(leavePresentationTimesUnmodified), vop_time_increment_resolution(0), fNumVTIRBits(0),
     fLastNonBFrameVop_time_increment(0) {
@@ -77,11 +77,11 @@ void MPEG4VideoStreamDiscreteFramer
       // The start of this frame - up to the first GROUP_VOP_START_CODE
       // or VOP_START_CODE - is stream configuration information.  Save this:
       for (i = 7; i < frameSize; ++i) {
-	if ((fTo[i] == 0xB3 /*GROUP_VOP_START_CODE*/ ||
-	     fTo[i] == 0xB6 /*VOP_START_CODE*/)
-	    && fTo[i-1] == 1 && fTo[i-2] == 0 && fTo[i-3] == 0) {
-	  break; // The configuration information ends here
-	}
+    if ((fTo[i] == 0xB3 /*GROUP_VOP_START_CODE*/ ||
+         fTo[i] == 0xB6 /*VOP_START_CODE*/)
+        && fTo[i-1] == 1 && fTo[i-2] == 0 && fTo[i-3] == 0) {
+      break; // The configuration information ends here
+    }
       }
       fNumConfigBytes = i < frameSize ? i-3 : frameSize;
       delete[] fConfigBytes; fConfigBytes = new unsigned char[fNumConfigBytes];
@@ -98,80 +98,80 @@ void MPEG4VideoStreamDiscreteFramer
       u_int8_t nextCode = fTo[i];
 
       if (nextCode == 0xB3 /*GROUP_VOP_START_CODE*/) {
-	// Skip to the following VOP_START_CODE (if any):
-	for (i += 4; i < frameSize; ++i) {
-	  if (fTo[i] == 0xB6 /*VOP_START_CODE*/
-	      && fTo[i-1] == 1 && fTo[i-2] == 0 && fTo[i-3] == 0) {
-	    nextCode = fTo[i];
-	    break;
-	  }
-	}
+    // Skip to the following VOP_START_CODE (if any):
+    for (i += 4; i < frameSize; ++i) {
+      if (fTo[i] == 0xB6 /*VOP_START_CODE*/
+          && fTo[i-1] == 1 && fTo[i-2] == 0 && fTo[i-3] == 0) {
+        nextCode = fTo[i];
+        break;
+      }
+    }
       }
 
       if (nextCode == 0xB6 /*VOP_START_CODE*/ && i+5 < frameSize) {
-	++i;
+    ++i;
 
-	// Get the "vop_coding_type" from the next byte:
-	u_int8_t nextByte = fTo[i++];
-	u_int8_t vop_coding_type = nextByte>>6;
+    // Get the "vop_coding_type" from the next byte:
+    u_int8_t nextByte = fTo[i++];
+    u_int8_t vop_coding_type = nextByte>>6;
 
-	// Next, get the "modulo_time_base" by counting the '1' bits that
-	// follow.  We look at the next 32-bits only.
-	// This should be enough in most cases.
-	u_int32_t next4Bytes
-	  = (fTo[i]<<24)|(fTo[i+1]<<16)|(fTo[i+2]<<8)|fTo[i+3];
-	i += 4;
-	u_int32_t timeInfo = (nextByte<<(32-6))|(next4Bytes>>6);
-	unsigned modulo_time_base = 0;
-	u_int32_t mask = 0x80000000;
-	while ((timeInfo&mask) != 0) {
-	  ++modulo_time_base;
-	  mask >>= 1;
-	}
-	mask >>= 2;
+    // Next, get the "modulo_time_base" by counting the '1' bits that
+    // follow.  We look at the next 32-bits only.
+    // This should be enough in most cases.
+    u_int32_t next4Bytes
+      = (fTo[i]<<24)|(fTo[i+1]<<16)|(fTo[i+2]<<8)|fTo[i+3];
+    i += 4;
+    u_int32_t timeInfo = (nextByte<<(32-6))|(next4Bytes>>6);
+    unsigned modulo_time_base = 0;
+    u_int32_t mask = 0x80000000;
+    while ((timeInfo&mask) != 0) {
+      ++modulo_time_base;
+      mask >>= 1;
+    }
+    mask >>= 2;
 
-	// Then, get the "vop_time_increment".
-	unsigned vop_time_increment = 0;
-	// First, make sure we have enough bits left for this:
-	if ((mask>>(fNumVTIRBits-1)) != 0) {
-	  for (unsigned i = 0; i < fNumVTIRBits; ++i) {
-	    vop_time_increment |= timeInfo&mask;
-	    mask >>= 1;
-	  }
-	  while (mask != 0) {
-	    vop_time_increment >>= 1;
-	    mask >>= 1;
-	  }
-	}
+    // Then, get the "vop_time_increment".
+    unsigned vop_time_increment = 0;
+    // First, make sure we have enough bits left for this:
+    if ((mask>>(fNumVTIRBits-1)) != 0) {
+      for (unsigned i = 0; i < fNumVTIRBits; ++i) {
+        vop_time_increment |= timeInfo&mask;
+        mask >>= 1;
+      }
+      while (mask != 0) {
+        vop_time_increment >>= 1;
+        mask >>= 1;
+      }
+    }
 
-	// If this is a "B" frame, then we have to tweak "presentationTime":
-	if (!fLeavePresentationTimesUnmodified && vop_coding_type == 2/*B*/
-	    && (fLastNonBFramePresentationTime.tv_usec > 0 ||
-		fLastNonBFramePresentationTime.tv_sec > 0)) {
-	  int timeIncrement
-	    = fLastNonBFrameVop_time_increment - vop_time_increment;
-	  if (timeIncrement<0) timeIncrement += vop_time_increment_resolution;
-	  unsigned const MILLION = 1000000;
-	  double usIncrement = vop_time_increment_resolution == 0 ? 0.0
-	    : ((double)timeIncrement*MILLION)/vop_time_increment_resolution;
-	  unsigned secondsToSubtract = (unsigned)(usIncrement/MILLION);
-	  unsigned uSecondsToSubtract = ((unsigned)usIncrement)%MILLION;
+    // If this is a "B" frame, then we have to tweak "presentationTime":
+    if (!fLeavePresentationTimesUnmodified && vop_coding_type == 2/*B*/
+        && (fLastNonBFramePresentationTime.tv_usec > 0 ||
+        fLastNonBFramePresentationTime.tv_sec > 0)) {
+      int timeIncrement
+        = fLastNonBFrameVop_time_increment - vop_time_increment;
+      if (timeIncrement<0) timeIncrement += vop_time_increment_resolution;
+      unsigned const MILLION = 1000000;
+      double usIncrement = vop_time_increment_resolution == 0 ? 0.0
+        : ((double)timeIncrement*MILLION)/vop_time_increment_resolution;
+      unsigned secondsToSubtract = (unsigned)(usIncrement/MILLION);
+      unsigned uSecondsToSubtract = ((unsigned)usIncrement)%MILLION;
 
-	  presentationTime = fLastNonBFramePresentationTime;
-	  if ((unsigned)presentationTime.tv_usec < uSecondsToSubtract) {
-	    presentationTime.tv_usec += MILLION;
-	    if (presentationTime.tv_sec > 0) --presentationTime.tv_sec;
-	  }
-	  presentationTime.tv_usec -= uSecondsToSubtract;
-	  if ((unsigned)presentationTime.tv_sec > secondsToSubtract) {
-	    presentationTime.tv_sec -= secondsToSubtract;
-	  } else {
-	    presentationTime.tv_sec = presentationTime.tv_usec = 0;
-	  }
-	} else {
-	  fLastNonBFramePresentationTime = presentationTime;
-	  fLastNonBFrameVop_time_increment = vop_time_increment;
-	}
+      presentationTime = fLastNonBFramePresentationTime;
+      if ((unsigned)presentationTime.tv_usec < uSecondsToSubtract) {
+        presentationTime.tv_usec += MILLION;
+        if (presentationTime.tv_sec > 0) --presentationTime.tv_sec;
+      }
+      presentationTime.tv_usec -= uSecondsToSubtract;
+      if ((unsigned)presentationTime.tv_sec > secondsToSubtract) {
+        presentationTime.tv_sec -= secondsToSubtract;
+      } else {
+        presentationTime.tv_sec = presentationTime.tv_usec = 0;
+      }
+    } else {
+      fLastNonBFramePresentationTime = presentationTime;
+      fLastNonBFrameVop_time_increment = vop_time_increment;
+    }
       }
     }
   }
@@ -194,7 +194,7 @@ Boolean MPEG4VideoStreamDiscreteFramer::getNextFrameBit(u_int8_t& result) {
 }
 
 Boolean MPEG4VideoStreamDiscreteFramer::getNextFrameBits(unsigned numBits,
-							 u_int32_t& result) {
+                             u_int32_t& result) {
   result = 0;
   for (unsigned i = 0; i < numBits; ++i) {
     u_int8_t nextBit;
@@ -209,8 +209,8 @@ void MPEG4VideoStreamDiscreteFramer::analyzeVOLHeader() {
   unsigned i;
   for (i = 3; i < fNumConfigBytes; ++i) {
     if (fConfigBytes[i] >= 0x20 && fConfigBytes[i] <= 0x2F
-	&& fConfigBytes[i-1] == 1
-	&& fConfigBytes[i-2] == 0 && fConfigBytes[i-3] == 0) {
+    && fConfigBytes[i-1] == 1
+    && fConfigBytes[i-2] == 0 && fConfigBytes[i-3] == 0) {
       ++i;
       break;
     }

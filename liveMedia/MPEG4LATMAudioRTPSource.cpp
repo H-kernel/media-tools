@@ -44,19 +44,19 @@ private: // redefined virtual functions
 
 MPEG4LATMAudioRTPSource*
 MPEG4LATMAudioRTPSource::createNew(UsageEnvironment& env, Groupsock* RTPgs,
-				   unsigned char rtpPayloadFormat,
-				   unsigned rtpTimestampFrequency) {
+                   unsigned char rtpPayloadFormat,
+                   unsigned rtpTimestampFrequency) {
   return new MPEG4LATMAudioRTPSource(env, RTPgs, rtpPayloadFormat,
-				     rtpTimestampFrequency);
+                     rtpTimestampFrequency);
 }
 
 MPEG4LATMAudioRTPSource
 ::MPEG4LATMAudioRTPSource(UsageEnvironment& env, Groupsock* RTPgs,
-			  unsigned char rtpPayloadFormat,
-			  unsigned rtpTimestampFrequency)
+              unsigned char rtpPayloadFormat,
+              unsigned rtpTimestampFrequency)
   : MultiFramedRTPSource(env, RTPgs,
-			 rtpPayloadFormat, rtpTimestampFrequency,
-			 new LATMBufferedPacketFactory),
+             rtpPayloadFormat, rtpTimestampFrequency,
+             new LATMBufferedPacketFactory),
     fIncludeLATMDataLengthField(True) {
 }
 
@@ -69,7 +69,7 @@ void MPEG4LATMAudioRTPSource::omitLATMDataLengthField() {
 
 Boolean MPEG4LATMAudioRTPSource
 ::processSpecialHeader(BufferedPacket* packet,
-		       unsigned& resultSpecialHeaderSize) {
+               unsigned& resultSpecialHeaderSize) {
   fCurrentPacketBeginsFrame = fCurrentPacketCompletesFrame;
           // whether the *previous* packet ended a frame
 
@@ -126,7 +126,7 @@ BufferedPacket* LATMBufferedPacketFactory
 ////////// parseStreamMuxConfigStr() implementation //////////
 
 static Boolean getNibble(char const*& configStr,
-			 unsigned char& resultNibble) {
+             unsigned char& resultNibble) {
   char c = configStr[0];
   if (c == '\0') return False; // we've reached the end
 
@@ -221,16 +221,16 @@ parseStreamMuxConfigStr(char const* configStr,
 }
 
 unsigned char* parseStreamMuxConfigStr(char const* configStr,
-				       // result parameter:
-				       unsigned& audioSpecificConfigSize) {
+                       // result parameter:
+                       unsigned& audioSpecificConfigSize) {
   Boolean audioMuxVersion, allStreamsSameTimeFraming;
   unsigned char numSubFrames, numProgram, numLayer;
   unsigned char* audioSpecificConfig;
 
   if (!parseStreamMuxConfigStr(configStr,
-			       audioMuxVersion, allStreamsSameTimeFraming,
-			       numSubFrames, numProgram, numLayer,
-			       audioSpecificConfig, audioSpecificConfigSize)) {
+                   audioMuxVersion, allStreamsSameTimeFraming,
+                   numSubFrames, numProgram, numLayer,
+                   audioSpecificConfig, audioSpecificConfigSize)) {
     audioSpecificConfigSize = 0;
     return NULL;
   }
@@ -239,8 +239,8 @@ unsigned char* parseStreamMuxConfigStr(char const* configStr,
 }
 
 unsigned char* parseGeneralConfigStr(char const* configStr,
-				     // result parameter:
-				     unsigned& configSize) {
+                     // result parameter:
+                     unsigned& configSize) {
   unsigned char* config = NULL;
   do {
     if (configStr == NULL) break;

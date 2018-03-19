@@ -33,7 +33,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 // Typedef for an optional auxilliary handler function, to be called
 // when each new packet is read:
 typedef void AuxHandlerFunc(void* clientData, unsigned char* packet,
-			    unsigned& packetSize);
+                unsigned& packetSize);
 
 typedef void ServerRequestAlternativeByteHandler(void* instance, u_int8_t requestByte);
 // A hack that allows a handler for RTP/RTCP packets received over TCP to process RTSP commands that may also appear within
@@ -43,7 +43,7 @@ typedef void ServerRequestAlternativeByteHandler(void* instance, u_int8_t reques
 class tcpStreamRecord {
 public:
   tcpStreamRecord(int streamSocketNum, unsigned char streamChannelId,
-		  tcpStreamRecord* next);
+          tcpStreamRecord* next);
   virtual ~tcpStreamRecord();
 
 public:
@@ -63,17 +63,17 @@ public:
   void addStreamSocket(int sockNum, unsigned char streamChannelId);
   void removeStreamSocket(int sockNum, unsigned char streamChannelId);
   static void setServerRequestAlternativeByteHandler(UsageEnvironment& env, int socketNum,
-						     ServerRequestAlternativeByteHandler* handler, void* clientData);
+                             ServerRequestAlternativeByteHandler* handler, void* clientData);
   static void clearServerRequestAlternativeByteHandler(UsageEnvironment& env, int socketNum);
 
   Boolean sendPacket(unsigned char* packet, unsigned packetSize);
   void startNetworkReading(TaskScheduler::BackgroundHandlerProc*
                            handlerProc);
   Boolean handleRead(unsigned char* buffer, unsigned bufferMaxSize,
-		     // out parameters:
-		     unsigned& bytesRead, struct sockaddr_in& fromAddress,
-		     int& tcpSocketNum, unsigned char& tcpStreamChannelId,
-		     Boolean& packetReadWasIncomplete);
+             // out parameters:
+             unsigned& bytesRead, struct sockaddr_in& fromAddress,
+             int& tcpSocketNum, unsigned char& tcpStreamChannelId,
+             Boolean& packetReadWasIncomplete);
   // Note: If "tcpSocketNum" < 0, then the packet was received over UDP, and "tcpStreamChannelId"
   //   is undefined (and irrelevant).
 
@@ -86,7 +86,7 @@ public:
   UsageEnvironment& envir() const { return fOwner->envir(); }
 
   void setAuxilliaryReadHandler(AuxHandlerFunc* handlerFunc,
-				void* handlerClientData) {
+                void* handlerClientData) {
     fAuxReadHandlerFunc = handlerFunc;
     fAuxReadHandlerClientData = handlerClientData;
   }
@@ -99,7 +99,7 @@ public:
 private:
   // Helper functions for sending a RTP or RTCP packet over a TCP connection:
   Boolean sendRTPorRTCPPacketOverTCP(unsigned char* packet, unsigned packetSize,
-				     int socketNum, unsigned char streamChannelId);
+                     int socketNum, unsigned char streamChannelId);
   Boolean sendDataOverTCP(int socketNum, u_int8_t const* data, unsigned dataSize, Boolean forceSendToSucceed);
 
 private:

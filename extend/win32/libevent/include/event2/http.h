@@ -50,19 +50,19 @@ struct event_base;
  */
 
 /* Response codes */
-#define HTTP_OK			200	/**< request completed ok */
-#define HTTP_NOCONTENT		204	/**< request does not have content */
-#define HTTP_MOVEPERM		301	/**< the uri moved permanently */
-#define HTTP_MOVETEMP		302	/**< the uri moved temporarily */
-#define HTTP_NOTMODIFIED	304	/**< page was not modified from last */
-#define HTTP_BADREQUEST		400	/**< invalid http request was made */
-#define HTTP_NOTFOUND		404	/**< could not find content for uri */
-#define HTTP_BADMETHOD		405 	/**< method not allowed for this uri */
-#define HTTP_ENTITYTOOLARGE	413	/**<  */
-#define HTTP_EXPECTATIONFAILED	417	/**< we can't handle this expectation */
+#define HTTP_OK            200    /**< request completed ok */
+#define HTTP_NOCONTENT        204    /**< request does not have content */
+#define HTTP_MOVEPERM        301    /**< the uri moved permanently */
+#define HTTP_MOVETEMP        302    /**< the uri moved temporarily */
+#define HTTP_NOTMODIFIED    304    /**< page was not modified from last */
+#define HTTP_BADREQUEST        400    /**< invalid http request was made */
+#define HTTP_NOTFOUND        404    /**< could not find content for uri */
+#define HTTP_BADMETHOD        405     /**< method not allowed for this uri */
+#define HTTP_ENTITYTOOLARGE    413    /**<  */
+#define HTTP_EXPECTATIONFAILED    417    /**< we can't handle this expectation */
 #define HTTP_INTERNAL           500     /**< internal error */
 #define HTTP_NOTIMPLEMENTED     501     /**< not implemented */
-#define HTTP_SERVUNAVAIL	503	/**< the server is not available */
+#define HTTP_SERVUNAVAIL    503    /**< the server is not available */
 
 struct evhttp;
 struct evhttp_request;
@@ -375,15 +375,15 @@ void evhttp_send_reply_end(struct evhttp_request *req);
  * are allowed.
  */
 enum evhttp_cmd_type {
-	EVHTTP_REQ_GET     = 1 << 0,
-	EVHTTP_REQ_POST    = 1 << 1,
-	EVHTTP_REQ_HEAD    = 1 << 2,
-	EVHTTP_REQ_PUT     = 1 << 3,
-	EVHTTP_REQ_DELETE  = 1 << 4,
-	EVHTTP_REQ_OPTIONS = 1 << 5,
-	EVHTTP_REQ_TRACE   = 1 << 6,
-	EVHTTP_REQ_CONNECT = 1 << 7,
-	EVHTTP_REQ_PATCH   = 1 << 8
+    EVHTTP_REQ_GET     = 1 << 0,
+    EVHTTP_REQ_POST    = 1 << 1,
+    EVHTTP_REQ_HEAD    = 1 << 2,
+    EVHTTP_REQ_PUT     = 1 << 3,
+    EVHTTP_REQ_DELETE  = 1 << 4,
+    EVHTTP_REQ_OPTIONS = 1 << 5,
+    EVHTTP_REQ_TRACE   = 1 << 6,
+    EVHTTP_REQ_CONNECT = 1 << 7,
+    EVHTTP_REQ_PATCH   = 1 << 8
 };
 
 /** a request object can represent either a request or a reply */
@@ -395,7 +395,7 @@ enum evhttp_request_kind { EVHTTP_REQUEST, EVHTTP_RESPONSE };
  * error occurred.
  */
 struct evhttp_request *evhttp_request_new(
-	void (*cb)(struct evhttp_request *, void *), void *arg);
+    void (*cb)(struct evhttp_request *, void *), void *arg);
 
 /**
  * Enable delivery of chunks to requestor.
@@ -425,14 +425,14 @@ struct evdns_base;
  * @return an evhttp_connection object that can be used for making requests
  */
 struct evhttp_connection *evhttp_connection_base_new(
-	struct event_base *base, struct evdns_base *dnsbase,
-	const char *address, unsigned short port);
+    struct event_base *base, struct evdns_base *dnsbase,
+    const char *address, unsigned short port);
 
 /**
  * Return the bufferevent that an evhttp_connection is using.
  */
 struct bufferevent *evhttp_connection_get_bufferevent(
-	struct evhttp_connection *evcon);
+    struct evhttp_connection *evcon);
 
 /** Takes ownership of the request object
  *

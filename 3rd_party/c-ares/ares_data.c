@@ -118,7 +118,7 @@ void ares_free_data(void *dataptr)
           ares_free(ptr->data.soa_reply.nsname);
         if (ptr->data.soa_reply.hostmaster)
           ares_free(ptr->data.soa_reply.hostmaster);
-	break;
+    break;
 
       default:
         return;
@@ -207,7 +207,7 @@ void *ares_malloc_data(ares_datatype type)
         ptr->data.soa_reply.retry = 0;
         ptr->data.soa_reply.expire = 0;
         ptr->data.soa_reply.minttl = 0;
-	break;
+    break;
 
       default:
         ares_free(ptr);

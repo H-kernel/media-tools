@@ -1,17 +1,17 @@
 /*
   eXosip - This is the eXtended osip library.
   Copyright (C) 2001-2015 Aymeric MOIZARD amoizard@antisip.com
-  
+
   eXosip is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
-  
+
   eXosip is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
-  
+
   You should have received a copy of the GNU General Public License
   along with this program; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -293,7 +293,7 @@ dtls_tl_free (struct eXosip_t *excontext)
       shutdown_free_server_dtls (excontext, pos);
     }
   }
-  
+
   ERR_remove_state (0);
 
   memset (&reserved->socket_tab, 0, sizeof (struct _dtls_stream) * EXOSIP_MAX_SOCKETS);
@@ -528,13 +528,13 @@ dtls_tl_read_message (struct eXosip_t *excontext, fd_set * osip_fdset, fd_set * 
         }
 
         /* No MTU query */
-#ifdef	SSL_OP_NO_QUERY_MTU
+#ifdef    SSL_OP_NO_QUERY_MTU
         SSL_set_options (reserved->socket_tab[pos].ssl_conn, SSL_OP_NO_QUERY_MTU);
         SSL_set_mtu (reserved->socket_tab[pos].ssl_conn, 2000);
 #endif
         /* MTU query */
         /* BIO_ctrl(sbio, BIO_CTRL_DGRAM_MTU_DISCOVER, 0, NULL); */
-#ifdef	SSL_OP_COOKIE_EXCHANGE
+#ifdef    SSL_OP_COOKIE_EXCHANGE
         SSL_set_options (reserved->socket_tab[pos].ssl_conn, SSL_OP_COOKIE_EXCHANGE);
 #endif
         wbio = BIO_new_dgram (reserved->dtls_socket, BIO_NOCLOSE);

@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
     = ByteStreamFileSource::createNew(*env, inputFileName);
   if (inputSource == NULL) {
     *env << "Unable to open file \"" << inputFileName
-	 << "\" as a byte-stream file source\n";
+     << "\" as a byte-stream file source\n";
     exit(1);
   }
 
@@ -68,9 +68,9 @@ int main(int argc, char** argv) {
   // Finally, start playing each sink.
   *env << "Beginning to read...\n";
   sessionState.videoSink->startPlaying(*sessionState.videoSource,
-				       afterPlaying, sessionState.videoSink);
+                       afterPlaying, sessionState.videoSink);
   sessionState.audioSink->startPlaying(*sessionState.audioSource,
-				       afterPlaying, sessionState.audioSink);
+                       afterPlaying, sessionState.audioSink);
 
   env->taskScheduler().doEventLoop(); // does not return
 

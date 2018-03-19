@@ -47,14 +47,14 @@ public:
 
 protected:
   MPEG4VideoStreamFramer(UsageEnvironment& env,
-			 FramedSource* inputSource,
-			 Boolean createParser = True);
+             FramedSource* inputSource,
+             Boolean createParser = True);
       // called only by createNew(), or by subclass constructors
   virtual ~MPEG4VideoStreamFramer();
 
   void startNewConfig();
   void appendToNewConfig(unsigned char* newConfigBytes,
-			 unsigned numNewBytes);
+             unsigned numNewBytes);
   void completeNewConfig();
 
 private:

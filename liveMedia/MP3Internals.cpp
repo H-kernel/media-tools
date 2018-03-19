@@ -217,8 +217,8 @@ unsigned MP3FrameParams::computeSideInfoSize() {
 }
 
 unsigned ComputeFrameSize(unsigned bitrate, unsigned samplingFreq,
-			  Boolean usePadding, Boolean isMPEG2,
-			  unsigned char layer) {
+              Boolean usePadding, Boolean isMPEG2,
+              unsigned char layer) {
   if (samplingFreq == 0) return 0;
   unsigned const bitrateMultiplier = (layer == 1) ? 12000*4 : 144000;
   unsigned framesize;
@@ -232,16 +232,16 @@ unsigned ComputeFrameSize(unsigned bitrate, unsigned samplingFreq,
 
 #define TRUNC_FAIRLY
 static unsigned updateSideInfoSizes(MP3SideInfo& sideInfo, Boolean isMPEG2,
-				    unsigned char const* mainDataPtr,
-				    unsigned allowedNumBits,
-				    unsigned& part23Length0a,
-				    unsigned& part23Length0aTruncation,
-				    unsigned& part23Length0b,
-				    unsigned& part23Length0bTruncation,
-				    unsigned& part23Length1a,
-				    unsigned& part23Length1aTruncation,
-				    unsigned& part23Length1b,
-				    unsigned& part23Length1bTruncation) {
+                    unsigned char const* mainDataPtr,
+                    unsigned allowedNumBits,
+                    unsigned& part23Length0a,
+                    unsigned& part23Length0aTruncation,
+                    unsigned& part23Length0b,
+                    unsigned& part23Length0bTruncation,
+                    unsigned& part23Length1a,
+                    unsigned& part23Length1aTruncation,
+                    unsigned& part23Length1b,
+                    unsigned& part23Length1bTruncation) {
   unsigned p23L0, p23L1 = 0, p23L0Trunc = 0, p23L1Trunc = 0;
 
   p23L0 = sideInfo.ch[0].gr[0].part2_3_length;
@@ -281,11 +281,11 @@ static unsigned updateSideInfoSizes(MP3SideInfo& sideInfo, Boolean isMPEG2,
   // adjust them so that the new fields will continue to end on
   // Huffman-encoded sample boundaries:
   updateSideInfoForHuffman(sideInfo, isMPEG2, mainDataPtr,
-			   p23L0, p23L1,
-			   part23Length0a, part23Length0aTruncation,
-			   part23Length0b, part23Length0bTruncation,
-			   part23Length1a, part23Length1aTruncation,
-			   part23Length1b, part23Length1bTruncation);
+               p23L0, p23L1,
+               part23Length0a, part23Length0aTruncation,
+               part23Length0b, part23Length0bTruncation,
+               part23Length1a, part23Length1aTruncation,
+               part23Length1b, part23Length1bTruncation);
   p23L0 = part23Length0a + part23Length0b;
   p23L1 = part23Length1a + part23Length1b;
 
@@ -301,10 +301,10 @@ static unsigned updateSideInfoSizes(MP3SideInfo& sideInfo, Boolean isMPEG2,
 
 
 Boolean GetADUInfoFromMP3Frame(unsigned char const* framePtr,
-			       unsigned totFrameSize,
-			       unsigned& hdr, unsigned& frameSize,
-			       MP3SideInfo& sideInfo, unsigned& sideInfoSize,
-			       unsigned& backpointer, unsigned& aduSize) {
+                   unsigned totFrameSize,
+                   unsigned& hdr, unsigned& frameSize,
+                   MP3SideInfo& sideInfo, unsigned& sideInfoSize,
+                   unsigned& backpointer, unsigned& aduSize) {
   if (totFrameSize < 4) return False; // there's not enough data
 
   MP3FrameParams fr;
@@ -344,8 +344,8 @@ Boolean GetADUInfoFromMP3Frame(unsigned char const* framePtr,
 
 
 static void getSideInfo1(MP3FrameParams& fr, MP3SideInfo& si,
-			 int stereo, int ms_stereo, long sfreq,
-			 int /*single*/) {
+             int stereo, int ms_stereo, long sfreq,
+             int /*single*/) {
    int ch, gr;
 #if 0
    int powdiff = (single == 3) ? 4 : 0;
@@ -392,10 +392,10 @@ static void getSideInfo1(MP3FrameParams& fr, MP3SideInfo& si,
           */
          gr_info.table_select[2] = 0;
          for (i=0;i<3;i++) {
-	   gr_info.subblock_gain[i] = fr.getBits(3);
+       gr_info.subblock_gain[i] = fr.getBits(3);
            gr_info.full_gain[i]
-	     = gr_info.pow2gain + ((gr_info.subblock_gain[i])<<3);
-	 }
+         = gr_info.pow2gain + ((gr_info.subblock_gain[i])<<3);
+     }
 
 #ifdef DEBUG_ERRORS
          if (gr_info.block_type == 0) {
@@ -410,8 +410,8 @@ static void getSideInfo1(MP3FrameParams& fr, MP3SideInfo& si,
        {
          int i,r0c,r1c;
          for (i=0; i<3; i++) {
-	   gr_info.table_select[i] = fr.getBits(5);
-	 }
+       gr_info.table_select[i] = fr.getBits(5);
+     }
          r0c = gr_info.region0_count = fr.getBits(4);
          r1c = gr_info.region1_count = fr.getBits(3);
          gr_info.region1start = bandInfo[sfreq].longIdx[r0c+1] >> 1 ;
@@ -427,8 +427,8 @@ static void getSideInfo1(MP3FrameParams& fr, MP3SideInfo& si,
 }
 
 static void getSideInfo2(MP3FrameParams& fr, MP3SideInfo& si,
-			 int stereo, int ms_stereo, long sfreq,
-			 int /*single*/) {
+             int stereo, int ms_stereo, long sfreq,
+             int /*single*/) {
    int ch;
 #if 0
    int powdiff = (single == 3) ? 4 : 0;
@@ -471,10 +471,10 @@ static void getSideInfo2(MP3FrameParams& fr, MP3SideInfo& si,
           */
          gr_info.table_select[2] = 0;
          for (i=0;i<3;i++) {
-	   gr_info.subblock_gain[i] = fr.getBits(3);
+       gr_info.subblock_gain[i] = fr.getBits(3);
            gr_info.full_gain[i]
-	     = gr_info.pow2gain + ((gr_info.subblock_gain[i])<<3);
-	 }
+         = gr_info.pow2gain + ((gr_info.subblock_gain[i])<<3);
+     }
 
 #ifdef DEBUG_ERRORS
          if (gr_info.block_type == 0) {
@@ -495,7 +495,7 @@ static void getSideInfo2(MP3FrameParams& fr, MP3SideInfo& si,
          int i,r0c,r1c;
          for (i=0; i<3; i++) {
            gr_info.table_select[i] = fr.getBits(5);
-	 }
+     }
          r0c = gr_info.region0_count = fr.getBits(4);
          r1c = gr_info.region1_count = fr.getBits(3);
          gr_info.region1start = bandInfo[sfreq].longIdx[r0c+1] >> 1 ;
@@ -533,7 +533,7 @@ void MP3FrameParams::getSideInfo(MP3SideInfo& si) {
 }
 
 static void putSideInfo1(BitVector& bv,
-			 MP3SideInfo const& si, Boolean isStereo) {
+             MP3SideInfo const& si, Boolean isStereo) {
   int ch, gr, i;
   int stereo = isStereo ? 2 : 1;
 
@@ -557,18 +557,18 @@ static void putSideInfo1(BitVector& bv,
       bv.putBits(gr_info.scalefac_compress, 4);
       bv.put1Bit(gr_info.window_switching_flag);
       if (gr_info.window_switching_flag) {
-	bv.putBits(gr_info.block_type, 2);
-	bv.put1Bit(gr_info.mixed_block_flag);
-	for (i=0; i<2; i++)
-	  bv.putBits(gr_info.table_select[i], 5);
-	for (i=0; i<3; i++)
-	  bv.putBits(gr_info.subblock_gain[i], 3);
+    bv.putBits(gr_info.block_type, 2);
+    bv.put1Bit(gr_info.mixed_block_flag);
+    for (i=0; i<2; i++)
+      bv.putBits(gr_info.table_select[i], 5);
+    for (i=0; i<3; i++)
+      bv.putBits(gr_info.subblock_gain[i], 3);
       }
       else {
-	for (i=0; i<3; i++)
-	  bv.putBits(gr_info.table_select[i], 5);
-	bv.putBits(gr_info.region0_count, 4);
-	bv.putBits(gr_info.region1_count, 3);
+    for (i=0; i<3; i++)
+      bv.putBits(gr_info.table_select[i], 5);
+    bv.putBits(gr_info.region0_count, 4);
+    bv.putBits(gr_info.region1_count, 3);
       }
 
       bv.put1Bit(gr_info.preflag);
@@ -579,7 +579,7 @@ static void putSideInfo1(BitVector& bv,
 }
 
 static void putSideInfo2(BitVector& bv,
-			 MP3SideInfo const& si, Boolean isStereo) {
+             MP3SideInfo const& si, Boolean isStereo) {
   int ch, i;
   int stereo = isStereo ? 2 : 1;
 
@@ -601,13 +601,13 @@ static void putSideInfo2(BitVector& bv,
       bv.putBits(gr_info.block_type, 2);
       bv.put1Bit(gr_info.mixed_block_flag);
       for (i=0; i<2; i++)
-	bv.putBits(gr_info.table_select[i], 5);
+    bv.putBits(gr_info.table_select[i], 5);
       for (i=0; i<3; i++)
-	bv.putBits(gr_info.subblock_gain[i], 3);
+    bv.putBits(gr_info.subblock_gain[i], 3);
     }
     else {
       for (i=0; i<3; i++)
-	bv.putBits(gr_info.table_select[i], 5);
+    bv.putBits(gr_info.table_select[i], 5);
       bv.putBits(gr_info.region0_count, 4);
       bv.putBits(gr_info.region1_count, 3);
     }
@@ -618,8 +618,8 @@ static void putSideInfo2(BitVector& bv,
 }
 
 static void PutMP3SideInfoIntoFrame(MP3SideInfo const& si,
-				    MP3FrameParams const& fr,
-				    unsigned char* framePtr) {
+                    MP3FrameParams const& fr,
+                    unsigned char* framePtr) {
   if (fr.hasCRC) framePtr += 2; // skip CRC
 
   BitVector bv(framePtr, 0, 8*fr.sideInfoSize);
@@ -661,7 +661,7 @@ Boolean ZeroOutMP3SideInfo(unsigned char* framePtr, unsigned totFrameSize,
 
 
 static unsigned MP3BitrateToBitrateIndex(unsigned bitrate /* in kbps */,
-					 Boolean isMPEG2) {
+                     Boolean isMPEG2) {
   for (unsigned i = 1; i < 15; ++i) {
     if (live_tabsel[isMPEG2][2][i] >= bitrate)
       return i;
@@ -679,9 +679,9 @@ static void outputHeader(unsigned char* toPtr, unsigned hdr) {
 }
 
 static void assignADUBackpointer(MP3FrameParams const& fr,
-				 unsigned aduSize,
-				 MP3SideInfo& sideInfo,
-				 unsigned& availableBytesForBackpointer) {
+                 unsigned aduSize,
+                 MP3SideInfo& sideInfo,
+                 unsigned& availableBytesForBackpointer) {
   // Give the ADU as large a backpointer as possible:
   unsigned maxBackpointerSize = fr.isMPEG2 ? 255 : 511;
 
@@ -705,14 +705,14 @@ static void assignADUBackpointer(MP3FrameParams const& fr,
 
 unsigned TranscodeMP3ADU(unsigned char const* fromPtr, unsigned fromSize,
                       unsigned toBitrate,
-		      unsigned char* toPtr, unsigned toMaxSize,
-		      unsigned& availableBytesForBackpointer) {
+              unsigned char* toPtr, unsigned toMaxSize,
+              unsigned& availableBytesForBackpointer) {
   // Begin by parsing the input ADU's parameters:
   unsigned hdr, inFrameSize, inSideInfoSize, backpointer, inAduSize;
   MP3SideInfo sideInfo;
   if (!GetADUInfoFromMP3Frame(fromPtr, fromSize,
                               hdr, inFrameSize, sideInfo, inSideInfoSize,
-			      backpointer, inAduSize)) {
+                  backpointer, inAduSize)) {
     return 0;
   }
   fromPtr += (4+inSideInfoSize); // skip to 'main data'
@@ -751,17 +751,17 @@ unsigned TranscodeMP3ADU(unsigned char const* fromPtr, unsigned fromSize,
   unsigned part23Length1b, part23Length1bTruncation;
   unsigned numAduBits
     = updateSideInfoSizes(sideInfo, outFr.isMPEG2,
-			  fromPtr, 8*desiredOutAduSize,
-			  part23Length0a, part23Length0aTruncation,
-			  part23Length0b, part23Length0bTruncation,
-			  part23Length1a, part23Length1aTruncation,
-			  part23Length1b, part23Length1bTruncation);
+              fromPtr, 8*desiredOutAduSize,
+              part23Length0a, part23Length0aTruncation,
+              part23Length0b, part23Length0bTruncation,
+              part23Length1a, part23Length1aTruncation,
+              part23Length1b, part23Length1bTruncation);
 #ifdef DEBUG
 fprintf(stderr, "shrinkage %d->%d [(%d,%d),(%d,%d)] (trunc: [(%d,%d),(%d,%d)]) {%d}\n", inAduSize, (numAduBits+7)/8,
-	      part23Length0a, part23Length0b, part23Length1a, part23Length1b,
-	      part23Length0aTruncation, part23Length0bTruncation,
-	      part23Length1aTruncation, part23Length1bTruncation,
-	      maxOutAduSize);
+          part23Length0a, part23Length0b, part23Length1a, part23Length1b,
+          part23Length0aTruncation, part23Length0bTruncation,
+          part23Length1aTruncation, part23Length1bTruncation,
+          maxOutAduSize);
 #endif
  unsigned actualOutAduSize = (numAduBits+7)/8;
 
@@ -802,7 +802,7 @@ fprintf(stderr, "shrinkage %d->%d [(%d,%d),(%d,%d)] (trunc: [(%d,%d),(%d,%d)]) {
  /* zero out any remaining bits (probably unnecessary, but...) */
  unsigned char const zero = '\0';
  shiftBits(toPtr, toBitOffset, &zero, 0,
-	   actualOutAduSize*8 - numAduBits);
+       actualOutAduSize*8 - numAduBits);
 
  return 4 + outFr.sideInfoSize + actualOutAduSize;
 }

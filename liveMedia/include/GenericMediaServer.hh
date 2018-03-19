@@ -69,7 +69,7 @@ public:
 
 protected:
   GenericMediaServer(UsageEnvironment& env, int ourSocket, Port ourPort,
-		     unsigned reclamationSeconds);
+             unsigned reclamationSeconds);
       // If "reclamationSeconds" > 0, then the "ClientSession" state for each client will get
       // reclaimed if no activity from the client is detected in at least "reclamationSeconds".
   // we're an abstract base class
@@ -153,7 +153,7 @@ protected:
 
 protected:
   friend class ClientConnection;
-  friend class ClientSession;	
+  friend class ClientSession;
   friend class ServerMediaSessionIterator;
   int fServerSocket;
   Port fServerPort;
@@ -170,7 +170,7 @@ private:
 class UserAuthenticationDatabase {
 public:
   UserAuthenticationDatabase(char const* realm = NULL,
-			     Boolean passwordsAreMD5 = False);
+                 Boolean passwordsAreMD5 = False);
     // If "passwordsAreMD5" is True, then each password stored into, or removed from,
     // the database is actually the value computed
     // by md5(<username>:<realm>:<actual-password>)

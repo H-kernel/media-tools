@@ -31,22 +31,22 @@ public:
   createNew(UsageEnvironment& env, Groupsock* RTPgs, unsigned char rtpPayloadFormat);
   static H264VideoRTPSink*
   createNew(UsageEnvironment& env, Groupsock* RTPgs, unsigned char rtpPayloadFormat,
-	    u_int8_t const* sps, unsigned spsSize, u_int8_t const* pps, unsigned ppsSize);
+        u_int8_t const* sps, unsigned spsSize, u_int8_t const* pps, unsigned ppsSize);
     // an optional variant of "createNew()", useful if we know, in advance,
     // the stream's SPS and PPS NAL units.
     // This avoids us having to 'pre-read' from the input source in order to get these values.
   static H264VideoRTPSink*
   createNew(UsageEnvironment& env, Groupsock* RTPgs, unsigned char rtpPayloadFormat,
-	    char const* sPropParameterSetsStr);
+        char const* sPropParameterSetsStr);
     // an optional variant of "createNew()", useful if we know, in advance,
     // the stream's SPS and PPS NAL units.
     // This avoids us having to 'pre-read' from the input source in order to get these values.
 
 protected:
   H264VideoRTPSink(UsageEnvironment& env, Groupsock* RTPgs, unsigned char rtpPayloadFormat,
-		   u_int8_t const* sps = NULL, unsigned spsSize = 0,
-		   u_int8_t const* pps = NULL, unsigned ppsSize = 0);
-	// called only by createNew()
+           u_int8_t const* sps = NULL, unsigned spsSize = 0,
+           u_int8_t const* pps = NULL, unsigned ppsSize = 0);
+    // called only by createNew()
   virtual ~H264VideoRTPSink();
 
 protected: // redefined virtual functions:

@@ -47,9 +47,9 @@ struct ssl_st;
    SSL bufferevent.
  */
 enum bufferevent_ssl_state {
-	BUFFEREVENT_SSL_OPEN = 0,
-	BUFFEREVENT_SSL_CONNECTING = 1,
-	BUFFEREVENT_SSL_ACCEPTING = 2
+    BUFFEREVENT_SSL_OPEN = 0,
+    BUFFEREVENT_SSL_CONNECTING = 1,
+    BUFFEREVENT_SSL_ACCEPTING = 2
 };
 
 #if defined(_EVENT_HAVE_OPENSSL) || defined(_EVENT_IN_DOXYGEN)

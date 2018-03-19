@@ -26,8 +26,8 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 MPEG4VideoFileServerMediaSubsession*
 MPEG4VideoFileServerMediaSubsession::createNew(UsageEnvironment& env,
-					       char const* fileName,
-					       Boolean reuseFirstSource) {
+                           char const* fileName,
+                           Boolean reuseFirstSource) {
   return new MPEG4VideoFileServerMediaSubsession(env, fileName, reuseFirstSource);
 }
 
@@ -78,7 +78,7 @@ void MPEG4VideoFileServerMediaSubsession::checkForAuxSDPLine1() {
     // try again after a brief delay:
     int uSecsToDelay = 100000; // 100 ms
     nextTask() = envir().taskScheduler().scheduleDelayedTask(uSecsToDelay,
-			      (TaskFunc*)checkForAuxSDPLine, this);
+                  (TaskFunc*)checkForAuxSDPLine, this);
   }
 }
 
@@ -119,8 +119,8 @@ FramedSource* MPEG4VideoFileServerMediaSubsession
 
 RTPSink* MPEG4VideoFileServerMediaSubsession
 ::createNewRTPSink(Groupsock* rtpGroupsock,
-		   unsigned char rtpPayloadTypeIfDynamic,
-		   FramedSource* /*inputSource*/) {
+           unsigned char rtpPayloadTypeIfDynamic,
+           FramedSource* /*inputSource*/) {
   return MPEG4ESVideoRTPSink::createNew(envir(), rtpGroupsock,
-					rtpPayloadTypeIfDynamic);
+                    rtpPayloadTypeIfDynamic);
 }

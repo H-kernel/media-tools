@@ -1,17 +1,17 @@
 /*
   The oSIP library implements the Session Initiation Protocol (SIP -rfc3261-)
   Copyright (C) 2001-2015 Aymeric MOIZARD amoizard@antisip.com
-  
+
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
-  
+
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-  
+
   You should have received a copy of the GNU Lesser General Public
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -393,20 +393,20 @@ osip_body_to_str (const osip_body_t * body, char **dest, size_t * str_length)
 
   {
     osip_list_iterator_t it;
-    osip_header_t *header = (osip_header_t *) osip_list_get_first(body->headers, &it);  
+    osip_header_t *header = (osip_header_t *) osip_list_get_first(body->headers, &it);
     while (header != OSIP_SUCCESS) {
       i = osip_header_to_str (header, &tmp);
       if (i != 0) {
-	osip_free (ptr);
-	return i;
+    osip_free (ptr);
+    return i;
       }
       if (length < tmp_body - ptr + strlen (tmp) + 4) {
-	size_t len;
-	
-	len = tmp_body - ptr;
-	length = length + strlen (tmp) + 4;
-	ptr = osip_realloc (ptr, length);
-	tmp_body = ptr + len;
+    size_t len;
+
+    len = tmp_body - ptr;
+    length = length + strlen (tmp) + 4;
+    ptr = osip_realloc (ptr, length);
+    tmp_body = ptr + len;
       }
       tmp_body = osip_str_append (tmp_body, tmp);
       osip_free (tmp);
@@ -414,7 +414,7 @@ osip_body_to_str (const osip_body_t * body, char **dest, size_t * str_length)
       header = (osip_header_t *) osip_list_get_next(&it);
     }
   }
-  
+
   if ((osip_list_size (body->headers) > 0) || (body->content_type != NULL)) {
     if (length < tmp_body - ptr + 3) {
       size_t len;

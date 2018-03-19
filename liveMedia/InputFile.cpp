@@ -53,15 +53,15 @@ u_int64_t GetFileSize(char const* fileName, FILE* fid) {
     if (fileName == NULL) {
 #endif
       if (fid != NULL && SeekFile64(fid, 0, SEEK_END) >= 0) {
-	fileSize = (u_int64_t)TellFile64(fid);
-	if (fileSize == (u_int64_t)-1) fileSize = 0; // TellFile64() failed
-	SeekFile64(fid, 0, SEEK_SET);
+    fileSize = (u_int64_t)TellFile64(fid);
+    if (fileSize == (u_int64_t)-1) fileSize = 0; // TellFile64() failed
+    SeekFile64(fid, 0, SEEK_SET);
       }
 #if !defined(_WIN32_WCE)
     } else {
       struct stat sb;
       if (stat(fileName, &sb) == 0) {
-	fileSize = sb.st_size;
+    fileSize = sb.st_size;
       }
     }
 #endif

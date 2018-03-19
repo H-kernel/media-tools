@@ -21,7 +21,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 
 GroupEId::GroupEId(struct in_addr const& groupAddr,
-		   portNumBits portNum, u_int8_t ttl) {
+           portNumBits portNum, u_int8_t ttl) {
   struct in_addr sourceFilterAddr;
   sourceFilterAddr.s_addr = ~0; // indicates no source filter
 
@@ -29,8 +29,8 @@ GroupEId::GroupEId(struct in_addr const& groupAddr,
 }
 
 GroupEId::GroupEId(struct in_addr const& groupAddr,
-		   struct in_addr const& sourceFilterAddr,
-		   portNumBits portNum) {
+           struct in_addr const& sourceFilterAddr,
+           portNumBits portNum) {
   init(groupAddr, sourceFilterAddr, portNum, 255);
 }
 
@@ -39,9 +39,9 @@ Boolean GroupEId::isSSM() const {
 }
 
 void GroupEId::init(struct in_addr const& groupAddr,
-		    struct in_addr const& sourceFilterAddr,
-		    portNumBits portNum,
-		    u_int8_t ttl) {
+            struct in_addr const& sourceFilterAddr,
+            portNumBits portNum,
+            u_int8_t ttl) {
   fGroupAddress = groupAddr;
   fSourceFilterAddress = sourceFilterAddr;
   fPortNum = portNum;

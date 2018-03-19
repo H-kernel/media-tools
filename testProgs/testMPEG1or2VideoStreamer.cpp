@@ -97,8 +97,8 @@ int main(int argc, char** argv) {
   RTCPInstance* rtcp =
 #endif
     RTCPInstance::createNew(*env, &rtcpGroupsock,
-			      estimatedSessionBandwidth, CNAME,
-			      videoSink, NULL /* we're a server */, isSSM);
+                  estimatedSessionBandwidth, CNAME,
+                  videoSink, NULL /* we're a server */, isSSM);
   // Note: This starts RTCP running automatically
 
 #ifdef IMPLEMENT_RTSP_SERVER
@@ -112,8 +112,8 @@ int main(int argc, char** argv) {
   }
   ServerMediaSession* sms
     = ServerMediaSession::createNew(*env, "testStream", inputFileName,
-		   "Session streamed by \"testMPEG1or2VideoStreamer\"",
-					   isSSM);
+           "Session streamed by \"testMPEG1or2VideoStreamer\"",
+                       isSSM);
   sms->addSubsession(PassiveServerMediaSubsession::createNew(*videoSink, rtcp));
   rtspServer->addServerMediaSession(sms);
 
@@ -150,7 +150,7 @@ void play() {
     = ByteStreamFileSource::createNew(*env, inputFileName);
   if (fileSource == NULL) {
     *env << "Unable to open file \"" << inputFileName
-	 << "\" as a byte-stream file source\n";
+     << "\" as a byte-stream file source\n";
     exit(1);
   }
 

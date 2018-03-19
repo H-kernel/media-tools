@@ -36,7 +36,7 @@ public:
 
 protected:
   DVVideoRTPSink(UsageEnvironment& env, Groupsock* RTPgs, unsigned char rtpPayloadFormat);
-	// called only by createNew()
+    // called only by createNew()
 
   virtual ~DVVideoRTPSink();
 

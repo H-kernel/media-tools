@@ -28,10 +28,10 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class AudioRTPSink: public MultiFramedRTPSink {
 protected:
   AudioRTPSink(UsageEnvironment& env,
-	       Groupsock* rtpgs, unsigned char rtpPayloadType,
-	       unsigned rtpTimestampFrequency,
-	       char const* rtpPayloadFormatName,
-	       unsigned numChannels = 1);
+           Groupsock* rtpgs, unsigned char rtpPayloadType,
+           unsigned rtpTimestampFrequency,
+           char const* rtpPayloadFormatName,
+           unsigned numChannels = 1);
   // (we're an abstract base class)
   virtual ~AudioRTPSink();
 

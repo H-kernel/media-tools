@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <req version="1.0">
     <session sessionid="1234567890" command="add"> <!-- command:add,remove -->
-	    <report interval="60" url="http://127.55.92.246:18080/abc/liveCallback" />
-		<register reg="0"> <!-- 0: not register,other or not set will register -->
+        <report interval="60" url="http://127.55.92.246:18080/abc/liveCallback" />
+        <register reg="0"> <!-- 0: not register,other or not set will register -->
             <params>
                 <param name="username"        value="1052594445" />
                 <param name="password"        value="123456"     />
@@ -11,6 +11,6 @@
                 <param name="cameraid"        value="01234567890123456789" />
                 <param name="streamtype"      value="1" />
             </params>
-		</register>
+        </register>
     </session>
 </req>

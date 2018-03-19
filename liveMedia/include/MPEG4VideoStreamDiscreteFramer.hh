@@ -35,7 +35,7 @@ public:
 
 protected:
   MPEG4VideoStreamDiscreteFramer(UsageEnvironment& env,
-				 FramedSource* inputSource, Boolean leavePresentationTimesUnmodified);
+                 FramedSource* inputSource, Boolean leavePresentationTimesUnmodified);
       // called only by createNew()
   virtual ~MPEG4VideoStreamDiscreteFramer();
 

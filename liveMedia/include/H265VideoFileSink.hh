@@ -28,22 +28,22 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class H265VideoFileSink: public H264or5VideoFileSink {
 public:
   static H265VideoFileSink* createNew(UsageEnvironment& env, char const* fileName,
-				      char const* sPropVPSStr = NULL,
-				      char const* sPropSPSStr = NULL,
-				      char const* sPropPPSStr = NULL,
+                      char const* sPropVPSStr = NULL,
+                      char const* sPropSPSStr = NULL,
+                      char const* sPropPPSStr = NULL,
       // The "sProp*Str" parameters are optional 'SDP format' strings
       // (comma-separated Base64-encoded) representing VPS, SPS, and/or PPS NAL-units
       // to prepend to the output
-				      unsigned bufferSize = 100000,
-				      Boolean oneFilePerFrame = False);
+                      unsigned bufferSize = 100000,
+                      Boolean oneFilePerFrame = False);
       // See "FileSink.hh" for a description of these parameters.
 
 protected:
   H265VideoFileSink(UsageEnvironment& env, FILE* fid,
-		    char const* sPropVPSStr,
-		    char const* sPropSPSStr,
-		    char const* sPropPPSStr,
-		    unsigned bufferSize, char const* perFrameFileNamePrefix);
+            char const* sPropVPSStr,
+            char const* sPropSPSStr,
+            char const* sPropPPSStr,
+            unsigned bufferSize, char const* perFrameFileNamePrefix);
       // called only by createNew()
   virtual ~H265VideoFileSink();
 };

@@ -1,17 +1,17 @@
 /*
   The oSIP library implements the Session Initiation Protocol (SIP -rfc3261-)
   Copyright (C) 2001-2015 Aymeric MOIZARD amoizard@antisip.com
-  
+
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
-  
+
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-  
+
   You should have received a copy of the GNU Lesser General Public
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -249,74 +249,74 @@ extern "C" {
  * @param msg the SIP message.
  */
 #define MSG_IS_INVITE(msg)   (MSG_IS_REQUEST(msg) && \
-			      0==strcmp((msg)->sip_method,"INVITE"))
+                  0==strcmp((msg)->sip_method,"INVITE"))
 /**
  * Test if the message is an ACK REQUEST
  * @param msg the SIP message.
  */
 #define MSG_IS_ACK(msg)      (MSG_IS_REQUEST(msg) && \
-			      0==strcmp((msg)->sip_method,"ACK"))
+                  0==strcmp((msg)->sip_method,"ACK"))
 /**
  * Test if the message is a REGISTER REQUEST
  * @param msg the SIP message.
  */
 #define MSG_IS_REGISTER(msg) (MSG_IS_REQUEST(msg) && \
-			      0==strcmp((msg)->sip_method,"REGISTER"))
+                  0==strcmp((msg)->sip_method,"REGISTER"))
 /**
  * Test if the message is a BYE REQUEST
  * @param msg the SIP message.
  */
 #define MSG_IS_BYE(msg)      (MSG_IS_REQUEST(msg) && \
-			      0==strcmp((msg)->sip_method,"BYE"))
+                  0==strcmp((msg)->sip_method,"BYE"))
 /**
  * Test if the message is an OPTIONS REQUEST
  * @param msg the SIP message.
  */
 #define MSG_IS_OPTIONS(msg)  (MSG_IS_REQUEST(msg) && \
-			      0==strcmp((msg)->sip_method,"OPTIONS"))
+                  0==strcmp((msg)->sip_method,"OPTIONS"))
 /**
  * Test if the message is an INFO REQUEST
  * @param msg the SIP message.
  */
 #define MSG_IS_INFO(msg)     (MSG_IS_REQUEST(msg) && \
-			      0==strcmp((msg)->sip_method,"INFO"))
+                  0==strcmp((msg)->sip_method,"INFO"))
 /**
  * Test if the message is a CANCEL REQUEST
  * @param msg the SIP message.
  */
 #define MSG_IS_CANCEL(msg)   (MSG_IS_REQUEST(msg) && \
-			      0==strcmp((msg)->sip_method,"CANCEL"))
+                  0==strcmp((msg)->sip_method,"CANCEL"))
 /**
  * Test if the message is a REFER REQUEST
  * @param msg the SIP message.
  */
 #define MSG_IS_REFER(msg)   (MSG_IS_REQUEST(msg) && \
-			      0==strcmp((msg)->sip_method,"REFER"))
+                  0==strcmp((msg)->sip_method,"REFER"))
 /**
  * Test if the message is a NOTIFY REQUEST
  * @param msg the SIP message.
  */
 #define MSG_IS_NOTIFY(msg)   (MSG_IS_REQUEST(msg) && \
-			      0==strcmp((msg)->sip_method,"NOTIFY"))
+                  0==strcmp((msg)->sip_method,"NOTIFY"))
 /**
  * Test if the message is a SUBSCRIBE REQUEST
  * @def MSG_IS_SUBSCRIBE
  * @param msg the SIP message.
  */
 #define MSG_IS_SUBSCRIBE(msg)  (MSG_IS_REQUEST(msg) && \
-			      0==strcmp((msg)->sip_method,"SUBSCRIBE"))
+                  0==strcmp((msg)->sip_method,"SUBSCRIBE"))
 /**
  * Test if the message is a MESSAGE REQUEST
  * @param msg the SIP message.
  */
 #define MSG_IS_MESSAGE(msg)  (MSG_IS_REQUEST(msg) && \
-			      0==strcmp((msg)->sip_method,"MESSAGE"))
+                  0==strcmp((msg)->sip_method,"MESSAGE"))
 /**
  * Test if the message is a PRACK REQUEST  (!! PRACK IS NOT SUPPORTED by the fsm!!)
  * @param msg the SIP message.
  */
 #define MSG_IS_PRACK(msg)    (MSG_IS_REQUEST(msg) && \
-			      0==strcmp((msg)->sip_method,"PRACK"))
+                  0==strcmp((msg)->sip_method,"PRACK"))
 
 
 /**
@@ -324,14 +324,14 @@ extern "C" {
  * @param msg the SIP message.
  */
 #define MSG_IS_UPDATE(msg)    (MSG_IS_REQUEST(msg) && \
-			      0==strcmp((msg)->sip_method,"UPDATE"))
+                  0==strcmp((msg)->sip_method,"UPDATE"))
 
 /**
  * Test if the message is an UPDATE REQUEST
  * @param msg the SIP message.
  */
 #define MSG_IS_PUBLISH(msg)    (MSG_IS_REQUEST(msg) && \
-			      0==strcmp((msg)->sip_method,"PUBLISH"))
+                  0==strcmp((msg)->sip_method,"PUBLISH"))
 
 
 /**
@@ -376,14 +376,14 @@ extern "C" {
  * @param code the status code.
  */
 #define MSG_TEST_CODE(msg,code) (MSG_IS_RESPONSE(msg) && \
-				 (code)==(msg)->status_code)
+                 (code)==(msg)->status_code)
 /**
  * Test if the message is a response for a REQUEST of certain type
  * @param msg the SIP message.
  * @param requestname the method name to match.
  */
 #define MSG_IS_RESPONSE_FOR(msg,requestname)  (MSG_IS_RESPONSE(msg) && \
-				 0==strcmp((msg)->cseq->method,(requestname)))
+                 0==strcmp((msg)->cseq->method,(requestname)))
 
 
 /**

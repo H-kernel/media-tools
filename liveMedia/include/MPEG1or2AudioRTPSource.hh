@@ -29,16 +29,16 @@ class MPEG1or2AudioRTPSource: public MultiFramedRTPSource {
 public:
   static MPEG1or2AudioRTPSource*
   createNew(UsageEnvironment& env, Groupsock* RTPgs,
-	    unsigned char rtpPayloadFormat = 14,
-	    unsigned rtpTimestampFrequency = 90000);
+        unsigned char rtpPayloadFormat = 14,
+        unsigned rtpTimestampFrequency = 90000);
 
 protected:
   virtual ~MPEG1or2AudioRTPSource();
 
 private:
   MPEG1or2AudioRTPSource(UsageEnvironment& env, Groupsock* RTPgs,
-		     unsigned char rtpPayloadFormat,
-		     unsigned rtpTimestampFrequency);
+             unsigned char rtpPayloadFormat,
+             unsigned rtpTimestampFrequency);
       // called only by createNew()
 
 private:

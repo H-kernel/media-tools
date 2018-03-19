@@ -31,9 +31,9 @@
 #include "ortp/rtpsession.h"
 
 struct _OList {
-	struct _OList *next;
-	struct _OList *prev;
-	void *data;
+    struct _OList *next;
+    struct _OList *prev;
+    void *data;
 };
 
 
@@ -52,17 +52,17 @@ OList *o_list_remove_link(OList *list, OList *elem);
 
 typedef struct _dwsplit_t{
 #ifdef ORTP_BIGENDIAN
-	uint16_t hi;
-	uint16_t lo;
+    uint16_t hi;
+    uint16_t lo;
 #else
-	uint16_t lo;
-	uint16_t hi;
+    uint16_t lo;
+    uint16_t hi;
 #endif
 } dwsplit_t;
 
 typedef union{
-	dwsplit_t split;
-	uint32_t one;
+    dwsplit_t split;
+    uint32_t one;
 } poly32_t;
 
 #ifdef ORTP_BIGENDIAN
@@ -73,9 +73,9 @@ typedef union{
 #define ntoh24(x) hton24(x)
 
 #if defined(_WIN32) || defined(_WIN32_WCE)
-#define is_would_block_error(errnum)	(errnum==WSAEWOULDBLOCK)
+#define is_would_block_error(errnum)    (errnum==WSAEWOULDBLOCK)
 #else
-#define is_would_block_error(errnum)	(errnum==EWOULDBLOCK || errnum==EAGAIN)
+#define is_would_block_error(errnum)    (errnum==EWOULDBLOCK || errnum==EAGAIN)
 #endif
 
 void ortp_ev_queue_put(OrtpEvQueue *q, OrtpEvent *ev);

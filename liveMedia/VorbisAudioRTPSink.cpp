@@ -24,23 +24,23 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 VorbisAudioRTPSink* VorbisAudioRTPSink
 ::createNew(UsageEnvironment& env, Groupsock* RTPgs,
-	    u_int8_t rtpPayloadFormat, u_int32_t rtpTimestampFrequency, unsigned numChannels,
-	    u_int8_t* identificationHeader, unsigned identificationHeaderSize,
-	    u_int8_t* commentHeader, unsigned commentHeaderSize,
-	    u_int8_t* setupHeader, unsigned setupHeaderSize,
-	    u_int32_t identField) {
+        u_int8_t rtpPayloadFormat, u_int32_t rtpTimestampFrequency, unsigned numChannels,
+        u_int8_t* identificationHeader, unsigned identificationHeaderSize,
+        u_int8_t* commentHeader, unsigned commentHeaderSize,
+        u_int8_t* setupHeader, unsigned setupHeaderSize,
+        u_int32_t identField) {
   return new VorbisAudioRTPSink(env, RTPgs,
-				rtpPayloadFormat, rtpTimestampFrequency, numChannels,
-				identificationHeader, identificationHeaderSize,
-				commentHeader, commentHeaderSize,
-				setupHeader, setupHeaderSize,
-				identField);
+                rtpPayloadFormat, rtpTimestampFrequency, numChannels,
+                identificationHeader, identificationHeaderSize,
+                commentHeader, commentHeaderSize,
+                setupHeader, setupHeaderSize,
+                identField);
 }
 
 VorbisAudioRTPSink* VorbisAudioRTPSink
 ::createNew(UsageEnvironment& env, Groupsock* RTPgs,u_int8_t rtpPayloadFormat,
-	    u_int32_t rtpTimestampFrequency, unsigned numChannels,
-	    char const* configStr) {
+        u_int32_t rtpTimestampFrequency, unsigned numChannels,
+        char const* configStr) {
   // Begin by decoding and unpacking the configuration string:
   u_int8_t* identificationHeader; unsigned identificationHeaderSize;
   u_int8_t* commentHeader; unsigned commentHeaderSize;
@@ -48,17 +48,17 @@ VorbisAudioRTPSink* VorbisAudioRTPSink
   u_int32_t identField;
 
   parseVorbisOrTheoraConfigStr(configStr,
-			       identificationHeader, identificationHeaderSize,
-			       commentHeader, commentHeaderSize,
-			       setupHeader, setupHeaderSize,
-			       identField);
+                   identificationHeader, identificationHeaderSize,
+                   commentHeader, commentHeaderSize,
+                   setupHeader, setupHeaderSize,
+                   identField);
 
   VorbisAudioRTPSink* resultSink
     = new VorbisAudioRTPSink(env, RTPgs, rtpPayloadFormat, rtpTimestampFrequency, numChannels,
-			     identificationHeader, identificationHeaderSize,
-			     commentHeader, commentHeaderSize,
-			     setupHeader, setupHeaderSize,
-			     identField);
+                 identificationHeader, identificationHeaderSize,
+                 commentHeader, commentHeaderSize,
+                 setupHeader, setupHeaderSize,
+                 identField);
   delete[] identificationHeader; delete[] commentHeader; delete[] setupHeader;
 
   return resultSink;
@@ -66,48 +66,48 @@ VorbisAudioRTPSink* VorbisAudioRTPSink
 
 VorbisAudioRTPSink
 ::VorbisAudioRTPSink(UsageEnvironment& env, Groupsock* RTPgs, u_int8_t rtpPayloadFormat,
-		     u_int32_t rtpTimestampFrequency, unsigned numChannels,
-		     u_int8_t* identificationHeader, unsigned identificationHeaderSize,
-		     u_int8_t* commentHeader, unsigned commentHeaderSize,
-		     u_int8_t* setupHeader, unsigned setupHeaderSize,
-		     u_int32_t identField)
+             u_int32_t rtpTimestampFrequency, unsigned numChannels,
+             u_int8_t* identificationHeader, unsigned identificationHeaderSize,
+             u_int8_t* commentHeader, unsigned commentHeaderSize,
+             u_int8_t* setupHeader, unsigned setupHeaderSize,
+             u_int32_t identField)
   : AudioRTPSink(env, RTPgs, rtpPayloadFormat, rtpTimestampFrequency, "VORBIS", numChannels),
     fIdent(identField), fFmtpSDPLine(NULL) {
   if (identificationHeaderSize >= 28) {
     // Get the 'bitrate' values from this header, and use them to set our estimated bitrate:
     u_int32_t val;
     u_int8_t* p;
-    
+
     p = &identificationHeader[16];
     val = ((p[3]*256 + p[2])*256 + p[1])*256 + p[0]; // i.e., little-endian
     int bitrate_maximum = (int)val;
     if (bitrate_maximum < 0) bitrate_maximum = 0;
-    
+
     p = &identificationHeader[20];
     val = ((p[3]*256 + p[2])*256 + p[1])*256 + p[0]; // i.e., little-endian
     int bitrate_nominal = (int)val;
     if (bitrate_nominal < 0) bitrate_nominal = 0;
-    
+
     p = &identificationHeader[24];
     val = ((p[3]*256 + p[2])*256 + p[1])*256 + p[0]; // i.e., little-endian
     int bitrate_minimum = (int)val;
     if (bitrate_minimum < 0) bitrate_minimum = 0;
-    
+
     int bitrate
       = bitrate_nominal > 0 ? bitrate_nominal
       : bitrate_maximum > 0 ? bitrate_maximum
       : bitrate_minimum > 0 ? bitrate_minimum : 0;
     if (bitrate > 0) estimatedBitrate() = ((unsigned)bitrate)/1000;
   }
-  
+
   // Generate a 'config' string from the supplied configuration headers:
   char* base64PackedHeaders
     = generateVorbisOrTheoraConfigStr(identificationHeader, identificationHeaderSize,
-				      commentHeader, commentHeaderSize,
-				      setupHeader, setupHeaderSize,
-				      identField);
+                      commentHeader, commentHeaderSize,
+                      setupHeader, setupHeaderSize,
+                      identField);
   if (base64PackedHeaders == NULL) return;
-  
+
   // Then use this 'config' string to construct our "a=fmtp:" SDP line:
   unsigned fmtpSDPLineMaxSize = 50 + strlen(base64PackedHeaders); // 50 => more than enough space
   fFmtpSDPLine = new char[fmtpSDPLineMaxSize];
@@ -125,10 +125,10 @@ char const* VorbisAudioRTPSink::auxSDPLine() {
 
 void VorbisAudioRTPSink
 ::doSpecialFrameHandling(unsigned fragmentationOffset,
-			 unsigned char* frameStart,
-			 unsigned numBytesInFrame,
-			 struct timeval framePresentationTime,
-			 unsigned numRemainingBytes) {
+             unsigned char* frameStart,
+             unsigned numBytesInFrame,
+             struct timeval framePresentationTime,
+             unsigned numRemainingBytes) {
   // Set the 4-byte "payload header", as defined in RFC 5215, section 2.2:
   u_int8_t header[4];
 
@@ -165,13 +165,13 @@ void VorbisAudioRTPSink
   // Important: Also call our base class's doSpecialFrameHandling(),
   // to set the packet's timestamp:
   MultiFramedRTPSink::doSpecialFrameHandling(fragmentationOffset,
-					     frameStart, numBytesInFrame,
-					     framePresentationTime,
-					     numRemainingBytes);
+                         frameStart, numBytesInFrame,
+                         framePresentationTime,
+                         numRemainingBytes);
 }
 
 Boolean VorbisAudioRTPSink::frameCanAppearAfterPacketStart(unsigned char const* /*frameStart*/,
-							   unsigned /*numBytesInFrame*/) const {
+                               unsigned /*numBytesInFrame*/) const {
   // We allow more than one frame to be packed into an outgoing RTP packet, but no more than 15:
   return numFramesUsedSoFar() <= 15;
 }
@@ -245,10 +245,10 @@ char* generateVorbisOrTheoraConfigStr(u_int8_t* identificationHeader, unsigned i
       // Fill in the "length2" header (for the 'Comment' header):
       unsigned length2 = commentHeaderSize;
       if (length2 >= 16384) {
-	*p++ = 0x80; // flag, but no more, because we know length2 <= 32767
+    *p++ = 0x80; // flag, but no more, because we know length2 <= 32767
       }
       if (length2 >= 128) {
-	*p++ = 0x80|((length2&0x3F80)>>7); // flag + the second 7 bits
+    *p++ = 0x80|((length2&0x3F80)>>7); // flag + the second 7 bits
       }
       *p++ = length2&0x7F; // the low 7 bits
     }
@@ -257,10 +257,10 @@ char* generateVorbisOrTheoraConfigStr(u_int8_t* identificationHeader, unsigned i
   if (identificationHeader != NULL) memmove(p, identificationHeader, identificationHeaderSize); p += identificationHeaderSize;
   if (commentHeader != NULL) memmove(p, commentHeader, commentHeaderSize); p += commentHeaderSize;
   if (setupHeader != NULL) memmove(p, setupHeader, setupHeaderSize);
-  
+
   // Having set up the 'packed configuration headers', Base-64-encode this, for our result:
   char* base64PackedHeaders = base64Encode((char const*)packedHeaders, packedHeadersSize);
   delete[] packedHeaders;
-  
+
   return base64PackedHeaders;
 }

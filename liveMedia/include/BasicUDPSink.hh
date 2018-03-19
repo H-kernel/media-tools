@@ -31,7 +31,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class BasicUDPSink: public MediaSink {
 public:
   static BasicUDPSink* createNew(UsageEnvironment& env, Groupsock* gs,
-				  unsigned maxPayloadSize = 1450);
+                  unsigned maxPayloadSize = 1450);
 protected:
   BasicUDPSink(UsageEnvironment& env, Groupsock* gs, unsigned maxPayloadSize);
       // called only by createNew()
@@ -44,11 +44,11 @@ private:
   void continuePlaying1();
 
   static void afterGettingFrame(void* clientData, unsigned frameSize,
-				unsigned numTruncatedBytes,
-				struct timeval presentationTime,
-				unsigned durationInMicroseconds);
+                unsigned numTruncatedBytes,
+                struct timeval presentationTime,
+                unsigned durationInMicroseconds);
   void afterGettingFrame1(unsigned frameSize, unsigned numTruncatedBytes,
-			  unsigned durationInMicroseconds);
+              unsigned durationInMicroseconds);
 
   static void sendNext(void* firstArg);
 

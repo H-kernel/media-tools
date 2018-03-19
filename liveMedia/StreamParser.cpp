@@ -32,10 +32,10 @@ void StreamParser::flushInput() {
 }
 
 StreamParser::StreamParser(FramedSource* inputSource,
-			   FramedSource::onCloseFunc* onInputCloseFunc,
-			   void* onInputCloseClientData,
-			   clientContinueFunc* clientContinueFunc,
-			   void* clientContinueClientData)
+               FramedSource::onCloseFunc* onInputCloseFunc,
+               void* onInputCloseClientData,
+               clientContinueFunc* clientContinueFunc,
+               void* clientContinueClientData)
   : fInputSource(inputSource), fClientOnInputCloseFunc(onInputCloseFunc),
     fClientOnInputCloseClientData(onInputCloseClientData),
     fClientContinueFunc(clientContinueFunc),
@@ -145,27 +145,27 @@ void StreamParser::ensureValidBytes1(unsigned numBytesNeeded) {
     // If this happens, it means that we have too much saved parser state.
     // To fix this, increase BANK_SIZE as appropriate.
     fInputSource->envir() << "StreamParser internal error ("
-			  << fCurParserIndex << " + "
-			  << numBytesNeeded << " > "
-			  << BANK_SIZE << ")\n";
+              << fCurParserIndex << " + "
+              << numBytesNeeded << " > "
+              << BANK_SIZE << ")\n";
     fInputSource->envir().internalError();
   }
 
   // Try to read as many new bytes as will fit in the current bank:
   unsigned maxNumBytesToRead = BANK_SIZE - fTotNumValidBytes;
   fInputSource->getNextFrame(&curBank()[fTotNumValidBytes],
-			     maxNumBytesToRead,
-			     afterGettingBytes, this,
-			     onInputClosure, this);
+                 maxNumBytesToRead,
+                 afterGettingBytes, this,
+                 onInputClosure, this);
 
   throw NO_MORE_BUFFERED_INPUT;
 }
 
 void StreamParser::afterGettingBytes(void* clientData,
-				     unsigned numBytesRead,
-				     unsigned /*numTruncatedBytes*/,
-				     struct timeval presentationTime,
-				     unsigned /*durationInMicroseconds*/){
+                     unsigned numBytesRead,
+                     unsigned /*numTruncatedBytes*/,
+                     struct timeval presentationTime,
+                     unsigned /*durationInMicroseconds*/){
   StreamParser* parser = (StreamParser*)clientData;
   if (parser != NULL) parser->afterGettingBytes1(numBytesRead, presentationTime);
 }

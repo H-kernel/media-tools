@@ -100,7 +100,7 @@ int main(int argc, char** argv) {
   unsigned char rtpPayloadFormat = 96; // A dynamic payload format code
   sessionState.sink
     = MP3ADURTPSink::createNew(*env, sessionState.rtpGroupsock,
-			       rtpPayloadFormat);
+                   rtpPayloadFormat);
 #else
   sessionState.sink
     = MPEG1or2AudioRTPSink::createNew(*env, sessionState.rtpGroupsock);
@@ -114,9 +114,9 @@ int main(int argc, char** argv) {
   CNAME[maxCNAMElen] = '\0'; // just in case
   sessionState.rtcpInstance
     = RTCPInstance::createNew(*env, sessionState.rtcpGroupsock,
-			      estimatedSessionBandwidth, CNAME,
-			      sessionState.sink, NULL /* we're a server */,
-			      isSSM);
+                  estimatedSessionBandwidth, CNAME,
+                  sessionState.sink, NULL /* we're a server */,
+                  isSSM);
   // Note: This starts RTCP running automatically
 
 #ifdef IMPLEMENT_RTSP_SERVER
@@ -130,7 +130,7 @@ int main(int argc, char** argv) {
   }
   ServerMediaSession* sms
     = ServerMediaSession::createNew(*env, "testStream", inputFileName,
-		"Session streamed by \"testMP3Streamer\"", isSSM);
+        "Session streamed by \"testMP3Streamer\"", isSSM);
   sms->addSubsession(PassiveServerMediaSubsession::createNew(*sessionState.sink, sessionState.rtcpInstance));
   rtspServer->addServerMediaSession(sms);
 
@@ -152,7 +152,7 @@ void play() {
   sessionState.source = MP3FileSource::createNew(*env, inputFileName);
   if (sessionState.source == NULL) {
     *env << "Unable to open file \"" << inputFileName
-	 << "\" as a MP3 file source\n";
+     << "\" as a MP3 file source\n";
     exit(1);
   }
 

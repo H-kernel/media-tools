@@ -39,46 +39,46 @@
 
 
 typedef struct ortp_recv_addr {
-	int family;
-	union {
-		struct in_addr ipi_addr;
-		struct in6_addr ipi6_addr;
-	} addr;
+    int family;
+    union {
+        struct in_addr ipi_addr;
+        struct in6_addr ipi6_addr;
+    } addr;
 } ortp_recv_addr_t;
 
 typedef struct msgb
 {
-	struct msgb *b_prev;
-	struct msgb *b_next;
-	struct msgb *b_cont;
-	struct datab *b_datap;
-	unsigned char *b_rptr;
-	unsigned char *b_wptr;
-	uint32_t reserved1;
-	uint32_t reserved2;
+    struct msgb *b_prev;
+    struct msgb *b_next;
+    struct msgb *b_cont;
+    struct datab *b_datap;
+    unsigned char *b_rptr;
+    unsigned char *b_wptr;
+    uint32_t reserved1;
+    uint32_t reserved2;
 #if defined(ORTP_TIMESTAMP)
-	struct timeval timestamp;
+    struct timeval timestamp;
 #endif
-	ortp_recv_addr_t recv_addr; /*contains the destination address of incoming packets, used for ICE processing*/
-	struct sockaddr_storage net_addr; /*source address of incoming packet, or dest address of outgoing packet, used only by simulator and modifiers*/
-	socklen_t net_addrlen; /*source (dest) address of incoming (outgoing) packet length used by simulator and modifiers*/
-	uint8_t ttl_or_hl;
+    ortp_recv_addr_t recv_addr; /*contains the destination address of incoming packets, used for ICE processing*/
+    struct sockaddr_storage net_addr; /*source address of incoming packet, or dest address of outgoing packet, used only by simulator and modifiers*/
+    socklen_t net_addrlen; /*source (dest) address of incoming (outgoing) packet length used by simulator and modifiers*/
+    uint8_t ttl_or_hl;
 } mblk_t;
 
 
 
 typedef struct datab
 {
-	unsigned char *db_base;
-	unsigned char *db_lim;
-	void (*db_freefn)(void*);
-	int db_ref;
+    unsigned char *db_base;
+    unsigned char *db_lim;
+    void (*db_freefn)(void*);
+    int db_ref;
 } dblk_t;
 
 typedef struct _queue
 {
-	mblk_t _q_stopper;
-	int q_mcount;	/*number of packet in the q */
+    mblk_t _q_stopper;
+    int q_mcount;    /*number of packet in the q */
 } queue_t;
 
 #ifdef __cplusplus
@@ -123,7 +123,7 @@ ORTP_PUBLIC void freemsg(mblk_t *mp);
 ORTP_PUBLIC mblk_t *dupb(mblk_t *m);
 
 /* duplicates a complex mblk_t, buffer is not duplicated */
-ORTP_PUBLIC mblk_t	*dupmsg(mblk_t* m);
+ORTP_PUBLIC mblk_t    *dupmsg(mblk_t* m);
 
 /* returns the size of data of a message */
 ORTP_PUBLIC size_t msgdsize(const mblk_t *mp);
@@ -146,11 +146,11 @@ ORTP_PUBLIC mblk_t *concatb(mblk_t *mp, mblk_t *newm);
 #define qfirst(q) ((q)->_q_stopper.b_next!=&(q)->_q_stopper ? (q)->_q_stopper.b_next : NULL)
 #define qbegin(q) ((q)->_q_stopper.b_next)
 #define qlast(q) ((q)->_q_stopper.b_prev!=&(q)->_q_stopper ? (q)->_q_stopper.b_prev : NULL)
-#define qend(q,mp)	((mp)==&(q)->_q_stopper)
+#define qend(q,mp)    ((mp)==&(q)->_q_stopper)
 #define qnext(q,mp) ((mp)->b_next)
 
 typedef struct _msgb_allocator{
-	queue_t q;
+    queue_t q;
 }msgb_allocator_t;
 
 ORTP_PUBLIC void msgb_allocator_init(msgb_allocator_t *pa);
@@ -162,10 +162,10 @@ ORTP_PUBLIC void msgb_allocator_uninit(msgb_allocator_t *pa);
  * time), of a signal during a sliding period of time.
  */
 typedef struct _ortp_extremum{
-	float current_extremum;
-	float last_stable;
-	uint64_t extremum_time;
-	int period;
+    float current_extremum;
+    float last_stable;
+    uint64_t extremum_time;
+    int period;
 }ortp_extremum;
 
 ORTP_PUBLIC void ortp_extremum_reset(ortp_extremum *obj);

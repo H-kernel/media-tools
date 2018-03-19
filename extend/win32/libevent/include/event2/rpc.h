@@ -74,7 +74,7 @@ extern "C" {
    @return 1 if it's present or 0 otherwise.
 */
 #define EVTAG_HAS(msg, member) \
-	((msg)->member##_set == 1)
+    ((msg)->member##_set == 1)
 
 #ifndef _EVENT2_RPC_COMPAT_H_
 
@@ -86,7 +86,7 @@ extern "C" {
    @param value the value to assign
 */
 #define EVTAG_ASSIGN(msg, member, value) \
-	(*(msg)->base->member##_assign)((msg), (value))
+    (*(msg)->base->member##_assign)((msg), (value))
 /**
    Assigns a value to the member in the message.
 
@@ -95,8 +95,8 @@ extern "C" {
    @param value the value to assign
    @param len the length of the value
 */
-#define EVTAG_ASSIGN_WITH_LEN(msg, member, value, len)	\
-	(*(msg)->base->member##_assign)((msg), (value), (len))
+#define EVTAG_ASSIGN_WITH_LEN(msg, member, value, len)    \
+    (*(msg)->base->member##_assign)((msg), (value), (len))
 /**
    Returns the value for a member.
 
@@ -106,7 +106,7 @@ extern "C" {
    @return 0 on success, -1 otherwise.
 */
 #define EVTAG_GET(msg, member, pvalue) \
-	(*(msg)->base->member##_get)((msg), (pvalue))
+    (*(msg)->base->member##_get)((msg), (pvalue))
 /**
    Returns the value for a member.
 
@@ -116,8 +116,8 @@ extern "C" {
    @param plen a pointer to the length of the value
    @return 0 on success, -1 otherwise.
 */
-#define EVTAG_GET_WITH_LEN(msg, member, pvalue, plen)	\
-	(*(msg)->base->member##_get)((msg), (pvalue), (plen))
+#define EVTAG_GET_WITH_LEN(msg, member, pvalue, plen)    \
+    (*(msg)->base->member##_get)((msg), (pvalue), (plen))
 
 #endif  /* _EVENT2_RPC_COMPAT_H_ */
 
@@ -125,17 +125,17 @@ extern "C" {
    Adds a value to an array.
 */
 #define EVTAG_ARRAY_ADD_VALUE(msg, member, value) \
-	(*(msg)->base->member##_add)((msg), (value))
+    (*(msg)->base->member##_add)((msg), (value))
 /**
    Allocates a new entry in the array and returns it.
 */
 #define EVTAG_ARRAY_ADD(msg, member) \
-	(*(msg)->base->member##_add)(msg)
+    (*(msg)->base->member##_add)(msg)
 /**
    Gets a variable at the specified offset from the array.
 */
-#define EVTAG_ARRAY_GET(msg, member, offset, pvalue)	\
-	(*(msg)->base->member##_get)((msg), (offset), (pvalue))
+#define EVTAG_ARRAY_GET(msg, member, offset, pvalue)    \
+    (*(msg)->base->member##_get)((msg), (offset), (pvalue))
 /**
    Returns the number of entries in the array.
 */
@@ -170,31 +170,31 @@ struct evrpc_hook_meta;
  * @see EVRPC_GENERATE()
  */
 #define EVRPC_HEADER(rpcname, reqstruct, rplystruct) \
-EVRPC_STRUCT(rpcname) {	\
-	struct evrpc_hook_meta *hook_meta; \
-	struct reqstruct* request; \
-	struct rplystruct* reply; \
-	struct evrpc* rpc; \
-	struct evhttp_request* http_req; \
-	struct evbuffer* rpc_data; \
-};								     \
+EVRPC_STRUCT(rpcname) {    \
+    struct evrpc_hook_meta *hook_meta; \
+    struct reqstruct* request; \
+    struct rplystruct* reply; \
+    struct evrpc* rpc; \
+    struct evhttp_request* http_req; \
+    struct evbuffer* rpc_data; \
+};                                     \
 int evrpc_send_request_##rpcname(struct evrpc_pool *, \
     struct reqstruct *, struct rplystruct *, \
     void (*)(struct evrpc_status *, \
-	struct reqstruct *, struct rplystruct *, void *cbarg),	\
+    struct reqstruct *, struct rplystruct *, void *cbarg),    \
     void *);
 
 struct evrpc_pool;
 
 /** use EVRPC_GENERATE instead */
 struct evrpc_request_wrapper *evrpc_make_request_ctx(
-	struct evrpc_pool *pool, void *request, void *reply,
-	const char *rpcname,
-	void (*req_marshal)(struct evbuffer*, void *),
-	void (*rpl_clear)(void *),
-	int (*rpl_unmarshal)(void *, struct evbuffer *),
-	void (*cb)(struct evrpc_status *, void *, void *, void *),
-	void *cbarg);
+    struct evrpc_pool *pool, void *request, void *reply,
+    const char *rpcname,
+    void (*req_marshal)(struct evbuffer*, void *),
+    void (*rpl_clear)(void *),
+    int (*rpl_unmarshal)(void *, struct evbuffer *),
+    void (*cb)(struct evrpc_status *, void *, void *, void *),
+    void *cbarg);
 
 /** Creates a context structure that contains rpc specific information.
  *
@@ -211,14 +211,14 @@ struct evrpc_request_wrapper *evrpc_make_request_ctx(
  * @param cbarg the argument to supply to the callback
  */
 #define EVRPC_MAKE_CTX(rpcname, reqstruct, rplystruct, \
-    pool, request, reply, cb, cbarg)					\
-	evrpc_make_request_ctx(pool, request, reply,			\
-	    #rpcname,							\
-	    (void (*)(struct evbuffer *, void *))reqstruct##_marshal,	\
-	    (void (*)(void *))rplystruct##_clear,			\
-	    (int (*)(void *, struct evbuffer *))rplystruct##_unmarshal, \
-	    (void (*)(struct evrpc_status *, void *, void *, void *))cb, \
-	    cbarg)
+    pool, request, reply, cb, cbarg)                    \
+    evrpc_make_request_ctx(pool, request, reply,            \
+        #rpcname,                            \
+        (void (*)(struct evbuffer *, void *))reqstruct##_marshal,    \
+        (void (*)(void *))rplystruct##_clear,            \
+        (int (*)(void *, struct evbuffer *))rplystruct##_unmarshal, \
+        (void (*)(struct evrpc_status *, void *, void *, void *))cb, \
+        cbarg)
 
 /** Generates the code for receiving and sending an RPC message
  *
@@ -230,19 +230,19 @@ struct evrpc_request_wrapper *evrpc_make_request_ctx(
  * @param replystruct the name of the RPC reply structure
  * @see EVRPC_HEADER()
  */
-#define EVRPC_GENERATE(rpcname, reqstruct, rplystruct)			\
-	int evrpc_send_request_##rpcname(struct evrpc_pool *pool,	\
-	    struct reqstruct *request, struct rplystruct *reply,	\
-	    void (*cb)(struct evrpc_status *,				\
-		struct reqstruct *, struct rplystruct *, void *cbarg),	\
-	    void *cbarg) {						\
-	return evrpc_send_request_generic(pool, request, reply,	\
-	    (void (*)(struct evrpc_status *, void *, void *, void *))cb, \
-	    cbarg,							\
-	    #rpcname,							\
-	    (void (*)(struct evbuffer *, void *))reqstruct##_marshal,	\
-	    (void (*)(void *))rplystruct##_clear,			\
-	    (int (*)(void *, struct evbuffer *))rplystruct##_unmarshal); \
+#define EVRPC_GENERATE(rpcname, reqstruct, rplystruct)            \
+    int evrpc_send_request_##rpcname(struct evrpc_pool *pool,    \
+        struct reqstruct *request, struct rplystruct *reply,    \
+        void (*cb)(struct evrpc_status *,                \
+        struct reqstruct *, struct rplystruct *, void *cbarg),    \
+        void *cbarg) {                        \
+    return evrpc_send_request_generic(pool, request, reply,    \
+        (void (*)(struct evrpc_status *, void *, void *, void *))cb, \
+        cbarg,                            \
+        #rpcname,                            \
+        (void (*)(struct evbuffer *, void *))reqstruct##_marshal,    \
+        (void (*)(void *))rplystruct##_clear,            \
+        (int (*)(void *, struct evbuffer *))rplystruct##_unmarshal); \
 }
 
 /** Provides access to the HTTP request object underlying an RPC
@@ -273,7 +273,7 @@ void *evrpc_get_reply(struct evrpc_req_generic *req);
  */
 #define EVRPC_REQUEST_DONE(rpc_req) do { \
   struct evrpc_req_generic *_req = (struct evrpc_req_generic *)(rpc_req); \
-  evrpc_request_done(_req);					\
+  evrpc_request_done(_req);                    \
 } while (0)
 
 
@@ -316,16 +316,16 @@ void evrpc_free(struct evrpc_base *base);
  * @param cbarg an additional parameter that can be passed to the callback.
  *   The parameter can be used to carry around state.
  */
-#define EVRPC_REGISTER(base, name, request, reply, callback, cbarg)	\
-	evrpc_register_generic(base, #name,				\
-	    (void (*)(struct evrpc_req_generic *, void *))callback, cbarg, \
-	    (void *(*)(void *))request##_new, NULL,			\
-	    (void (*)(void *))request##_free,				\
-	    (int (*)(void *, struct evbuffer *))request##_unmarshal,	\
-	    (void *(*)(void *))reply##_new, NULL,			\
-	    (void (*)(void *))reply##_free, \
-	    (int (*)(void *))reply##_complete, \
-	    (void (*)(struct evbuffer *, void *))reply##_marshal)
+#define EVRPC_REGISTER(base, name, request, reply, callback, cbarg)    \
+    evrpc_register_generic(base, #name,                \
+        (void (*)(struct evrpc_req_generic *, void *))callback, cbarg, \
+        (void *(*)(void *))request##_new, NULL,            \
+        (void (*)(void *))request##_free,                \
+        (int (*)(void *, struct evbuffer *))request##_unmarshal,    \
+        (void *(*)(void *))reply##_new, NULL,            \
+        (void (*)(void *))reply##_free, \
+        (int (*)(void *))reply##_complete, \
+        (void (*)(struct evbuffer *, void *))reply##_marshal)
 
 /**
    Low level function for registering an RPC with a server.
@@ -371,8 +371,8 @@ struct evrpc_status;
  * @param cbarg an additional argument to be passed to the client
  * @return 0 on success, -1 on failure
  */
-#define EVRPC_MAKE_REQUEST(name, pool, request, reply, cb, cbarg)	\
-	evrpc_send_request_##name((pool), (request), (reply), (cb), (cbarg))
+#define EVRPC_MAKE_REQUEST(name, pool, request, reply, cb, cbarg)    \
+    evrpc_send_request_##name((pool), (request), (reply), (cb), (cbarg))
 
 /**
    Makes an RPC request based on the provided context.
@@ -450,8 +450,8 @@ void evrpc_pool_set_timeout(struct evrpc_pool *pool, int timeout_in_secs);
  */
 
 enum EVRPC_HOOK_TYPE {
-	EVRPC_INPUT,		/**< apply the function to an input hook */
-	EVRPC_OUTPUT		/**< apply the function to an output hook */
+    EVRPC_INPUT,        /**< apply the function to an input hook */
+    EVRPC_OUTPUT        /**< apply the function to an output hook */
 };
 
 #ifndef WIN32
@@ -468,9 +468,9 @@ enum EVRPC_HOOK_TYPE {
  */
 
 enum EVRPC_HOOK_RESULT {
-	EVRPC_TERMINATE = -1,	/**< indicates the rpc should be terminated */
-	EVRPC_CONTINUE = 0,	/**< continue processing the rpc */
-	EVRPC_PAUSE = 1		/**< pause processing request until resumed */
+    EVRPC_TERMINATE = -1,    /**< indicates the rpc should be terminated */
+    EVRPC_CONTINUE = 0,    /**< continue processing the rpc */
+    EVRPC_PAUSE = 1        /**< pause processing request until resumed */
 };
 
 /** adds a processing hook to either an rpc base or rpc pool

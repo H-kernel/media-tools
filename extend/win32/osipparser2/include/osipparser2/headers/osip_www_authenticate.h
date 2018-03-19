@@ -1,17 +1,17 @@
 /*
   The oSIP library implements the Session Initiation Protocol (SIP -rfc3261-)
   Copyright (C) 2001-2015 Aymeric MOIZARD amoizard@antisip.com
-  
+
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
-  
+
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-  
+
   You should have received a copy of the GNU Lesser General Public
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -45,18 +45,18 @@
  */
   struct osip_www_authenticate
   {
-    char *auth_type;		/**< Authentication Type (Basic or Digest */
-    char *realm;		/**< realm (as a quoted-string) */
-    char *domain;		/**< domain (optional) */
-    char *nonce;		/**< nonce (optional)*/
-    char *opaque;		/**< opaque (optional) */
-    char *stale;		/**< stale (optional) */
-    char *algorithm;		/**< algorythm (optional) */
-    char *qop_options;		/**< qop option (optional)  */
-    char *version;		/**< version (optional - NTLM) */
-    char *targetname;		/**< targetname (optional - NTLM) */
-    char *gssapi_data;		/**< gssapi-data (optional - NTLM) */
-    char *auth_param;		/**< other parameters (optional) */
+    char *auth_type;        /**< Authentication Type (Basic or Digest */
+    char *realm;        /**< realm (as a quoted-string) */
+    char *domain;        /**< domain (optional) */
+    char *nonce;        /**< nonce (optional)*/
+    char *opaque;        /**< opaque (optional) */
+    char *stale;        /**< stale (optional) */
+    char *algorithm;        /**< algorythm (optional) */
+    char *qop_options;        /**< qop option (optional)  */
+    char *version;        /**< version (optional - NTLM) */
+    char *targetname;        /**< targetname (optional - NTLM) */
+    char *gssapi_data;        /**< gssapi-data (optional - NTLM) */
+    char *auth_param;        /**< other parameters (optional) */
   };
 
 
@@ -93,7 +93,7 @@ extern "C"
  * @param dest A pointer on the copy of the element.
  */
   int osip_www_authenticate_clone (const osip_www_authenticate_t * header,
-			      osip_www_authenticate_t ** dest);
+                  osip_www_authenticate_t ** dest);
 
 /**
  * Get value of the auth_type parameter from a Www-Authenticate element.
@@ -106,7 +106,7 @@ extern "C"
  * @param value The value of the new parameter.
  */
   void osip_www_authenticate_set_auth_type (osip_www_authenticate_t * header,
-				      char *value);
+                      char *value);
 /**
  * Get value of the realm parameter from a Www-Authenticate element.
  * @param header The element to work on.
@@ -183,7 +183,7 @@ extern "C"
  * @param value The value of the new parameter.
  */
   void osip_www_authenticate_set_algorithm (osip_www_authenticate_t * header,
-				      char *value);
+                      char *value);
 /**
  * Add the algorithm parameter set to "MD5" in a Www-Authenticate element.
  * @param header The element to work on.
@@ -200,7 +200,7 @@ extern "C"
  * @param value The value of the new parameter.
  */
   void osip_www_authenticate_set_qop_options (osip_www_authenticate_t * header,
-					char *value);
+                    char *value);
 /**
  * Get value of the version parameter from a Www-Authenticate element.
  * @param header The element to work on.
@@ -212,7 +212,7 @@ extern "C"
  * @param value The value of the new parameter.
  */
   void osip_www_authenticate_set_version (osip_www_authenticate_t * header,
-					char *value);
+                    char *value);
 /**
  * Get value of the targetname parameter from a Www-Authenticate element.
  * @param header The element to work on.
@@ -224,7 +224,7 @@ extern "C"
  * @param value The value of the new parameter.
  */
   void osip_www_authenticate_set_targetname (osip_www_authenticate_t * header,
-					char *value);
+                    char *value);
 /**
  * Get value of the gssapi_data parameter from a Www-Authenticate element.
  * @param header The element to work on.
@@ -236,7 +236,7 @@ extern "C"
  * @param value The value of the new parameter.
  */
   void osip_www_authenticate_set_gssapi_data (osip_www_authenticate_t * header,
-					char *value);
+                    char *value);
 
 #ifdef __cplusplus
 }

@@ -38,18 +38,18 @@ private: // redefined virtual functions
 
 MP3ADURTPSource*
 MP3ADURTPSource::createNew(UsageEnvironment& env, Groupsock* RTPgs,
-			   unsigned char rtpPayloadFormat,
-			   unsigned rtpTimestampFrequency) {
+               unsigned char rtpPayloadFormat,
+               unsigned rtpTimestampFrequency) {
    return new MP3ADURTPSource(env, RTPgs, rtpPayloadFormat,
-			      rtpTimestampFrequency);
+                  rtpTimestampFrequency);
 }
 
 MP3ADURTPSource::MP3ADURTPSource(UsageEnvironment& env, Groupsock* RTPgs,
-				 unsigned char rtpPayloadFormat,
-				 unsigned rtpTimestampFrequency)
+                 unsigned char rtpPayloadFormat,
+                 unsigned rtpTimestampFrequency)
   : MultiFramedRTPSource(env, RTPgs,
-			 rtpPayloadFormat, rtpTimestampFrequency,
-			 new ADUBufferedPacketFactory) {
+             rtpPayloadFormat, rtpTimestampFrequency,
+             new ADUBufferedPacketFactory) {
 }
 
 MP3ADURTPSource::~MP3ADURTPSource() {

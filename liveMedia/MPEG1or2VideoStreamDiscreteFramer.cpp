@@ -28,7 +28,7 @@ MPEG1or2VideoStreamDiscreteFramer::createNew(UsageEnvironment& env,
                                              FramedSource* inputSource,
                                              Boolean iFramesOnly,
                                              double vshPeriod,
-					     Boolean leavePresentationTimesUnmodified) {
+                         Boolean leavePresentationTimesUnmodified) {
   // Need to add source type checking here???  #####
   return new MPEG1or2VideoStreamDiscreteFramer(env, inputSource,
                                                iFramesOnly, vshPeriod, leavePresentationTimesUnmodified);
@@ -104,46 +104,46 @@ void MPEG1or2VideoStreamDiscreteFramer
     if (nextCode == 0xB3) { // VIDEO_SEQUENCE_HEADER_START_CODE
       // Note the following 'frame rate' code:
       if (frameSize >= 8) {
-	u_int8_t frame_rate_code = fTo[7]&0x0F;
-	fFrameRate = frameRateFromCode[frame_rate_code];
+    u_int8_t frame_rate_code = fTo[7]&0x0F;
+    fFrameRate = frameRateFromCode[frame_rate_code];
       }
 
       // Also, save away this Video Sequence Header, in case we need it later:
       // First, figure out how big it is:
       unsigned vshSize;
       for (vshSize = 4; vshSize < frameSize-3; ++vshSize) {
-	if (fTo[vshSize] == 0 && fTo[vshSize+1] == 0 && fTo[vshSize+2] == 1 &&
-	    (fTo[vshSize+3] == 0xB8 || fTo[vshSize+3] == 0x00)) break;
+    if (fTo[vshSize] == 0 && fTo[vshSize+1] == 0 && fTo[vshSize+2] == 1 &&
+        (fTo[vshSize+3] == 0xB8 || fTo[vshSize+3] == 0x00)) break;
       }
       if (vshSize == frameSize-3) vshSize = frameSize; // There was nothing else following it
       if (vshSize <= sizeof fSavedVSHBuffer) {
-	memmove(fSavedVSHBuffer, fTo, vshSize);
-	fSavedVSHSize = vshSize;
-	fSavedVSHTimestamp
-	  = presentationTime.tv_sec + presentationTime.tv_usec/(double)MILLION;
+    memmove(fSavedVSHBuffer, fTo, vshSize);
+    fSavedVSHSize = vshSize;
+    fSavedVSHTimestamp
+      = presentationTime.tv_sec + presentationTime.tv_usec/(double)MILLION;
       }
     } else if (nextCode == 0xB8) { // GROUP_START_CODE
       // If necessary, insert a saved Video Sequence Header in front of this:
       double pts = presentationTime.tv_sec + presentationTime.tv_usec/(double)MILLION;
       if (pts > fSavedVSHTimestamp + fVSHPeriod &&
-	  fSavedVSHSize + frameSize <= fMaxSize) {
-	memmove(&fTo[fSavedVSHSize], &fTo[0], frameSize); // make room for the header
-	memmove(&fTo[0], fSavedVSHBuffer, fSavedVSHSize); // insert it
-	frameSize += fSavedVSHSize;
-	fSavedVSHTimestamp = pts;
+      fSavedVSHSize + frameSize <= fMaxSize) {
+    memmove(&fTo[fSavedVSHSize], &fTo[0], frameSize); // make room for the header
+    memmove(&fTo[0], fSavedVSHBuffer, fSavedVSHSize); // insert it
+    frameSize += fSavedVSHSize;
+    fSavedVSHTimestamp = pts;
       }
     }
 
     unsigned i = 3;
     if (nextCode == 0xB3 /*VIDEO_SEQUENCE_HEADER_START_CODE*/ ||
-	nextCode == 0xB8 /*GROUP_START_CODE*/) {
+    nextCode == 0xB8 /*GROUP_START_CODE*/) {
       // Skip to the following PICTURE_START_CODE (if any):
       for (i += 4; i < frameSize; ++i) {
-	if (fTo[i] == 0x00 /*PICTURE_START_CODE*/
-	    && fTo[i-1] == 1 && fTo[i-2] == 0 && fTo[i-3] == 0) {
-	  nextCode = fTo[i];
-	  break;
-	}
+    if (fTo[i] == 0x00 /*PICTURE_START_CODE*/
+        && fTo[i-1] == 1 && fTo[i-2] == 0 && fTo[i-3] == 0) {
+      nextCode = fTo[i];
+      break;
+    }
       }
     }
 
@@ -156,37 +156,37 @@ void MPEG1or2VideoStreamDiscreteFramer
 
       // If this is not an "I" frame, but we were asked for "I" frames only, then try again:
       if (fIFramesOnly && picture_coding_type != 1) {
-	doGetNextFrame();
-	return;
+    doGetNextFrame();
+    return;
       }
 
       // If this is a "B" frame, then we have to tweak "presentationTime":
       if (!fLeavePresentationTimesUnmodified && picture_coding_type == 3/*B*/
-	  && (fLastNonBFramePresentationTime.tv_usec > 0 ||
-	      fLastNonBFramePresentationTime.tv_sec > 0)) {
-	int trIncrement
+      && (fLastNonBFramePresentationTime.tv_usec > 0 ||
+          fLastNonBFramePresentationTime.tv_sec > 0)) {
+    int trIncrement
             = fLastNonBFrameTemporal_reference - temporal_reference;
-	if (trIncrement < 0) trIncrement += 1024; // field is 10 bits in size
+    if (trIncrement < 0) trIncrement += 1024; // field is 10 bits in size
 
-	unsigned usIncrement = fFrameRate == 0.0 ? 0
-	  : (unsigned)((trIncrement*MILLION)/fFrameRate);
-	unsigned secondsToSubtract = usIncrement/MILLION;
-	unsigned uSecondsToSubtract = usIncrement%MILLION;
+    unsigned usIncrement = fFrameRate == 0.0 ? 0
+      : (unsigned)((trIncrement*MILLION)/fFrameRate);
+    unsigned secondsToSubtract = usIncrement/MILLION;
+    unsigned uSecondsToSubtract = usIncrement%MILLION;
 
-	presentationTime = fLastNonBFramePresentationTime;
-	if ((unsigned)presentationTime.tv_usec < uSecondsToSubtract) {
-	  presentationTime.tv_usec += MILLION;
-	  if (presentationTime.tv_sec > 0) --presentationTime.tv_sec;
-	}
-	presentationTime.tv_usec -= uSecondsToSubtract;
-	if ((unsigned)presentationTime.tv_sec > secondsToSubtract) {
-	  presentationTime.tv_sec -= secondsToSubtract;
-	} else {
-	  presentationTime.tv_sec = presentationTime.tv_usec = 0;
-	}
+    presentationTime = fLastNonBFramePresentationTime;
+    if ((unsigned)presentationTime.tv_usec < uSecondsToSubtract) {
+      presentationTime.tv_usec += MILLION;
+      if (presentationTime.tv_sec > 0) --presentationTime.tv_sec;
+    }
+    presentationTime.tv_usec -= uSecondsToSubtract;
+    if ((unsigned)presentationTime.tv_sec > secondsToSubtract) {
+      presentationTime.tv_sec -= secondsToSubtract;
+    } else {
+      presentationTime.tv_sec = presentationTime.tv_usec = 0;
+    }
       } else {
-	fLastNonBFramePresentationTime = presentationTime;
-	fLastNonBFrameTemporal_reference = temporal_reference;
+    fLastNonBFramePresentationTime = presentationTime;
+    fLastNonBFrameTemporal_reference = temporal_reference;
       }
     }
   }

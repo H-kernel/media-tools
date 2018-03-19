@@ -26,13 +26,13 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 H264VideoFileServerMediaSubsession*
 H264VideoFileServerMediaSubsession::createNew(UsageEnvironment& env,
-					      char const* fileName,
-					      Boolean reuseFirstSource) {
+                          char const* fileName,
+                          Boolean reuseFirstSource) {
   return new H264VideoFileServerMediaSubsession(env, fileName, reuseFirstSource);
 }
 
 H264VideoFileServerMediaSubsession::H264VideoFileServerMediaSubsession(UsageEnvironment& env,
-								       char const* fileName, Boolean reuseFirstSource)
+                                       char const* fileName, Boolean reuseFirstSource)
   : FileServerMediaSubsession(env, fileName, reuseFirstSource),
     fAuxSDPLine(NULL), fDoneFlag(0), fDummyRTPSink(NULL) {
 }
@@ -75,7 +75,7 @@ void H264VideoFileServerMediaSubsession::checkForAuxSDPLine1() {
     // try again after a brief delay:
     int uSecsToDelay = 100000; // 100 ms
     nextTask() = envir().taskScheduler().scheduleDelayedTask(uSecsToDelay,
-			      (TaskFunc*)checkForAuxSDPLine, this);
+                  (TaskFunc*)checkForAuxSDPLine, this);
   }
 }
 
@@ -114,7 +114,7 @@ FramedSource* H264VideoFileServerMediaSubsession::createNewStreamSource(unsigned
 
 RTPSink* H264VideoFileServerMediaSubsession
 ::createNewRTPSink(Groupsock* rtpGroupsock,
-		   unsigned char rtpPayloadTypeIfDynamic,
-		   FramedSource* /*inputSource*/) {
+           unsigned char rtpPayloadTypeIfDynamic,
+           FramedSource* /*inputSource*/) {
   return H264VideoRTPSink::createNew(envir(), rtpGroupsock, rtpPayloadTypeIfDynamic);
 }

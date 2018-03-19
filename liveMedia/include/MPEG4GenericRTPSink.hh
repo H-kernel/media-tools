@@ -29,26 +29,26 @@ class MPEG4GenericRTPSink: public MultiFramedRTPSink {
 public:
   static MPEG4GenericRTPSink*
   createNew(UsageEnvironment& env, Groupsock* RTPgs,
-	    u_int8_t rtpPayloadFormat, u_int32_t rtpTimestampFrequency,
-	    char const* sdpMediaTypeString, char const* mpeg4Mode,
-	    char const* configString,
-	    unsigned numChannels = 1);
+        u_int8_t rtpPayloadFormat, u_int32_t rtpTimestampFrequency,
+        char const* sdpMediaTypeString, char const* mpeg4Mode,
+        char const* configString,
+        unsigned numChannels = 1);
 
 protected:
   MPEG4GenericRTPSink(UsageEnvironment& env, Groupsock* RTPgs,
-		      u_int8_t rtpPayloadFormat,
-		      u_int32_t rtpTimestampFrequency,
-		      char const* sdpMediaTypeString,
-		      char const* mpeg4Mode, char const* configString,
-		      unsigned numChannels);
-	// called only by createNew()
+              u_int8_t rtpPayloadFormat,
+              u_int32_t rtpTimestampFrequency,
+              char const* sdpMediaTypeString,
+              char const* mpeg4Mode, char const* configString,
+              unsigned numChannels);
+    // called only by createNew()
 
   virtual ~MPEG4GenericRTPSink();
 
 private: // redefined virtual functions:
   virtual
   Boolean frameCanAppearAfterPacketStart(unsigned char const* frameStart,
-					 unsigned numBytesInFrame) const;
+                     unsigned numBytesInFrame) const;
   virtual void doSpecialFrameHandling(unsigned fragmentationOffset,
                                       unsigned char* frameStart,
                                       unsigned numBytesInFrame,

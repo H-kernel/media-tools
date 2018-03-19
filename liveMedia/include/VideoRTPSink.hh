@@ -28,9 +28,9 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class VideoRTPSink: public MultiFramedRTPSink {
 protected:
   VideoRTPSink(UsageEnvironment& env,
-	       Groupsock* rtpgs, unsigned char rtpPayloadType,
-	       unsigned rtpTimestampFrequency,
-	       char const* rtpPayloadFormatName);
+           Groupsock* rtpgs, unsigned char rtpPayloadType,
+           unsigned rtpTimestampFrequency,
+           char const* rtpPayloadFormatName);
   // (we're an abstract base class)
   virtual ~VideoRTPSink();
 

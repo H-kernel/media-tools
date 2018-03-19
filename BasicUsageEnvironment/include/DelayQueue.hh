@@ -120,7 +120,7 @@ extern DelayInterval const DELAY_DAY;
 class _EventTime: public Timeval {
 public:
   _EventTime(unsigned secondsSinceEpoch = 0,
-	    unsigned usecondsSinceEpoch = 0)
+        unsigned usecondsSinceEpoch = 0)
     // We use the Unix standard epoch: January 1, 1970
     : Timeval(secondsSinceEpoch, usecondsSinceEpoch) {}
 };

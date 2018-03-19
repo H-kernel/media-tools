@@ -50,7 +50,7 @@ protected:
   void computePresentationTime(unsigned numAdditionalPictures);
       // sets "fPresentationTime"
   void setTimeCode(unsigned hours, unsigned minutes, unsigned seconds,
-		   unsigned pictures, unsigned picturesSinceLastGOP);
+           unsigned pictures, unsigned picturesSinceLastGOP);
 
 private: // redefined virtual functions
   virtual void doGetNextFrame();
@@ -60,8 +60,8 @@ private:
   void reset();
 
   static void continueReadProcessing(void* clientData,
-				     unsigned char* ptr, unsigned size,
-				     struct timeval presentationTime);
+                     unsigned char* ptr, unsigned size,
+                     struct timeval presentationTime);
   void continueReadProcessing();
 
 protected:

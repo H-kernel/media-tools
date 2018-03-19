@@ -23,7 +23,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 MPEG2TransportStreamAccumulator*
 MPEG2TransportStreamAccumulator::createNew(UsageEnvironment& env,
-					   FramedSource* inputSource, unsigned maxPacketSize) {
+                       FramedSource* inputSource, unsigned maxPacketSize) {
   return new MPEG2TransportStreamAccumulator(env, inputSource, maxPacketSize);
 }
 
@@ -33,7 +33,7 @@ MPEG2TransportStreamAccumulator::createNew(UsageEnvironment& env,
 
 MPEG2TransportStreamAccumulator
 ::MPEG2TransportStreamAccumulator(UsageEnvironment& env,
-				  FramedSource* inputSource, unsigned maxPacketSize)
+                  FramedSource* inputSource, unsigned maxPacketSize)
   : FramedFilter(env, inputSource),
     fDesiredPacketSize(maxPacketSize < TRANSPORT_PACKET_SIZE ? TRANSPORT_PACKET_SIZE : (maxPacketSize/TRANSPORT_PACKET_SIZE)),
     fNumBytesGathered(0) {
@@ -51,26 +51,26 @@ void MPEG2TransportStreamAccumulator::doGetNextFrame() {
   } else {
     // Ask for more data (delivered directly to the client's buffer);
     fInputSource->getNextFrame(fTo, fMaxSize, afterGettingFrame, this,
-			       FramedSource::handleClosure, this);
+                   FramedSource::handleClosure, this);
   }
 }
 
 void MPEG2TransportStreamAccumulator
 ::afterGettingFrame(void* clientData, unsigned frameSize,
-		    unsigned numTruncatedBytes,
-		    struct timeval presentationTime,
-		    unsigned durationInMicroseconds) {
+            unsigned numTruncatedBytes,
+            struct timeval presentationTime,
+            unsigned durationInMicroseconds) {
   MPEG2TransportStreamAccumulator* accumulator
     = (MPEG2TransportStreamAccumulator*)clientData;
   accumulator->afterGettingFrame1(frameSize, numTruncatedBytes,
-				  presentationTime, durationInMicroseconds);
+                  presentationTime, durationInMicroseconds);
 }
 
 void MPEG2TransportStreamAccumulator
 ::afterGettingFrame1(unsigned frameSize,
-		     unsigned numTruncatedBytes,
-		     struct timeval presentationTime,
-		     unsigned durationInMicroseconds) {
+             unsigned numTruncatedBytes,
+             struct timeval presentationTime,
+             unsigned durationInMicroseconds) {
   if (fNumBytesGathered == 0) { // this is the first frame of the new chunk
     fPresentationTime = presentationTime;
     fDurationInMicroseconds = 0;

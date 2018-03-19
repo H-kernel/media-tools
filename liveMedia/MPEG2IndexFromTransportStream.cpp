@@ -46,7 +46,7 @@ enum RecordType {
 class IndexRecord {
 public:
   IndexRecord(u_int8_t startOffset, u_int8_t size,
-	      unsigned long transportPacketNumber, float pcr);
+          unsigned long transportPacketNumber, float pcr);
   virtual ~IndexRecord();
 
   RecordType& recordType() { return fRecordType; }
@@ -97,9 +97,9 @@ static char const* recordTypeStr[] = {
 
 UsageEnvironment& operator<<(UsageEnvironment& env, IndexRecord& r) {
   return env << "[" << ((r.recordType()&0x80) != 0 ? "1" : "")
-	     << recordTypeStr[r.recordType()&0x7F] << ":"
-	     << (unsigned)r.transportPacketNumber() << ":" << r.startOffset()
-	     << "(" << r.size() << ")@" << r.pcr() << "]";
+         << recordTypeStr[r.recordType()&0x7F] << ":"
+         << (unsigned)r.transportPacketNumber() << ":" << r.startOffset()
+         << "(" << r.size() << ")@" << r.pcr() << "]";
 }
 #endif
 
@@ -108,7 +108,7 @@ UsageEnvironment& operator<<(UsageEnvironment& env, IndexRecord& r) {
 
 MPEG2IFrameIndexFromTransportStream*
 MPEG2IFrameIndexFromTransportStream::createNew(UsageEnvironment& env,
-					       FramedSource* inputSource) {
+                           FramedSource* inputSource) {
   return new MPEG2IFrameIndexFromTransportStream(env, inputSource);
 }
 
@@ -124,7 +124,7 @@ MPEG2IFrameIndexFromTransportStream::createNew(UsageEnvironment& env,
 
 MPEG2IFrameIndexFromTransportStream
 ::MPEG2IFrameIndexFromTransportStream(UsageEnvironment& env,
-				      FramedSource* inputSource)
+                      FramedSource* inputSource)
   : FramedFilter(env, inputSource),
     fIsH264(False), fIsH265(False),
     fInputTransportPacketCounter((unsigned)-1), fClosureNumber(0), fLastContinuityCounter(~0),
@@ -166,28 +166,28 @@ void MPEG2IFrameIndexFromTransportStream::doGetNextFrame() {
 
   // Arrange to read a new Transport Stream packet:
   fInputSource->getNextFrame(fInputBuffer, sizeof fInputBuffer,
-			     afterGettingFrame, this,
-			     handleInputClosure, this);
+                 afterGettingFrame, this,
+                 handleInputClosure, this);
 }
 
 void MPEG2IFrameIndexFromTransportStream
 ::afterGettingFrame(void* clientData, unsigned frameSize,
-		    unsigned numTruncatedBytes,
-		    struct timeval presentationTime,
-		    unsigned durationInMicroseconds) {
+            unsigned numTruncatedBytes,
+            struct timeval presentationTime,
+            unsigned durationInMicroseconds) {
   MPEG2IFrameIndexFromTransportStream* source
     = (MPEG2IFrameIndexFromTransportStream*)clientData;
   source->afterGettingFrame1(frameSize, numTruncatedBytes,
-			     presentationTime, durationInMicroseconds);
+                 presentationTime, durationInMicroseconds);
 }
 
 #define TRANSPORT_SYNC_BYTE 0x47
 
 void MPEG2IFrameIndexFromTransportStream
 ::afterGettingFrame1(unsigned frameSize,
-		     unsigned numTruncatedBytes,
-		     struct timeval presentationTime,
-		     unsigned durationInMicroseconds) {
+             unsigned numTruncatedBytes,
+             struct timeval presentationTime,
+             unsigned durationInMicroseconds) {
   if (frameSize < TRANSPORT_PACKET_SIZE || fInputBuffer[0] != TRANSPORT_SYNC_BYTE) {
     if (fInputBuffer[0] != TRANSPORT_SYNC_BYTE) {
       envir() << "Bad TS sync byte: 0x" << fInputBuffer[0] << "\n";
@@ -228,8 +228,8 @@ void MPEG2IFrameIndexFromTransportStream
       // The PCR timestamp has gone backwards.  Display a warning about this
       // (because it indicates buggy Transport Stream data), and compensate for it.
       envir() << "\nWarning: At about " << fLastPCR-fFirstPCR
-	      << " seconds into the file, the PCR timestamp decreased - from "
-	      << fLastPCR << " to " << pcr << "\n";
+          << " seconds into the file, the PCR timestamp decreased - from "
+          << fLastPCR << " to " << pcr << "\n";
       fFirstPCR -= (fLastPCR - pcr);
     }
     fLastPCR = pcr;
@@ -256,7 +256,7 @@ void MPEG2IFrameIndexFromTransportStream
 
   // Also, if this is the start of a PES packet, then skip over the PES header:
   Boolean payload_unit_start_indicator = (fInputBuffer[1]&0x40) != 0;
-  if (payload_unit_start_indicator && totalHeaderSize < TRANSPORT_PACKET_SIZE - 8 
+  if (payload_unit_start_indicator && totalHeaderSize < TRANSPORT_PACKET_SIZE - 8
       && fInputBuffer[totalHeaderSize] == 0x00 && fInputBuffer[totalHeaderSize+1] == 0x00
       && fInputBuffer[totalHeaderSize+2] == 0x01) {
     u_int8_t PES_header_data_length = fInputBuffer[totalHeaderSize+8];
@@ -276,7 +276,7 @@ void MPEG2IFrameIndexFromTransportStream
 
   // And add a new index record noting where it came from:
   addToTail(new IndexRecord(totalHeaderSize, vesSize, fInputTransportPacketCounter,
-			    fLastPCR - fFirstPCR));
+                fLastPCR - fFirstPCR));
 
   // Try again:
   doGetNextFrame();
@@ -288,12 +288,12 @@ void MPEG2IFrameIndexFromTransportStream::handleInputClosure(void* clientData) {
   source->handleInputClosure1();
 }
 
-#define VIDEO_SEQUENCE_START_CODE 0xB3		// MPEG-1 or 2
-#define VISUAL_OBJECT_SEQUENCE_START_CODE 0xB0	// MPEG-4
-#define GROUP_START_CODE 0xB8			// MPEG-1 or 2
-#define GROUP_VOP_START_CODE 0xB3		// MPEG-4
-#define PICTURE_START_CODE 0x00			// MPEG-1 or 2
-#define VOP_START_CODE 0xB6			// MPEG-4
+#define VIDEO_SEQUENCE_START_CODE 0xB3        // MPEG-1 or 2
+#define VISUAL_OBJECT_SEQUENCE_START_CODE 0xB0    // MPEG-4
+#define GROUP_START_CODE 0xB8            // MPEG-1 or 2
+#define GROUP_VOP_START_CODE 0xB3        // MPEG-4
+#define PICTURE_START_CODE 0x00            // MPEG-1 or 2
+#define VOP_START_CODE 0xB6            // MPEG-4
 
 void MPEG2IFrameIndexFromTransportStream::handleInputClosure1() {
   if (++fClosureNumber == 1 && fParseBufferDataEnd > fParseBufferFrameStart
@@ -348,7 +348,7 @@ void MPEG2IFrameIndexFromTransportStream
     u_int8_t stream_type = pkt[0];
     u_int16_t elementary_PID = ((pkt[1]&0x1F)<<8) | pkt[2];
     if (stream_type == 1 || stream_type == 2 ||
-	stream_type == 0x1B/*H.264 video*/ || stream_type == 0x24/*H.265 video*/) {
+    stream_type == 0x1B/*H.264 video*/ || stream_type == 0x24/*H.265 video*/) {
       if (stream_type == 0x1B) fIsH264 = True;
       else if (stream_type == 0x24) fIsH265 = True;
       fVideo_PID = elementary_PID;
@@ -425,8 +425,8 @@ Boolean MPEG2IFrameIndexFromTransportStream::parseFrame() {
   // the data in the parse buffer from "fParseBufferFrameStart"
   // to "fParseBufferDataEnd".  We now parse through this data, looking for
   // a complete 'frame', where a 'frame', in this case, means:
-  // 	for MPEG video: a Video Sequence Header, GOP Header, Picture Header, or Slice
-  // 	for H.264 or H.265 video: a NAL unit
+  //     for MPEG video: a Video Sequence Header, GOP Header, Picture Header, or Slice
+  //     for H.264 or H.265 video: a NAL unit
 
   // Inspect the frame's initial 4-byte code, to make sure it starts with a system code:
   if (fParseBufferDataEnd-fParseBufferFrameStart < 4) return False; // not enough data
@@ -510,18 +510,18 @@ Boolean MPEG2IFrameIndexFromTransportStream::parseFrame() {
     case VISUAL_OBJECT_SEQUENCE_START_CODE:
       curRecordType = RECORD_VSH;
       while (1) {
-	if (!parseToNextCode(nextCode)) return False;
-	if (nextCode == GROUP_START_CODE ||
-	    nextCode == PICTURE_START_CODE || nextCode == VOP_START_CODE) break;
-	fParseBufferParseEnd += 4; // skip over the code that we just saw
+    if (!parseToNextCode(nextCode)) return False;
+    if (nextCode == GROUP_START_CODE ||
+        nextCode == PICTURE_START_CODE || nextCode == VOP_START_CODE) break;
+    fParseBufferParseEnd += 4; // skip over the code that we just saw
       }
       break;
     case GROUP_START_CODE:
       curRecordType = RECORD_GOP;
       while (1) {
-	if (!parseToNextCode(nextCode)) return False;
-	if (nextCode == PICTURE_START_CODE || nextCode == VOP_START_CODE) break;
-	fParseBufferParseEnd += 4; // skip over the code that we just saw
+    if (!parseToNextCode(nextCode)) return False;
+    if (nextCode == PICTURE_START_CODE || nextCode == VOP_START_CODE) break;
+    fParseBufferParseEnd += 4; // skip over the code that we just saw
       }
       break;
     default: // picture
@@ -529,9 +529,9 @@ Boolean MPEG2IFrameIndexFromTransportStream::parseFrame() {
       while (1) {
         if (!parseToNextCode(nextCode)) return False;
         if (nextCode == VIDEO_SEQUENCE_START_CODE ||
-	    nextCode == VISUAL_OBJECT_SEQUENCE_START_CODE ||
-	    nextCode == GROUP_START_CODE || nextCode == GROUP_VOP_START_CODE ||
-	    nextCode == PICTURE_START_CODE || nextCode == VOP_START_CODE) break;
+        nextCode == VISUAL_OBJECT_SEQUENCE_START_CODE ||
+        nextCode == GROUP_START_CODE || nextCode == GROUP_VOP_START_CODE ||
+        nextCode == PICTURE_START_CODE || nextCode == VOP_START_CODE) break;
         fParseBufferParseEnd += 4; // skip over the code that we just saw
       }
       break;
@@ -541,13 +541,13 @@ Boolean MPEG2IFrameIndexFromTransportStream::parseFrame() {
   if (curRecordType == RECORD_PIC_NON_IFRAME) {
     if (curCode == VOP_START_CODE) { // MPEG-4
       if ((fParseBuffer[fParseBufferFrameStart+4]&0xC0) == 0) {
-	// This is actually an I-frame.  Note it as such:
-	curRecordType = RECORD_PIC_IFRAME;
+    // This is actually an I-frame.  Note it as such:
+    curRecordType = RECORD_PIC_IFRAME;
       }
     } else { // MPEG-1 or 2
       if ((fParseBuffer[fParseBufferFrameStart+5]&0x38) == 0x08) {
-	// This is actually an I-frame.  Note it as such:
-	curRecordType = RECORD_PIC_IFRAME;
+    // This is actually an I-frame.  Note it as such:
+    curRecordType = RECORD_PIC_IFRAME;
       }
     }
   }
@@ -557,7 +557,7 @@ Boolean MPEG2IFrameIndexFromTransportStream::parseFrame() {
   unsigned frameSize = fParseBufferParseEnd - fParseBufferFrameStart + numInitialBadBytes;
 #ifdef DEBUG
   envir() << "parsed " << recordTypeStr[curRecordType] << "; length "
-	  << frameSize << "\n";
+      << frameSize << "\n";
 #endif
   for (IndexRecord* r = fHeadIndexRecord; ; r = r->next()) {
     if (numInitialBadBytes >= r->size()) {
@@ -581,7 +581,7 @@ Boolean MPEG2IFrameIndexFromTransportStream::parseFrame() {
 #endif
 
       IndexRecord* newRecord
-	= new IndexRecord(newOffset, newSize, r->transportPacketNumber(), r->pcr());
+    = new IndexRecord(newOffset, newSize, r->transportPacketNumber(), r->pcr());
       newRecord->addAfter(r);
       if (fTailIndexRecord == r) fTailIndexRecord = newRecord;
 #ifdef DEBUG
@@ -629,16 +629,16 @@ Boolean MPEG2IFrameIndexFromTransportStream
 void MPEG2IFrameIndexFromTransportStream::compactParseBuffer() {
 #ifdef DEBUG
   envir() << "Compacting parse buffer: [" << fParseBufferFrameStart
-	  << "," << fParseBufferParseEnd << "," << fParseBufferDataEnd << "]";
+      << "," << fParseBufferParseEnd << "," << fParseBufferDataEnd << "]";
 #endif
   memmove(&fParseBuffer[0], &fParseBuffer[fParseBufferFrameStart],
-	  fParseBufferDataEnd - fParseBufferFrameStart);
+      fParseBufferDataEnd - fParseBufferFrameStart);
   fParseBufferDataEnd -= fParseBufferFrameStart;
   fParseBufferParseEnd -= fParseBufferFrameStart;
   fParseBufferFrameStart = 0;
 #ifdef DEBUG
   envir() << "-> [" << fParseBufferFrameStart
-	  << "," << fParseBufferParseEnd << "," << fParseBufferDataEnd << "]\n";
+      << "," << fParseBufferParseEnd << "," << fParseBufferDataEnd << "]\n";
 #endif
 }
 
@@ -657,7 +657,7 @@ void MPEG2IFrameIndexFromTransportStream::addToTail(IndexRecord* newIndexRecord)
 ////////// IndexRecord implementation //////////
 
 IndexRecord::IndexRecord(u_int8_t startOffset, u_int8_t size,
-			 unsigned long transportPacketNumber, float pcr)
+             unsigned long transportPacketNumber, float pcr)
   : fNext(this), fPrev(this), fRecordType(RECORD_UNPARSED),
     fStartOffset(startOffset), fSize(size),
     fPCR(pcr), fTransportPacketNumber(transportPacketNumber) {

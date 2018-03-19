@@ -64,7 +64,7 @@ private:
   void assignRealmAndNonce(char const* realm, char const* nonce);
   void assignUsernameAndPassword(char const* username, char const* password, Boolean passwordIsMD5);
   void assign(char const* realm, char const* nonce,
-	      char const* username, char const* password, Boolean passwordIsMD5);
+          char const* username, char const* password, Boolean passwordIsMD5);
 
 private:
   char* fRealm; char* fNonce;

@@ -25,8 +25,8 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 H264or5VideoFileSink
 ::H264or5VideoFileSink(UsageEnvironment& env, FILE* fid,
-		       unsigned bufferSize, char const* perFrameFileNamePrefix,
-		       char const* sPropParameterSetsStr1,
+               unsigned bufferSize, char const* perFrameFileNamePrefix,
+               char const* sPropParameterSetsStr1,
                        char const* sPropParameterSetsStr2,
                        char const* sPropParameterSetsStr3)
   : FileSink(env, fid, bufferSize, perFrameFileNamePrefix),
@@ -47,10 +47,10 @@ void H264or5VideoFileSink::afterGettingFrame(unsigned frameSize, unsigned numTru
     for (unsigned j = 0; j < 3; ++j) {
       unsigned numSPropRecords;
       SPropRecord* sPropRecords
-	= parseSPropParameterSets(fSPropParameterSetsStr[j], numSPropRecords);
+    = parseSPropParameterSets(fSPropParameterSetsStr[j], numSPropRecords);
       for (unsigned i = 0; i < numSPropRecords; ++i) {
-	addData(start_code, 4, presentationTime);
-	addData(sPropRecords[i].sPropBytes, sPropRecords[i].sPropLength, presentationTime);
+    addData(start_code, 4, presentationTime);
+    addData(sPropRecords[i].sPropBytes, sPropRecords[i].sPropLength, presentationTime);
       }
       delete[] sPropRecords;
     }

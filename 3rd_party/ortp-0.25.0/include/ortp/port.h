@@ -61,20 +61,20 @@ typedef pthread_mutex_t ortp_mutex_t;
 typedef pthread_cond_t ortp_cond_t;
 
 #ifdef __INTEL_COMPILER
-#pragma warning(disable : 111)		// statement is unreachable
-#pragma warning(disable : 181)		// argument is incompatible with corresponding format string conversion
-#pragma warning(disable : 188)		// enumerated type mixed with another type
-#pragma warning(disable : 593)		// variable "xxx" was set but never used
-#pragma warning(disable : 810)		// conversion from "int" to "unsigned short" may lose significant bits
-#pragma warning(disable : 869)		// parameter "xxx" was never referenced
-#pragma warning(disable : 981)		// operands are evaluated in unspecified order
-#pragma warning(disable : 1418)		// external function definition with no prior declaration
-#pragma warning(disable : 1419)		// external declaration in primary source file
-#pragma warning(disable : 1469)		// "cc" clobber ignored
+#pragma warning(disable : 111)        // statement is unreachable
+#pragma warning(disable : 181)        // argument is incompatible with corresponding format string conversion
+#pragma warning(disable : 188)        // enumerated type mixed with another type
+#pragma warning(disable : 593)        // variable "xxx" was set but never used
+#pragma warning(disable : 810)        // conversion from "int" to "unsigned short" may lose significant bits
+#pragma warning(disable : 869)        // parameter "xxx" was never referenced
+#pragma warning(disable : 981)        // operands are evaluated in unspecified order
+#pragma warning(disable : 1418)        // external function definition with no prior declaration
+#pragma warning(disable : 1419)        // external declaration in primary source file
+#pragma warning(disable : 1469)        // "cc" clobber ignored
 #endif
 
 #define ORTP_PUBLIC
-#define ORTP_INLINE			inline
+#define ORTP_INLINE            inline
 
 #ifdef __cplusplus
 extern "C"
@@ -89,27 +89,27 @@ unsigned long __ortp_thread_self(void);
 }
 #endif
 
-#define ortp_thread_create	__ortp_thread_create
-#define ortp_thread_join	__ortp_thread_join
-#define ortp_thread_self	__ortp_thread_self
-#define ortp_thread_exit	pthread_exit
-#define ortp_mutex_init		pthread_mutex_init
-#define ortp_mutex_lock		pthread_mutex_lock
-#define ortp_mutex_unlock	pthread_mutex_unlock
-#define ortp_mutex_destroy	pthread_mutex_destroy
-#define ortp_cond_init		pthread_cond_init
-#define ortp_cond_signal	pthread_cond_signal
-#define ortp_cond_broadcast	pthread_cond_broadcast
-#define ortp_cond_wait		pthread_cond_wait
-#define ortp_cond_destroy	pthread_cond_destroy
+#define ortp_thread_create    __ortp_thread_create
+#define ortp_thread_join    __ortp_thread_join
+#define ortp_thread_self    __ortp_thread_self
+#define ortp_thread_exit    pthread_exit
+#define ortp_mutex_init        pthread_mutex_init
+#define ortp_mutex_lock        pthread_mutex_lock
+#define ortp_mutex_unlock    pthread_mutex_unlock
+#define ortp_mutex_destroy    pthread_mutex_destroy
+#define ortp_cond_init        pthread_cond_init
+#define ortp_cond_signal    pthread_cond_signal
+#define ortp_cond_broadcast    pthread_cond_broadcast
+#define ortp_cond_wait        pthread_cond_wait
+#define ortp_cond_destroy    pthread_cond_destroy
 
-#define SOCKET_OPTION_VALUE	void *
-#define SOCKET_BUFFER		void *
+#define SOCKET_OPTION_VALUE    void *
+#define SOCKET_BUFFER        void *
 
 #define getSocketError() strerror(errno)
 #define getSocketErrorCode() (errno)
 #define ortp_gettimeofday(tv,tz) gettimeofday(tv,tz)
-#define ortp_log10f(x)	log10f(x)
+#define ortp_log10f(x)    log10f(x)
 
 
 #else
@@ -144,9 +144,9 @@ unsigned long __ortp_thread_self(void);
 #define ORTP_PUBLIC
 #else
 #ifdef ORTP_EXPORTS
-#define ORTP_PUBLIC	__declspec(dllexport)
+#define ORTP_PUBLIC    __declspec(dllexport)
 #else
-#define ORTP_PUBLIC	__declspec(dllimport)
+#define ORTP_PUBLIC    __declspec(dllimport)
 #endif
 #endif
 #pragma push_macro("_WINSOCKAPI_")
@@ -170,7 +170,7 @@ typedef __int16 int16_t;
 ORTP_PUBLIC char* strtok_r(char *str, const char *delim, char **nextp);
 #endif
 
-#define vsnprintf	_vsnprintf
+#define vsnprintf    _vsnprintf
 
 typedef SOCKET ortp_socket_t;
 #ifdef ORTP_WINDOWS_DESKTOP
@@ -182,19 +182,19 @@ typedef SRWLOCK ortp_mutex_t;
 #endif
 typedef HANDLE ortp_thread_t;
 
-#define ortp_thread_create	WIN_thread_create
-#define ortp_thread_join	WIN_thread_join
-#define ortp_thread_self	WIN_thread_self
+#define ortp_thread_create    WIN_thread_create
+#define ortp_thread_join    WIN_thread_join
+#define ortp_thread_self    WIN_thread_self
 #define ortp_thread_exit(arg)
-#define ortp_mutex_init		WIN_mutex_init
-#define ortp_mutex_lock		WIN_mutex_lock
-#define ortp_mutex_unlock	WIN_mutex_unlock
-#define ortp_mutex_destroy	WIN_mutex_destroy
-#define ortp_cond_init		WIN_cond_init
-#define ortp_cond_signal	WIN_cond_signal
-#define ortp_cond_broadcast	WIN_cond_broadcast
-#define ortp_cond_wait		WIN_cond_wait
-#define ortp_cond_destroy	WIN_cond_destroy
+#define ortp_mutex_init        WIN_mutex_init
+#define ortp_mutex_lock        WIN_mutex_lock
+#define ortp_mutex_unlock    WIN_mutex_unlock
+#define ortp_mutex_destroy    WIN_mutex_destroy
+#define ortp_cond_init        WIN_cond_init
+#define ortp_cond_signal    WIN_cond_signal
+#define ortp_cond_broadcast    WIN_cond_broadcast
+#define ortp_cond_wait        WIN_cond_wait
+#define ortp_cond_destroy    WIN_cond_destroy
 
 
 #ifdef __cplusplus
@@ -219,24 +219,24 @@ ORTP_PUBLIC int WIN_cond_destroy(ortp_cond_t * cond);
 }
 #endif
 
-#define SOCKET_OPTION_VALUE	char *
-#define ORTP_INLINE			__inline
+#define SOCKET_OPTION_VALUE    char *
+#define ORTP_INLINE            __inline
 
 #if defined(_WIN32_WCE)
 
-#define ortp_log10f(x)		(float)log10 ((double)x)
+#define ortp_log10f(x)        (float)log10 ((double)x)
 
 #ifdef assert
-	#undef assert
+    #undef assert
 #endif /*assert*/
-#define assert(exp)	((void)0)
+#define assert(exp)    ((void)0)
 
 #ifdef errno
-	#undef errno
+    #undef errno
 #endif /*errno*/
 #define  errno GetLastError()
 #ifdef strerror
-		#undef strerror
+        #undef strerror
 #endif /*strerror*/
 const char * ortp_strerror(DWORD value);
 #define strerror ortp_strerror
@@ -244,7 +244,7 @@ const char * ortp_strerror(DWORD value);
 
 #else /*_WIN32_WCE*/
 
-#define ortp_log10f(x)	log10f(x)
+#define ortp_log10f(x)    log10f(x)
 
 #endif
 
@@ -283,8 +283,8 @@ typedef unsigned char bool_t;
 typedef struct _OList OList;
 
 typedef struct ortpTimeSpec{
-	int64_t tv_sec;
-	int64_t tv_nsec;
+    int64_t tv_sec;
+    int64_t tv_nsec;
 }ortpTimeSpec;
 
 #ifdef __cplusplus
@@ -299,15 +299,15 @@ ORTP_PUBLIC char * ortp_strdup(const char *tmp);
 
 /*override the allocator with this method, to be called BEFORE ortp_init()*/
 typedef struct _OrtpMemoryFunctions{
-	void *(*malloc_fun)(size_t sz);
-	void *(*realloc_fun)(void *ptr, size_t sz);
-	void (*free_fun)(void *ptr);
+    void *(*malloc_fun)(size_t sz);
+    void *(*realloc_fun)(void *ptr, size_t sz);
+    void (*free_fun)(void *ptr);
 }OrtpMemoryFunctions;
 
 void ortp_set_memory_functions(OrtpMemoryFunctions *functions);
 
-#define ortp_new(type,count)	(type*)ortp_malloc(sizeof(type)*(count))
-#define ortp_new0(type,count)	(type*)ortp_malloc0(sizeof(type)*(count))
+#define ortp_new(type,count)    (type*)ortp_malloc(sizeof(type)*(count))
+#define ortp_new0(type,count)    (type*)ortp_malloc0(sizeof(type)*(count))
 
 ORTP_PUBLIC int close_socket(ortp_socket_t sock);
 ORTP_PUBLIC int set_non_blocking_socket(ortp_socket_t sock);
@@ -375,7 +375,7 @@ ORTP_PUBLIC void ortp_shm_close(void *memory);
 #endif
 
 #ifndef IN6_IS_ADDR_MULTICAST
-#define IN6_IS_ADDR_MULTICAST(i)	(((uint8_t *) (i))[0] == 0xff)
+#define IN6_IS_ADDR_MULTICAST(i)    (((uint8_t *) (i))[0] == 0xff)
 #endif
 
 /*define __ios when we are compiling for ios.

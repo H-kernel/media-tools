@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
   FramedSource* inputSource = ByteStreamFileSource::createNew(*env, inputFileName);
   if (inputSource == NULL) {
     *env << "Unable to open file \"" << inputFileName
-	 << "\" as a byte-stream file source\n";
+     << "\" as a byte-stream file source\n";
     exit(1);
   }
 

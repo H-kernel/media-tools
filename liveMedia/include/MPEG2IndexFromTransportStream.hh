@@ -42,7 +42,7 @@ public:
 
 protected:
   MPEG2IFrameIndexFromTransportStream(UsageEnvironment& env,
-				      FramedSource* inputSource);
+                      FramedSource* inputSource);
       // called only by createNew()
   virtual ~MPEG2IFrameIndexFromTransportStream();
 
@@ -52,13 +52,13 @@ private:
 
 private:
   static void afterGettingFrame(void* clientData, unsigned frameSize,
-				unsigned numTruncatedBytes,
-				struct timeval presentationTime,
-				unsigned durationInMicroseconds);
+                unsigned numTruncatedBytes,
+                struct timeval presentationTime,
+                unsigned durationInMicroseconds);
   void afterGettingFrame1(unsigned frameSize,
-			  unsigned numTruncatedBytes,
-			  struct timeval presentationTime,
-			  unsigned durationInMicroseconds);
+              unsigned numTruncatedBytes,
+              struct timeval presentationTime,
+              unsigned durationInMicroseconds);
 
   static void handleInputClosure(void* clientData);
   void handleInputClosure1();

@@ -80,7 +80,7 @@ int main(int argc, char** argv) {
   // Create an appropriate 'RTP sink' from the RTP 'groupsock':
   videoSink =
     SimpleRTPSink::createNew(*env, &rtpGroupsock, 33, 90000, "video", "MP2T",
-			     1, True, False /*no 'M' bit*/);
+                 1, True, False /*no 'M' bit*/);
 
   // Create (and start) a 'RTCP instance' for this RTP sink:
   const unsigned estimatedSessionBandwidth = 5000; // in kbps; for RTCP b/w share
@@ -92,8 +92,8 @@ int main(int argc, char** argv) {
   RTCPInstance* rtcp =
 #endif
     RTCPInstance::createNew(*env, &rtcpGroupsock,
-			    estimatedSessionBandwidth, CNAME,
-			    videoSink, NULL /* we're a server */, isSSM);
+                estimatedSessionBandwidth, CNAME,
+                videoSink, NULL /* we're a server */, isSSM);
   // Note: This starts RTCP running automatically
 
 #ifdef IMPLEMENT_RTSP_SERVER
@@ -107,8 +107,8 @@ int main(int argc, char** argv) {
   }
   ServerMediaSession* sms
     = ServerMediaSession::createNew(*env, "testStream", inputFileName,
-		   "Session streamed by \"testMPEG2TransportStreamer\"",
-					   isSSM);
+           "Session streamed by \"testMPEG2TransportStreamer\"",
+                       isSSM);
   sms->addSubsession(PassiveServerMediaSubsession::createNew(*videoSink, rtcp));
   rtspServer->addServerMediaSession(sms);
 
@@ -145,7 +145,7 @@ void play() {
     = ByteStreamFileSource::createNew(*env, inputFileName, inputDataChunkSize);
   if (fileSource == NULL) {
     *env << "Unable to open file \"" << inputFileName
-	 << "\" as a byte-stream file source\n";
+     << "\" as a byte-stream file source\n";
     exit(1);
   }
 

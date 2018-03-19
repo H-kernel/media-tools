@@ -29,15 +29,15 @@ class VorbisAudioRTPSource: public MultiFramedRTPSource {
 public:
   static VorbisAudioRTPSource*
   createNew(UsageEnvironment& env, Groupsock* RTPgs,
-	    unsigned char rtpPayloadFormat,
-	    unsigned rtpTimestampFrequency);
+        unsigned char rtpPayloadFormat,
+        unsigned rtpTimestampFrequency);
 
   u_int32_t curPacketIdent() const { return fCurPacketIdent; } // The current "Ident" field; only the low-order 24 bits are used
 
 protected:
   VorbisAudioRTPSource(UsageEnvironment& env, Groupsock* RTPgs,
-		       unsigned char rtpPayloadFormat,
-		       unsigned rtpTimestampFrequency);
+               unsigned char rtpPayloadFormat,
+               unsigned rtpTimestampFrequency);
       // called only by createNew()
 
   virtual ~VorbisAudioRTPSource();
@@ -53,10 +53,10 @@ private:
 };
 
 void parseVorbisOrTheoraConfigStr(char const* configStr,
-				  u_int8_t*& identificationHdr, unsigned& identificationHdrSize,
-				  u_int8_t*& commentHdr, unsigned& commentHdrSize,
-				  u_int8_t*& setupHdr, unsigned& setupHdrSize,
-				  u_int32_t& identField);
+                  u_int8_t*& identificationHdr, unsigned& identificationHdrSize,
+                  u_int8_t*& commentHdr, unsigned& commentHdrSize,
+                  u_int8_t*& setupHdr, unsigned& setupHdrSize,
+                  u_int32_t& identField);
     // Returns (in each of the result parameters) unpacked Vorbis or Theora
     // "identification", "comment", and "setup" headers that were specified in a
     // "config" string (in the SDP description for a Vorbis/RTP or Theora/RTP stream).

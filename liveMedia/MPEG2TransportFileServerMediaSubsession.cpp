@@ -24,9 +24,9 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 MPEG2TransportFileServerMediaSubsession*
 MPEG2TransportFileServerMediaSubsession::createNew(UsageEnvironment& env,
-						   char const* fileName,
-						   char const* indexFileName,
-						   Boolean reuseFirstSource) {
+                           char const* fileName,
+                           char const* indexFileName,
+                           Boolean reuseFirstSource) {
   MPEG2TransportStreamIndexFile* indexFile;
   if (indexFileName != NULL && reuseFirstSource) {
     // It makes no sense to support trick play if all clients use the same source.  Fix this:
@@ -36,14 +36,14 @@ MPEG2TransportFileServerMediaSubsession::createNew(UsageEnvironment& env,
     indexFile = MPEG2TransportStreamIndexFile::createNew(env, indexFileName);
   }
   return new MPEG2TransportFileServerMediaSubsession(env, fileName, indexFile,
-						     reuseFirstSource);
+                             reuseFirstSource);
 }
 
 MPEG2TransportFileServerMediaSubsession
 ::MPEG2TransportFileServerMediaSubsession(UsageEnvironment& env,
-					  char const* fileName,
-					  MPEG2TransportStreamIndexFile* indexFile,
-					  Boolean reuseFirstSource)
+                      char const* fileName,
+                      MPEG2TransportStreamIndexFile* indexFile,
+                      Boolean reuseFirstSource)
   : FileServerMediaSubsession(env, fileName, reuseFirstSource),
     fIndexFile(indexFile), fDuration(0.0), fClientSessionHashTable(NULL) {
   if (fIndexFile != NULL) { // we support 'trick play'
@@ -60,7 +60,7 @@ MPEG2TransportFileServerMediaSubsession
     // Clean out the client session hash table:
     while (1) {
       ClientTrickPlayState* client
-	= (ClientTrickPlayState*)(fClientSessionHashTable->RemoveNext());
+    = (ClientTrickPlayState*)(fClientSessionHashTable->RemoveNext());
       if (client == NULL) break;
       delete client;
     }
@@ -74,10 +74,10 @@ MPEG2TransportFileServerMediaSubsession
 
 void MPEG2TransportFileServerMediaSubsession
 ::startStream(unsigned clientSessionId, void* streamToken, TaskFunc* rtcpRRHandler,
-	      void* rtcpRRHandlerClientData, unsigned short& rtpSeqNum,
-	      unsigned& rtpTimestamp,
-	      ServerRequestAlternativeByteHandler* serverRequestAlternativeByteHandler,
-	      void* serverRequestAlternativeByteHandlerClientData) {
+          void* rtcpRRHandlerClientData, unsigned short& rtpSeqNum,
+          unsigned& rtpTimestamp,
+          ServerRequestAlternativeByteHandler* serverRequestAlternativeByteHandler,
+          void* serverRequestAlternativeByteHandlerClientData) {
   if (fIndexFile != NULL) { // we support 'trick play'
     ClientTrickPlayState* client = lookupClient(clientSessionId);
     if (client != NULL && client->areChangingScale()) {
@@ -92,9 +92,9 @@ void MPEG2TransportFileServerMediaSubsession
 
   // Call the original, default version of this routine:
   OnDemandServerMediaSubsession::startStream(clientSessionId, streamToken,
-					     rtcpRRHandler, rtcpRRHandlerClientData,
-					     rtpSeqNum, rtpTimestamp,
-					     serverRequestAlternativeByteHandler, serverRequestAlternativeByteHandlerClientData);
+                         rtcpRRHandler, rtcpRRHandlerClientData,
+                         rtpSeqNum, rtpTimestamp,
+                         serverRequestAlternativeByteHandler, serverRequestAlternativeByteHandlerClientData);
 }
 
 void MPEG2TransportFileServerMediaSubsession
@@ -192,11 +192,11 @@ FramedSource* MPEG2TransportFileServerMediaSubsession
 
 RTPSink* MPEG2TransportFileServerMediaSubsession
 ::createNewRTPSink(Groupsock* rtpGroupsock,
-		   unsigned char /*rtpPayloadTypeIfDynamic*/,
-		   FramedSource* /*inputSource*/) {
+           unsigned char /*rtpPayloadTypeIfDynamic*/,
+           FramedSource* /*inputSource*/) {
   return SimpleRTPSink::createNew(envir(), rtpGroupsock,
-				  33, 90000, "video", "MP2T",
-				  1, True, False /*no 'M' bit*/);
+                  33, 90000, "video", "MP2T",
+                  1, True, False /*no 'M' bit*/);
 }
 
 void MPEG2TransportFileServerMediaSubsession::testScaleFactor(float& scale) {
@@ -261,20 +261,20 @@ unsigned long ClientTrickPlayState::updateStateFromNPT(double npt, double stream
       // Specify that we want to stream no more data than this.
 
       if (fNextScale == 1.0f) {
-	// We'll be streaming from the original file.
-	// Use the index file to figure out how many Transport Packets we get to stream:
-	unsigned long toTSRecordNum, toIxRecordNum;    
-	float toNPT = (float)(fNPT + streamDuration);
-	fIndexFile->lookupTSPacketNumFromNPT(toNPT, toTSRecordNum, toIxRecordNum);
-	if (toTSRecordNum > tsRecordNum) { // sanity check
-	  numTSRecordsToStream = toTSRecordNum - tsRecordNum;
-	}
+    // We'll be streaming from the original file.
+    // Use the index file to figure out how many Transport Packets we get to stream:
+    unsigned long toTSRecordNum, toIxRecordNum;
+    float toNPT = (float)(fNPT + streamDuration);
+    fIndexFile->lookupTSPacketNumFromNPT(toNPT, toTSRecordNum, toIxRecordNum);
+    if (toTSRecordNum > tsRecordNum) { // sanity check
+      numTSRecordsToStream = toTSRecordNum - tsRecordNum;
+    }
       } else {
-	// We'll be streaming from the trick play stream.  
-	// It'd be difficult to figure out how many Transport Packets we need to stream, so instead set a PCR
-	// limit in the trick play stream.  (We rely upon the fact that PCRs in the trick play stream start at 0.0)
-	int direction = fNextScale < 0.0 ? -1 : 1;
-	pcrLimit = (float)(streamDuration/(fNextScale*direction));
+    // We'll be streaming from the trick play stream.
+    // It'd be difficult to figure out how many Transport Packets we need to stream, so instead set a PCR
+    // limit in the trick play stream.  (We rely upon the fact that PCRs in the trick play stream start at 0.0)
+    int direction = fNextScale < 0.0 ? -1 : 1;
+    pcrLimit = (float)(streamDuration/(fNextScale*direction));
       }
     }
   }
@@ -330,7 +330,7 @@ void ClientTrickPlayState::updateStateOnPlayChange(Boolean reverseToPreviousVSH)
     float pcr;
     u_int8_t offset, size, recordType; // all dummy
     if (fIndexFile->readIndexRecordValues(fIxRecordNum, transportRecordNum,
-					  offset, size, pcr, recordType)) {
+                      offset, size, pcr, recordType)) {
       fTSRecordNum = transportRecordNum;
       fNPT = pcr;
     }

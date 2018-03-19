@@ -49,11 +49,11 @@ DirectedNetInterface::~DirectedNetInterface() {
 ////////// DirectedNetInterfaceSet //////////
 
 DirectedNetInterfaceSet::DirectedNetInterfaceSet()
-	: fTable(HashTable::create(ONE_WORD_HASH_KEYS)) {
+    : fTable(HashTable::create(ONE_WORD_HASH_KEYS)) {
 }
 
 DirectedNetInterfaceSet::~DirectedNetInterfaceSet() {
-	delete fTable;
+    delete fTable;
 }
 
 DirectedNetInterface*
@@ -120,7 +120,7 @@ Boolean Socket::changePort(Port newPort) {
 }
 
 UsageEnvironment& operator<<(UsageEnvironment& s, const Socket& sock) {
-	return s << timestampString() << " Socket(" << sock.socketNum() << ")";
+    return s << timestampString() << " Socket(" << sock.socketNum() << ")";
 }
 
 ////////// SocketLookupTable //////////
@@ -134,7 +134,7 @@ SocketLookupTable::~SocketLookupTable() {
 }
 
 Socket* SocketLookupTable::Fetch(UsageEnvironment& env, Port port,
-				 Boolean& isNew) {
+                 Boolean& isNew) {
   isNew = False;
   Socket* sock;
   do {

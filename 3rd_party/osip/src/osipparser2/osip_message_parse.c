@@ -1,17 +1,17 @@
 /*
   The oSIP library implements the Session Initiation Protocol (SIP -rfc3261-)
   Copyright (C) 2001-2015 Aymeric MOIZARD amoizard@antisip.com
-  
+
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
-  
+
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-  
+
   You should have received a copy of the GNU Lesser General Public
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -512,13 +512,13 @@ osip_message_set_multiple_header (osip_message_t * sip, char *hname, char *hvalu
               && strchr(ptr, '>'))
             inuri = 1;
         }
-	/*
-	  else {
-	  if we found such sequence: "<sip:" "<sip:" ">"
-	  It might be a valid header containing data and not URIs.
-	  Thus, we ignore inuri
-	  }
-	*/
+    /*
+      else {
+      if we found such sequence: "<sip:" "<sip:" ">"
+      It might be a valid header containing data and not URIs.
+      Thus, we ignore inuri
+      }
+    */
       }
       break;
 
@@ -544,10 +544,10 @@ osip_message_set_multiple_header (osip_message_t * sip, char *hname, char *hvalu
 
         end = ptr;
         if (end - beg + 1 < 2)
-	  {
-	    beg=end+1;
-	    break; /* skip empty header */
-	  }
+      {
+        beg=end+1;
+        break; /* skip empty header */
+      }
         avalue = (char *) osip_malloc (end - beg + 1);
         if (avalue==NULL)
           return OSIP_NOMEM;
@@ -658,8 +658,8 @@ msg_headers_parse (osip_message_t * sip, const char *start_of_header, const char
 
 /* Unreachable code
  OSIP_TRACE (osip_trace
-	      (__FILE__, __LINE__, OSIP_BUG, NULL,
-	       "This code cannot be reached\n")); */
+          (__FILE__, __LINE__, OSIP_BUG, NULL,
+           "This code cannot be reached\n")); */
   return OSIP_SYNTAXERROR;
 }
 
@@ -710,7 +710,7 @@ msg_osip_body_parse (osip_message_t * sip, const char *start_of_buf, const char 
       sprintf (tmp, "%i", (int) osip_body_len);
       i = osip_message_set_content_length (sip, tmp);
       if (i != 0)
-	return i;
+    return i;
     }
 
     if (length < osip_body_len) {

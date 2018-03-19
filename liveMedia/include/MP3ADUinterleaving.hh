@@ -47,20 +47,20 @@ private:
 class MP3ADUinterleaverBase: public FramedFilter {
 protected:
   MP3ADUinterleaverBase(UsageEnvironment& env,
-			FramedSource* inputSource);
+            FramedSource* inputSource);
       // abstract base class
   virtual ~MP3ADUinterleaverBase();
 
   static FramedSource* getInputSource(UsageEnvironment& env,
-				      char const* inputSourceName);
+                      char const* inputSourceName);
   static void afterGettingFrame(void* clientData,
-				unsigned numBytesRead,
-				unsigned numTruncatedBytes,
-				struct timeval presentationTime,
-				unsigned durationInMicroseconds);
+                unsigned numBytesRead,
+                unsigned numTruncatedBytes,
+                struct timeval presentationTime,
+                unsigned durationInMicroseconds);
   virtual void afterGettingFrame(unsigned numBytesRead,
-				 struct timeval presentationTime,
-				 unsigned durationInMicroseconds) = 0;
+                 struct timeval presentationTime,
+                 unsigned durationInMicroseconds) = 0;
 };
 
 // This class is used to convert an ADU sequence from non-interleaved
@@ -69,13 +69,13 @@ protected:
 class MP3ADUinterleaver: public MP3ADUinterleaverBase {
 public:
   static MP3ADUinterleaver* createNew(UsageEnvironment& env,
-				      Interleaving const& interleaving,
-				      FramedSource* inputSource);
+                      Interleaving const& interleaving,
+                      FramedSource* inputSource);
 
 protected:
   MP3ADUinterleaver(UsageEnvironment& env,
-		    Interleaving const& interleaving,
-		    FramedSource* inputSource);
+            Interleaving const& interleaving,
+            FramedSource* inputSource);
       // called only by createNew()
   virtual ~MP3ADUinterleaver();
 
@@ -83,8 +83,8 @@ private:
   // redefined virtual functions:
   virtual void doGetNextFrame();
   virtual void afterGettingFrame(unsigned numBytesRead,
-				 struct timeval presentationTime,
-				 unsigned durationInMicroseconds);
+                 struct timeval presentationTime,
+                 unsigned durationInMicroseconds);
 
 private:
   void releaseOutgoingFrame();
@@ -102,11 +102,11 @@ private:
 class MP3ADUdeinterleaver: public MP3ADUinterleaverBase {
 public:
   static MP3ADUdeinterleaver* createNew(UsageEnvironment& env,
-					FramedSource* inputSource);
+                    FramedSource* inputSource);
 
 protected:
   MP3ADUdeinterleaver(UsageEnvironment& env,
-		      FramedSource* inputSource);
+              FramedSource* inputSource);
       // called only by createNew()
   virtual ~MP3ADUdeinterleaver();
 
@@ -114,8 +114,8 @@ private:
   // redefined virtual functions:
   virtual void doGetNextFrame();
   virtual void afterGettingFrame(unsigned numBytesRead,
-				 struct timeval presentationTime,
-				 unsigned durationInMicroseconds);
+                 struct timeval presentationTime,
+                 unsigned durationInMicroseconds);
 
 private:
   void releaseOutgoingFrame();

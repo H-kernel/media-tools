@@ -47,7 +47,7 @@ FramedSource* DVVideoFileServerMediaSubsession
 
   // Create a framer for the Video Elementary Stream:
   DVVideoStreamFramer* framer = DVVideoStreamFramer::createNew(envir(), fileSource, True/*the file source is seekable*/);
-  
+
   // Use the framer to figure out the file's duration:
   unsigned frameSize;
   double frameDuration;
@@ -62,8 +62,8 @@ FramedSource* DVVideoFileServerMediaSubsession
 }
 
 RTPSink* DVVideoFileServerMediaSubsession::createNewRTPSink(Groupsock* rtpGroupsock,
-							    unsigned char rtpPayloadTypeIfDynamic,
-							    FramedSource* /*inputSource*/) {
+                                unsigned char rtpPayloadTypeIfDynamic,
+                                FramedSource* /*inputSource*/) {
   return DVVideoRTPSink::createNew(envir(), rtpGroupsock, rtpPayloadTypeIfDynamic);
 }
 

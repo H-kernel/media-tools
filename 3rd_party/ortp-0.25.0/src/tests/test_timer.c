@@ -23,21 +23,21 @@
 
 int main(int argc, char *argv[])
 {
-	RtpTimer *timer=&posix_timer;
-	int i;
-	struct timeval interval;
-	
-	interval.tv_sec=0;
-	interval.tv_usec=500000;
-	
-	rtp_timer_set_interval(timer,&interval);
-	
-	timer->timer_init();
-	for (i=0;i<10;i++)
-	{
-		printf("doing something...\n");
-		timer->timer_do();
-	}
-	timer->timer_uninit();
-	return 0;
+    RtpTimer *timer=&posix_timer;
+    int i;
+    struct timeval interval;
+
+    interval.tv_sec=0;
+    interval.tv_usec=500000;
+
+    rtp_timer_set_interval(timer,&interval);
+
+    timer->timer_init();
+    for (i=0;i<10;i++)
+    {
+        printf("doing something...\n");
+        timer->timer_do();
+    }
+    timer->timer_uninit();
+    return 0;
 }

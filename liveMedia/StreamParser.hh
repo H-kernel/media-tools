@@ -31,13 +31,13 @@ public:
 
 protected: // we're a virtual base class
   typedef void (clientContinueFunc)(void* clientData,
-				    unsigned char* ptr, unsigned size,
-				    struct timeval presentationTime);
+                    unsigned char* ptr, unsigned size,
+                    struct timeval presentationTime);
   StreamParser(FramedSource* inputSource,
-	       FramedSource::onCloseFunc* onInputCloseFunc,
-	       void* onInputCloseClientData,
-	       clientContinueFunc* clientContinueFunc,
-	       void* clientContinueClientData);
+           FramedSource::onCloseFunc* onInputCloseFunc,
+           void* onInputCloseClientData,
+           clientContinueFunc* clientContinueFunc,
+           void* clientContinueClientData);
   virtual ~StreamParser();
 
   void saveParserState();
@@ -120,9 +120,9 @@ private:
   void ensureValidBytes1(unsigned numBytesNeeded);
 
   static void afterGettingBytes(void* clientData, unsigned numBytesRead,
-				unsigned numTruncatedBytes,
-				struct timeval presentationTime,
-				unsigned durationInMicroseconds);
+                unsigned numTruncatedBytes,
+                struct timeval presentationTime,
+                unsigned durationInMicroseconds);
   void afterGettingBytes1(unsigned numBytesRead, struct timeval presentationTime);
 
   static void onInputClosure(void* clientData);

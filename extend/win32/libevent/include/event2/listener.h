@@ -57,18 +57,18 @@ typedef void (*evconnlistener_errorcb)(struct evconnlistener *, void *);
 
 /** Flag: Indicates that we should not make incoming sockets nonblocking
  * before passing them to the callback. */
-#define LEV_OPT_LEAVE_SOCKETS_BLOCKING	(1u<<0)
+#define LEV_OPT_LEAVE_SOCKETS_BLOCKING    (1u<<0)
 /** Flag: Indicates that freeing the listener should close the underlying
  * socket. */
-#define LEV_OPT_CLOSE_ON_FREE		(1u<<1)
+#define LEV_OPT_CLOSE_ON_FREE        (1u<<1)
 /** Flag: Indicates that we should set the close-on-exec flag, if possible */
-#define LEV_OPT_CLOSE_ON_EXEC		(1u<<2)
+#define LEV_OPT_CLOSE_ON_EXEC        (1u<<2)
 /** Flag: Indicates that we should disable the timeout (if any) between when
  * this socket is closed and when we can listen again on the same port. */
-#define LEV_OPT_REUSEABLE		(1u<<3)
+#define LEV_OPT_REUSEABLE        (1u<<3)
 /** Flag: Indicates that the listener should be locked so it's safe to use
  * from multiple threadcs at once. */
-#define LEV_OPT_THREADSAFE		(1u<<4)
+#define LEV_OPT_THREADSAFE        (1u<<4)
 
 /**
    Allocate a new evconnlistener object to listen for incoming TCP connections

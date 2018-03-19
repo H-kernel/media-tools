@@ -28,11 +28,11 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class H264VideoStreamFramer: public H264or5VideoStreamFramer {
 public:
   static H264VideoStreamFramer* createNew(UsageEnvironment& env, FramedSource* inputSource,
-					  Boolean includeStartCodeInOutput = False);
+                      Boolean includeStartCodeInOutput = False);
 
 protected:
   H264VideoStreamFramer(UsageEnvironment& env, FramedSource* inputSource,
-			Boolean createParser, Boolean includeStartCodeInOutput);
+            Boolean createParser, Boolean includeStartCodeInOutput);
       // called only by "createNew()"
   virtual ~H264VideoStreamFramer();
 

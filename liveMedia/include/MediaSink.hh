@@ -28,12 +28,12 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class MediaSink: public Medium {
 public:
   static Boolean lookupByName(UsageEnvironment& env, char const* sinkName,
-			      MediaSink*& resultSink);
+                  MediaSink*& resultSink);
 
   typedef void (afterPlayingFunc)(void* clientData);
   Boolean startPlaying(MediaSource& source,
-		       afterPlayingFunc* afterFunc,
-		       void* afterClientData);
+               afterPlayingFunc* afterFunc,
+               void* afterClientData);
   virtual void stopPlaying();
 
   // Test for specific types of sink:
@@ -71,7 +71,7 @@ private:
 class OutPacketBuffer {
 public:
   OutPacketBuffer(unsigned preferredPacketSize, unsigned maxPacketSize,
-		  unsigned maxBufferSize = 0);
+          unsigned maxBufferSize = 0);
       // if "maxBufferSize" is >0, use it - instead of "maxSize" to compute the buffer size
   ~OutPacketBuffer();
 
@@ -109,9 +109,9 @@ public:
   }
 
   void setOverflowData(unsigned overflowDataOffset,
-		       unsigned overflowDataSize,
-		       struct timeval const& presentationTime,
-		       unsigned durationInMicroseconds);
+               unsigned overflowDataSize,
+               struct timeval const& presentationTime,
+               unsigned durationInMicroseconds);
   unsigned overflowDataSize() const {return fOverflowDataSize;}
   struct timeval overflowPresentationTime() const {return fOverflowPresentationTime;}
   unsigned overflowDurationInMicroseconds() const {return fOverflowDurationInMicroseconds;}

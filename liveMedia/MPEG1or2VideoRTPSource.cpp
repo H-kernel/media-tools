@@ -22,18 +22,18 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 MPEG1or2VideoRTPSource*
 MPEG1or2VideoRTPSource::createNew(UsageEnvironment& env, Groupsock* RTPgs,
-			      unsigned char rtpPayloadFormat,
-			      unsigned rtpTimestampFrequency) {
+                  unsigned char rtpPayloadFormat,
+                  unsigned rtpTimestampFrequency) {
   return new MPEG1or2VideoRTPSource(env, RTPgs, rtpPayloadFormat,
-				rtpTimestampFrequency);
+                rtpTimestampFrequency);
 }
 
 MPEG1or2VideoRTPSource::MPEG1or2VideoRTPSource(UsageEnvironment& env,
-				       Groupsock* RTPgs,
-				       unsigned char rtpPayloadFormat,
-				       unsigned rtpTimestampFrequency)
+                       Groupsock* RTPgs,
+                       unsigned char rtpPayloadFormat,
+                       unsigned rtpTimestampFrequency)
   : MultiFramedRTPSource(env, RTPgs,
-			 rtpPayloadFormat, rtpTimestampFrequency){
+             rtpPayloadFormat, rtpTimestampFrequency){
 }
 
 MPEG1or2VideoRTPSource::~MPEG1or2VideoRTPSource() {
@@ -41,7 +41,7 @@ MPEG1or2VideoRTPSource::~MPEG1or2VideoRTPSource() {
 
 Boolean MPEG1or2VideoRTPSource
 ::processSpecialHeader(BufferedPacket* packet,
-		       unsigned& resultSpecialHeaderSize) {
+               unsigned& resultSpecialHeaderSize) {
   // There's a 4-byte video-specific header
   if (packet->dataSize() < 4) return False;
 
@@ -60,7 +60,7 @@ Boolean MPEG1or2VideoRTPSource
 
 Boolean MPEG1or2VideoRTPSource
 ::packetIsUsableInJitterCalculation(unsigned char* packet,
-				    unsigned packetSize) {
+                    unsigned packetSize) {
   // There's a 4-byte video-specific header
   if (packetSize < 4) return False;
 

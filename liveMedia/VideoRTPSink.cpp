@@ -21,11 +21,11 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #include "VideoRTPSink.hh"
 
 VideoRTPSink::VideoRTPSink(UsageEnvironment& env,
-			   Groupsock* rtpgs, unsigned char rtpPayloadType,
-			   unsigned rtpTimestampFrequency,
-			   char const* rtpPayloadFormatName)
+               Groupsock* rtpgs, unsigned char rtpPayloadType,
+               unsigned rtpTimestampFrequency,
+               char const* rtpPayloadFormatName)
   : MultiFramedRTPSink(env, rtpgs, rtpPayloadType, rtpTimestampFrequency,
-		       rtpPayloadFormatName) {
+               rtpPayloadFormatName) {
 }
 
 VideoRTPSink::~VideoRTPSink() {

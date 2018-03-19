@@ -30,7 +30,7 @@ static char* getLine(char* startOfLine) {
       return ptr;
     }
   }
-  
+
   return NULL;
 }
 
@@ -55,7 +55,7 @@ Medium* createClient(UsageEnvironment& env, char const* /*url*/, int verbosityLe
 void assignClient(Medium* /*client*/) {
 }
 
-void getOptions(RTSPClient::responseHandler* afterFunc) { 
+void getOptions(RTSPClient::responseHandler* afterFunc) {
   ourSIPClient->envir().setResultMsg("NOT SUPPORTED IN CLIENT");
   afterFunc(NULL, -1, strDup(ourSIPClient->envir().getResultMsg()));
 }
@@ -70,7 +70,7 @@ void getSDPDescription(RTSPClient::responseHandler* afterFunc) {
     } else {
       NetAddress address = *(addresses.firstAddress());
       unsigned proxyServerAddress // later, allow for IPv6 #####
-	= *(unsigned*)(address.data());
+    = *(unsigned*)(address.data());
       extern unsigned short proxyServerPortNum;
       if (proxyServerPortNum == 0) proxyServerPortNum = 5060; // default
 
@@ -163,7 +163,7 @@ void startPlayingSession(MediaSession* /*session*/, double /*start*/, double /*e
   }
 }
 void startPlayingSession(MediaSession* /*session*/, const char* /*start*/, const char* /*end*/, float /*scale*/, RTSPClient::responseHandler* afterFunc) {
-	startPlayingSession(NULL,(double)0,(double)0,0,afterFunc);
+    startPlayingSession(NULL,(double)0,(double)0,0,afterFunc);
 }
 
 void tearDownSession(MediaSession* /*session*/, RTSPClient::responseHandler* afterFunc) {

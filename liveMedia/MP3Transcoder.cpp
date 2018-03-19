@@ -21,7 +21,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #include "MP3Transcoder.hh"
 
 MP3Transcoder::MP3Transcoder(UsageEnvironment& env,
-			     MP3ADUTranscoder* aduTranscoder)
+                 MP3ADUTranscoder* aduTranscoder)
   : MP3FromADUSource(env, aduTranscoder, False) {
 }
 
@@ -29,8 +29,8 @@ MP3Transcoder::~MP3Transcoder() {
 }
 
 MP3Transcoder* MP3Transcoder::createNew(UsageEnvironment& env,
-					unsigned outBitrate /* in kbps */,
-					FramedSource* inputSource) {
+                    unsigned outBitrate /* in kbps */,
+                    FramedSource* inputSource) {
   MP3Transcoder* newSource = NULL;
 
   do {

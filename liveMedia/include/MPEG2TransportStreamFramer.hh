@@ -56,11 +56,11 @@ private:
 
 private:
   static void afterGettingFrame(void* clientData, unsigned frameSize,
-				unsigned numTruncatedBytes,
-				struct timeval presentationTime,
-				unsigned durationInMicroseconds);
+                unsigned numTruncatedBytes,
+                struct timeval presentationTime,
+                unsigned durationInMicroseconds);
   void afterGettingFrame1(unsigned frameSize,
-			  struct timeval presentationTime);
+              struct timeval presentationTime);
 
   Boolean updateTSPacketDurationEstimate(unsigned char* pkt, double timeNow);
 

@@ -23,9 +23,9 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 void OggFileServerDemux
 ::createNew(UsageEnvironment& env, char const* fileName,
-	    onCreationFunc* onCreation, void* onCreationClientData) {
+        onCreationFunc* onCreation, void* onCreationClientData) {
   (void)new OggFileServerDemux(env, fileName,
-			       onCreation, onCreationClientData);
+                   onCreation, onCreationClientData);
 }
 
 ServerMediaSubsession* OggFileServerDemux::newServerMediaSubsession() {
@@ -81,7 +81,7 @@ FramedSource* OggFileServerDemux::newDemuxedTrack(unsigned clientSessionId, u_in
 
 OggFileServerDemux
 ::OggFileServerDemux(UsageEnvironment& env, char const* fileName,
-		     onCreationFunc* onCreation, void* onCreationClientData)
+             onCreationFunc* onCreation, void* onCreationClientData)
   : Medium(env),
     fFileName(fileName), fOnCreation(onCreation), fOnCreationClientData(onCreationClientData),
     fIter(NULL/*until the OggFile is created*/),

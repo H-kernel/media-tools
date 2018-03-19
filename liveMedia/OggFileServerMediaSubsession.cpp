@@ -41,10 +41,10 @@ FramedSource* OggFileServerMediaSubsession
 ::createNewStreamSource(unsigned clientSessionId, unsigned& estBitrate) {
   FramedSource* baseSource = fOurDemux.newDemuxedTrack(clientSessionId, fTrack->trackNumber);
   if (baseSource == NULL) return NULL;
-  
+
   return fOurDemux.ourOggFile()
     ->createSourceForStreaming(baseSource, fTrack->trackNumber,
-			       estBitrate, fNumFiltersInFrontOfTrack);
+                   estBitrate, fNumFiltersInFrontOfTrack);
 }
 
 RTPSink* OggFileServerMediaSubsession

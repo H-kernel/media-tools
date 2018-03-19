@@ -1,17 +1,17 @@
 /*
   eXosip - This is the eXtended osip library.
   Copyright (C) 2001-2015 Aymeric MOIZARD amoizard@antisip.com
-  
+
   eXosip is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
-  
+
   eXosip is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
-  
+
   You should have received a copy of the GNU General Public License
   along with this program; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -969,7 +969,7 @@ RSA_generate_key (int bits, unsigned long e_value, void (*callback) (int, int, v
   if (!rsa || !e)
     goto err;
 
-  /* The problem is when building with 8, 16, or 32 BN_ULONG,                                                                                                  
+  /* The problem is when building with 8, 16, or 32 BN_ULONG,
    * unsigned long can be larger */
   for (i = 0; i < (int) sizeof (unsigned long) * 8; i++) {
     if (e_value & (1UL << i))
@@ -1229,24 +1229,24 @@ initialize_client_ctx (struct eXosip_t * excontext, const char *certif_client_lo
       int verify_mode = SSL_VERIFY_NONE;
 
       if (excontext->tls_verify_client_certificate > 0 && sni_servernameindication!=NULL) {
-	X509_STORE *pkix_validation_store = SSL_CTX_get_cert_store (ctx);
-	const X509_VERIFY_PARAM *param = X509_VERIFY_PARAM_lookup ("ssl_server");
-	
-	if (param != NULL) { /* const value, we have to copy (inherit) */
-	  if (X509_VERIFY_PARAM_inherit (pkix_validation_store->param, param)) {
-	    X509_STORE_set_flags (pkix_validation_store, X509_V_FLAG_TRUSTED_FIRST);
-	    X509_STORE_set_flags (pkix_validation_store, X509_V_FLAG_PARTIAL_CHAIN);
-	  } else {
-	    OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL, "PARAM_inherit: failed for ssl_server\n"));
-	  }
-	  if (X509_VERIFY_PARAM_set1_host (pkix_validation_store->param, sni_servernameindication, 0)) {
-	    X509_VERIFY_PARAM_set_hostflags (pkix_validation_store->param, X509_CHECK_FLAG_NO_WILDCARDS);
-	  } else {
-	    OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL, "PARAM_set1_host: %s failed\n", sni_servernameindication));
-	  }
-	} else {
-	  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL, "PARAM_lookup: failed for ssl_server\n"));
-	}
+    X509_STORE *pkix_validation_store = SSL_CTX_get_cert_store (ctx);
+    const X509_VERIFY_PARAM *param = X509_VERIFY_PARAM_lookup ("ssl_server");
+
+    if (param != NULL) { /* const value, we have to copy (inherit) */
+      if (X509_VERIFY_PARAM_inherit (pkix_validation_store->param, param)) {
+        X509_STORE_set_flags (pkix_validation_store, X509_V_FLAG_TRUSTED_FIRST);
+        X509_STORE_set_flags (pkix_validation_store, X509_V_FLAG_PARTIAL_CHAIN);
+      } else {
+        OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL, "PARAM_inherit: failed for ssl_server\n"));
+      }
+      if (X509_VERIFY_PARAM_set1_host (pkix_validation_store->param, sni_servernameindication, 0)) {
+        X509_VERIFY_PARAM_set_hostflags (pkix_validation_store->param, X509_CHECK_FLAG_NO_WILDCARDS);
+      } else {
+        OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL, "PARAM_set1_host: %s failed\n", sni_servernameindication));
+      }
+    } else {
+      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL, "PARAM_lookup: failed for ssl_server\n"));
+    }
       }
 
       if (excontext->tls_verify_client_certificate > 0)
@@ -1430,11 +1430,11 @@ initialize_server_ctx (struct eXosip_t * excontext, const char *certif_local_cn_
 * The client context will be ALWAYS initialized, the server context only if certificates are available. The following chart should illustrate
 * the behaviour.
 *
-* possible certificates  | Client initialized			  | Server initialized
+* possible certificates  | Client initialized              | Server initialized
 * -------------------------------------------------------------------------------------
-* no certificate		 | yes, no cert used			  | not initialized
-* only client cert		 | yes, own cert (client) used    | yes, client cert used
-* only server cert		 | yes, server cert used		  | yes, own cert (server) used
+* no certificate         | yes, no cert used              | not initialized
+* only client cert         | yes, own cert (client) used    | yes, client cert used
+* only server cert         | yes, server cert used          | yes, own cert (server) used
 * server and client cert | yes, own cert (client) used    | yes, own cert (server) used
 *
 * The file for seeding the PRNG is only needed on Windows machines. If you compile under a Windows environment, please set W32 oder _WINDOWS as
@@ -2531,7 +2531,7 @@ _tls_tl_connect_socket (struct eXosip_t *excontext, char *host, int port, int re
             excontext->oc_local_port_current = excontext->oc_local_port_range[0];
 
           _eXosip_get_addrinfo(excontext, &oc_addrinfo, excontext->oc_local_address, excontext->oc_local_port_current, IPPROTO_TCP);
-            
+
           for (oc_curinfo = oc_addrinfo; oc_curinfo; oc_curinfo = oc_curinfo->ai_next) {
             if  (oc_curinfo->ai_protocol && oc_curinfo->ai_protocol != IPPROTO_TCP) {
               OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL, "Skipping protocol %d\n", oc_curinfo->ai_protocol));
@@ -2711,7 +2711,7 @@ _tls_tl_connect_socket (struct eXosip_t *excontext, char *host, int port, int re
     reserved->socket_tab[pos].ssl_ctx = NULL;
 
     osip_strncpy (reserved->socket_tab[pos].sni_servernameindication, host, sizeof (reserved->socket_tab[pos].sni_servernameindication) - 1);
-    
+
     {
       struct sockaddr_storage local_ai_addr;
       socklen_t selected_ai_addrlen;

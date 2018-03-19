@@ -39,7 +39,7 @@ Boolean FramedSource::isFramedSource() const {
 }
 
 Boolean FramedSource::lookupByName(UsageEnvironment& env, char const* sourceName,
-				   FramedSource*& resultSource) {
+                   FramedSource*& resultSource) {
   resultSource = NULL; // unless we succeed
 
   MediaSource* source;
@@ -55,10 +55,10 @@ Boolean FramedSource::lookupByName(UsageEnvironment& env, char const* sourceName
 }
 
 void FramedSource::getNextFrame(unsigned char* to, unsigned maxSize,
-				afterGettingFunc* afterGettingFunc,
-				void* afterGettingClientData,
-				onCloseFunc* onCloseFunc,
-				void* onCloseClientData) {
+                afterGettingFunc* afterGettingFunc,
+                void* afterGettingClientData,
+                onCloseFunc* onCloseFunc,
+                void* onCloseClientData) {
   // Make sure we're not already being read:
   if (fIsCurrentlyAwaitingData) {
     envir() << "FramedSource[" << this << "]::getNextFrame(): attempting to read more than once at the same time!\n";
@@ -87,9 +87,9 @@ void FramedSource::afterGetting(FramedSource* source) {
 
   if (source->fAfterGettingFunc != NULL) {
     (*(source->fAfterGettingFunc))(source->fAfterGettingClientData,
-				   source->fFrameSize, source->fNumTruncatedBytes,
-				   source->fPresentationTime,
-				   source->fDurationInMicroseconds);
+                   source->fFrameSize, source->fNumTruncatedBytes,
+                   source->fPresentationTime,
+                   source->fDurationInMicroseconds);
   }
 }
 

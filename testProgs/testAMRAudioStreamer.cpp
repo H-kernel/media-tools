@@ -64,9 +64,9 @@ int main(int argc, char** argv) {
   CNAME[maxCNAMElen] = '\0'; // just in case
   RTCPInstance* rtcp
     = RTCPInstance::createNew(*env, &rtcpGroupsock,
-			      estimatedSessionBandwidth, CNAME,
-			      audioSink, NULL /* we're a server */,
-			      True /* we're a SSM source */);
+                  estimatedSessionBandwidth, CNAME,
+                  audioSink, NULL /* we're a server */,
+                  True /* we're a SSM source */);
   // Note: This starts RTCP running automatically
 
   // Create and start a RTSP server to serve this stream.
@@ -77,8 +77,8 @@ int main(int argc, char** argv) {
   }
   ServerMediaSession* sms
     = ServerMediaSession::createNew(*env, "testStream", inputFileName,
-		   "Session streamed by \"testAMRAudioStreamer\"",
-					   True /*SSM*/);
+           "Session streamed by \"testAMRAudioStreamer\"",
+                       True /*SSM*/);
   sms->addSubsession(PassiveServerMediaSubsession::createNew(*audioSink, rtcp));
   rtspServer->addServerMediaSession(sms);
 
@@ -111,8 +111,8 @@ void play() {
     = AMRAudioFileSource::createNew(*env, inputFileName);
   if (audioSource == NULL) {
     *env << "Unable to open file \"" << inputFileName
-	 << "\" as an AMR audio file source: "
-	 << env->getResultMsg() << "\n";
+     << "\" as an AMR audio file source: "
+     << env->getResultMsg() << "\n";
     exit(1);
   }
 

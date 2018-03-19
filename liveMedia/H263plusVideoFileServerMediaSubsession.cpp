@@ -29,15 +29,15 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 H263plusVideoFileServerMediaSubsession*
 H263plusVideoFileServerMediaSubsession::createNew(UsageEnvironment& env,
-						  char const* fileName,
-						  Boolean reuseFirstSource) {
+                          char const* fileName,
+                          Boolean reuseFirstSource) {
   return new H263plusVideoFileServerMediaSubsession(env, fileName, reuseFirstSource);
 }
 
 H263plusVideoFileServerMediaSubsession
 ::H263plusVideoFileServerMediaSubsession(UsageEnvironment& env,
-					 char const* fileName,
-					 Boolean reuseFirstSource)
+                     char const* fileName,
+                     Boolean reuseFirstSource)
   : FileServerMediaSubsession(env, fileName, reuseFirstSource) {
 }
 
@@ -58,7 +58,7 @@ FramedSource* H263plusVideoFileServerMediaSubsession
 }
 
 RTPSink* H263plusVideoFileServerMediaSubsession::createNewRTPSink(Groupsock* rtpGroupsock,
-								  unsigned char rtpPayloadTypeIfDynamic,
-								  FramedSource* /*inputSource*/) {
+                                  unsigned char rtpPayloadTypeIfDynamic,
+                                  FramedSource* /*inputSource*/) {
   return H263plusVideoRTPSink::createNew(envir(), rtpGroupsock, rtpPayloadTypeIfDynamic);
 }

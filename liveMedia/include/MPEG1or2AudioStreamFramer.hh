@@ -29,7 +29,7 @@ class MPEG1or2AudioStreamFramer: public FramedFilter {
 public:
   static MPEG1or2AudioStreamFramer*
   createNew(UsageEnvironment& env, FramedSource* inputSource,
-	    Boolean syncWithInputSource = False);
+        Boolean syncWithInputSource = False);
   // If "syncWithInputSource" is True, the stream's presentation time
   // will be reset to that of the input source, whenever new data
   // is read from it.
@@ -38,13 +38,13 @@ public:
 
 private:
   MPEG1or2AudioStreamFramer(UsageEnvironment& env, FramedSource* inputSource,
-			    Boolean syncWithInputSource);
+                Boolean syncWithInputSource);
       // called only by createNew()
   virtual ~MPEG1or2AudioStreamFramer();
 
   static void continueReadProcessing(void* clientData,
-				     unsigned char* ptr, unsigned size,
-				     struct timeval presentationTime);
+                     unsigned char* ptr, unsigned size,
+                     struct timeval presentationTime);
   void continueReadProcessing();
 
   void resetPresentationTime(struct timeval newPresentationTime);

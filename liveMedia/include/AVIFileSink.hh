@@ -28,13 +28,13 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class AVIFileSink: public Medium {
 public:
   static AVIFileSink* createNew(UsageEnvironment& env,
-				MediaSession& inputSession,
-				char const* outputFileName,
-				unsigned bufferSize = 20000,
-				unsigned short movieWidth = 240,
-				unsigned short movieHeight = 180,
-				unsigned movieFPS = 15,
-				Boolean packetLossCompensate = False);
+                MediaSession& inputSession,
+                char const* outputFileName,
+                unsigned bufferSize = 20000,
+                unsigned short movieWidth = 240,
+                unsigned short movieHeight = 180,
+                unsigned movieFPS = 15,
+                Boolean packetLossCompensate = False);
 
   typedef void (afterPlayingFunc)(void* clientData);
   Boolean startPlaying(afterPlayingFunc* afterFunc,
@@ -44,17 +44,17 @@ public:
 
 private:
   AVIFileSink(UsageEnvironment& env, MediaSession& inputSession,
-	      char const* outputFileName, unsigned bufferSize,
-	      unsigned short movieWidth, unsigned short movieHeight,
-	      unsigned movieFPS, Boolean packetLossCompensate);
+          char const* outputFileName, unsigned bufferSize,
+          unsigned short movieWidth, unsigned short movieHeight,
+          unsigned movieFPS, Boolean packetLossCompensate);
       // called only by createNew()
   virtual ~AVIFileSink();
 
   Boolean continuePlaying();
   static void afterGettingFrame(void* clientData, unsigned frameSize,
-				unsigned numTruncatedBytes,
-				struct timeval presentationTime,
-				unsigned durationInMicroseconds);
+                unsigned numTruncatedBytes,
+                struct timeval presentationTime,
+                unsigned durationInMicroseconds);
   static void onSourceClosure(void* clientData);
   void onSourceClosure1();
   static void onRTCPBye(void* clientData);

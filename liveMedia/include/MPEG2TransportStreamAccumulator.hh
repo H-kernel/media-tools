@@ -29,12 +29,12 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class MPEG2TransportStreamAccumulator: public FramedFilter {
 public:
   static MPEG2TransportStreamAccumulator* createNew(UsageEnvironment& env,
-						    FramedSource* inputSource,
-						    unsigned maxPacketSize = 1456);
+                            FramedSource* inputSource,
+                            unsigned maxPacketSize = 1456);
 
 protected:
   MPEG2TransportStreamAccumulator(UsageEnvironment& env,
-				  FramedSource* inputSource, unsigned maxPacketSize);
+                  FramedSource* inputSource, unsigned maxPacketSize);
       // called only by createNew()
   virtual ~MPEG2TransportStreamAccumulator();
 
@@ -72,12 +72,12 @@ private:
 class MP3Transcoder: public MP3FromADUSource {
 public:
   static MP3Transcoder* createNew(UsageEnvironment& env,
-				  unsigned outBitrate /* in kbps */,
-				  FramedSource* inputSource);
+                  unsigned outBitrate /* in kbps */,
+                  FramedSource* inputSource);
 
 protected:
   MP3Transcoder(UsageEnvironment& env,
-		MP3ADUTranscoder* aduTranscoder);
+        MP3ADUTranscoder* aduTranscoder);
       // called only by createNew()
   virtual ~MP3Transcoder();
 };

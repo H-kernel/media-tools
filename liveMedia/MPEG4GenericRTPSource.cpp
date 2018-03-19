@@ -31,7 +31,7 @@ public:
 
 private: // redefined virtual functions
   virtual unsigned nextEnclosedFrameSize(unsigned char*& framePtr,
-					 unsigned dataSize);
+                     unsigned dataSize);
 private:
   MPEG4GenericRTPSource* fOurSource;
 };
@@ -55,32 +55,32 @@ struct AUHeader {
 
 MPEG4GenericRTPSource*
 MPEG4GenericRTPSource::createNew(UsageEnvironment& env, Groupsock* RTPgs,
-				 unsigned char rtpPayloadFormat,
-				 unsigned rtpTimestampFrequency,
-				 char const* mediumName,
-				 char const* mode,
-				 unsigned sizeLength, unsigned indexLength,
-				 unsigned indexDeltaLength
-				 ) {
+                 unsigned char rtpPayloadFormat,
+                 unsigned rtpTimestampFrequency,
+                 char const* mediumName,
+                 char const* mode,
+                 unsigned sizeLength, unsigned indexLength,
+                 unsigned indexDeltaLength
+                 ) {
   return new MPEG4GenericRTPSource(env, RTPgs, rtpPayloadFormat,
-				   rtpTimestampFrequency, mediumName,
-				   mode, sizeLength, indexLength,
-				   indexDeltaLength
-				   );
+                   rtpTimestampFrequency, mediumName,
+                   mode, sizeLength, indexLength,
+                   indexDeltaLength
+                   );
 }
 
 MPEG4GenericRTPSource
 ::MPEG4GenericRTPSource(UsageEnvironment& env, Groupsock* RTPgs,
-			unsigned char rtpPayloadFormat,
-			unsigned rtpTimestampFrequency,
-			char const* mediumName,
+            unsigned char rtpPayloadFormat,
+            unsigned rtpTimestampFrequency,
+            char const* mediumName,
                         char const* mode,
                         unsigned sizeLength, unsigned indexLength,
                         unsigned indexDeltaLength
                         )
   : MultiFramedRTPSource(env, RTPgs,
-			 rtpPayloadFormat, rtpTimestampFrequency,
-			 new MPEG4GenericBufferedPacketFactory),
+             rtpPayloadFormat, rtpTimestampFrequency,
+             new MPEG4GenericBufferedPacketFactory),
   fSizeLength(sizeLength), fIndexLength(indexLength),
   fIndexDeltaLength(indexDeltaLength),
   fNumAUHeaders(0), fNextAUHeader(0), fAUHeaders(NULL) {
@@ -94,9 +94,9 @@ MPEG4GenericRTPSource
     fMode = strDup(mode);
     // Check for a "mode" that we don't yet support: //#####
     if (mode == NULL ||
-	(strcmp(mode, "aac-hbr") != 0 && strcmp(mode, "generic") != 0)) {
+    (strcmp(mode, "aac-hbr") != 0 && strcmp(mode, "generic") != 0)) {
       envir() << "MPEG4GenericRTPSource Warning: Unknown or unsupported \"mode\": "
-	      << mode << "\n";
+          << mode << "\n";
     }
 }
 
@@ -108,7 +108,7 @@ MPEG4GenericRTPSource::~MPEG4GenericRTPSource() {
 
 Boolean MPEG4GenericRTPSource
 ::processSpecialHeader(BufferedPacket* packet,
-		       unsigned& resultSpecialHeaderSize) {
+               unsigned& resultSpecialHeaderSize) {
   unsigned char* headerStart = packet->data();
   unsigned packetSize = packet->dataSize();
 
@@ -133,7 +133,7 @@ Boolean MPEG4GenericRTPSource
     unsigned AU_headers_length = (headerStart[0]<<8)|headerStart[1];
     unsigned AU_headers_length_bytes = (AU_headers_length+7)/8;
     if (packetSize
-	< resultSpecialHeaderSize + AU_headers_length_bytes) return False;
+    < resultSpecialHeaderSize + AU_headers_length_bytes) return False;
     resultSpecialHeaderSize += AU_headers_length_bytes;
 
     // Figure out how many AU-headers are present in the packet:
@@ -149,8 +149,8 @@ Boolean MPEG4GenericRTPSource
       fAUHeaders[0].index = bv.getBits(fIndexLength);
 
       for (unsigned i = 1; i < fNumAUHeaders; ++i) {
-	fAUHeaders[i].size = bv.getBits(fSizeLength);
-	fAUHeaders[i].index = bv.getBits(fIndexDeltaLength);
+    fAUHeaders[i].size = bv.getBits(fSizeLength);
+    fAUHeaders[i].index = bv.getBits(fIndexDeltaLength);
       }
     }
 
@@ -184,9 +184,9 @@ unsigned MPEG4GenericBufferedPacket
 
   if (fOurSource->fNextAUHeader >= numAUHeaders) {
     fOurSource->envir() << "MPEG4GenericBufferedPacket::nextEnclosedFrameSize("
-			<< dataSize << "): data error ("
-			<< auHeader << "," << fOurSource->fNextAUHeader
-			<< "," << numAUHeaders << ")!\n";
+            << dataSize << "): data error ("
+            << auHeader << "," << fOurSource->fNextAUHeader
+            << "," << numAUHeaders << ")!\n";
     return dataSize;
   }
 

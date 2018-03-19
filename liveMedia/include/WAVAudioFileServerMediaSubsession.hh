@@ -30,13 +30,13 @@ class WAVAudioFileServerMediaSubsession: public FileServerMediaSubsession{
 public:
   static WAVAudioFileServerMediaSubsession*
   createNew(UsageEnvironment& env, char const* fileName, Boolean reuseFirstSource,
-	    Boolean convertToULaw = False);
+        Boolean convertToULaw = False);
       // If "convertToULaw" is True, 16-bit audio streams are converted to
       // 8-bit u-law audio prior to streaming.
 
 protected:
   WAVAudioFileServerMediaSubsession(UsageEnvironment& env, char const* fileName,
-				    Boolean reuseFirstSource, Boolean convertToULaw);
+                    Boolean reuseFirstSource, Boolean convertToULaw);
       // called only by createNew();
   virtual ~WAVAudioFileServerMediaSubsession();
 
@@ -46,10 +46,10 @@ protected: // redefined virtual functions
   virtual void setStreamSourceDuration(FramedSource* inputSource, double streamDuration, u_int64_t& numBytes);
 
   virtual FramedSource* createNewStreamSource(unsigned clientSessionId,
-					      unsigned& estBitrate);
+                          unsigned& estBitrate);
   virtual RTPSink* createNewRTPSink(Groupsock* rtpGroupsock,
                                     unsigned char rtpPayloadTypeIfDynamic,
-				    FramedSource* inputSource);
+                    FramedSource* inputSource);
   virtual void testScaleFactor(float& scale);
   virtual float duration() const;
 

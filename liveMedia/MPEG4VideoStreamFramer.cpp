@@ -44,7 +44,7 @@ enum MPEGParseState {
 class MPEG4VideoStreamParser: public MPEGVideoStreamParser {
 public:
   MPEG4VideoStreamParser(MPEG4VideoStreamFramer* usingSource,
-			 FramedSource* inputSource);
+             FramedSource* inputSource);
   virtual ~MPEG4VideoStreamParser();
 
 private: // redefined virtual functions:
@@ -89,7 +89,7 @@ private:
 
 MPEG4VideoStreamFramer*
 MPEG4VideoStreamFramer::createNew(UsageEnvironment& env,
-				  FramedSource* inputSource) {
+                  FramedSource* inputSource) {
   // Need to add source type checking here???  #####
   return new MPEG4VideoStreamFramer(env, inputSource);
 }
@@ -109,8 +109,8 @@ void MPEG4VideoStreamFramer
 }
 
 MPEG4VideoStreamFramer::MPEG4VideoStreamFramer(UsageEnvironment& env,
-					       FramedSource* inputSource,
-					       Boolean createParser)
+                           FramedSource* inputSource,
+                           Boolean createParser)
   : MPEGVideoStreamFramer(env, inputSource),
     fProfileAndLevelIndication(0),
     fConfigBytes(NULL), fNumConfigBytes(0),
@@ -158,7 +158,7 @@ Boolean MPEG4VideoStreamFramer::isMPEG4VideoStreamFramer() const {
 
 MPEG4VideoStreamParser
 ::MPEG4VideoStreamParser(MPEG4VideoStreamFramer* usingSource,
-			 FramedSource* inputSource)
+             FramedSource* inputSource)
   : MPEGVideoStreamParser(usingSource, inputSource),
     fCurrentParseState(PARSING_VISUAL_OBJECT_SEQUENCE),
     vop_time_increment_resolution(0), fNumVTIRBits(0),
@@ -346,7 +346,7 @@ Boolean MPEG4VideoStreamParser::getNextFrameBit(u_int8_t& result) {
 }
 
 Boolean MPEG4VideoStreamParser::getNextFrameBits(unsigned numBits,
-						 u_int32_t& result) {
+                         u_int32_t& result) {
   result = 0;
   for (unsigned i = 0; i < numBits; ++i) {
     u_int8_t nextBit;
@@ -413,7 +413,7 @@ void MPEG4VideoStreamParser::analyzeVOLHeader() {
 #ifdef DEBUG
       fprintf(stderr, "fixed_vop_time_increment: %d\n", fixed_vop_time_increment);
       if (fixed_vop_time_increment == 0) {
-	usingSource()->envir() << "MPEG4VideoStreamParser::analyzeVOLHeader(): fixed_vop_time_increment is zero!\n";
+    usingSource()->envir() << "MPEG4VideoStreamParser::analyzeVOLHeader(): fixed_vop_time_increment is zero!\n";
       }
 #endif
     }
@@ -451,13 +451,13 @@ unsigned MPEG4VideoStreamParser::parseVideoObjectLayer() {
   do {
     saveToNextCode(next4Bytes);
   } while (next4Bytes != GROUP_VOP_START_CODE
-	   && next4Bytes != VOP_START_CODE);
+       && next4Bytes != VOP_START_CODE);
 
   analyzeVOLHeader();
 
   setParseState((next4Bytes == GROUP_VOP_START_CODE)
                 ? PARSING_GROUP_OF_VIDEO_OBJECT_PLANE
-		: PARSING_VIDEO_OBJECT_PLANE);
+        : PARSING_VIDEO_OBJECT_PLANE);
 
   // Compute this frame's presentation time:
   usingSource()->computePresentationTime(fTotalTicksSinceLastTimeCode);
@@ -591,26 +591,26 @@ unsigned MPEG4VideoStreamParser::parseVideoObjectPlane() {
       fSecondsSinceLastTimeCode += modulo_time_base;
     } else {
       if (newTotalTicks < fPrevNewTotalTicks && vop_coding_type != 2/*B*/
-	  && modulo_time_base == 0 && vop_time_increment == 0 && !fJustSawTimeCode) {
-	// This is another kind of buggy MPEG-4 video stream, in which
-	// "vop_time_increment" wraps around, but without
-	// "modulo_time_base" changing (or just having had a new time code).
-	// Overcome this by pretending that "vop_time_increment" *did* wrap around:
+      && modulo_time_base == 0 && vop_time_increment == 0 && !fJustSawTimeCode) {
+    // This is another kind of buggy MPEG-4 video stream, in which
+    // "vop_time_increment" wraps around, but without
+    // "modulo_time_base" changing (or just having had a new time code).
+    // Overcome this by pretending that "vop_time_increment" *did* wrap around:
 #ifdef DEBUG
-	fprintf(stderr, "Buggy MPEG-4 video stream: \"vop_time_increment\" wrapped around, but without \"modulo_time_base\" changing!\n");
+    fprintf(stderr, "Buggy MPEG-4 video stream: \"vop_time_increment\" wrapped around, but without \"modulo_time_base\" changing!\n");
 #endif
-	++fSecondsSinceLastTimeCode;
-	newTotalTicks += vop_time_increment_resolution;
+    ++fSecondsSinceLastTimeCode;
+    newTotalTicks += vop_time_increment_resolution;
       }
       fPrevNewTotalTicks = newTotalTicks;
       if (vop_coding_type != 2/*B*/) {
-	int pictureCountDelta = newTotalTicks - fTotalTicksSinceLastTimeCode;
-	if (pictureCountDelta <= 0) pictureCountDelta = fPrevPictureCountDelta;
-	    // ensures that the picture count is always increasing
-	usingSource()->fPictureCount += pictureCountDelta;
-	fPrevPictureCountDelta = pictureCountDelta;
-	fTotalTicksSinceLastTimeCode = newTotalTicks;
-	fSecondsSinceLastTimeCode += modulo_time_base;
+    int pictureCountDelta = newTotalTicks - fTotalTicksSinceLastTimeCode;
+    if (pictureCountDelta <= 0) pictureCountDelta = fPrevPictureCountDelta;
+        // ensures that the picture count is always increasing
+    usingSource()->fPictureCount += pictureCountDelta;
+    fPrevPictureCountDelta = pictureCountDelta;
+    fTotalTicksSinceLastTimeCode = newTotalTicks;
+    fSecondsSinceLastTimeCode += modulo_time_base;
       }
     }
   }
@@ -647,12 +647,12 @@ unsigned MPEG4VideoStreamParser::parseVideoObjectPlane() {
       // copy all bytes that we see, up until we reach a VOP_START_CODE:
       u_int32_t next4Bytes = get4Bytes();
       while (next4Bytes != VOP_START_CODE) {
-	saveToNextCode(next4Bytes);
+    saveToNextCode(next4Bytes);
       }
       setParseState(PARSING_VIDEO_OBJECT_PLANE);
     } else {
       usingSource()->envir() << "MPEG4VideoStreamParser::parseVideoObjectPlane(): Saw unexpected code "
-			     << (void*)next4Bytes << "\n";
+                 << (void*)next4Bytes << "\n";
       setParseState(PARSING_VIDEO_OBJECT_PLANE); // the safest way to recover...
     }
     break;

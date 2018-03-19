@@ -44,7 +44,7 @@ NetAddress::NetAddress(unsigned length) {
     return;
   }
 
-  for (unsigned i = 0; i < length; ++i)	fData[i] = 0;
+  for (unsigned i = 0; i < length; ++i)    fData[i] = 0;
   fLength = length;
 }
 
@@ -71,7 +71,7 @@ void NetAddress::assign(u_int8_t const* data, unsigned length) {
     return;
   }
 
-  for (unsigned i = 0; i < length; ++i)	fData[i] = data[i];
+  for (unsigned i = 0; i < length; ++i)    fData[i] = data[i];
   fLength = length;
 }
 
@@ -96,7 +96,7 @@ NetAddressList::NetAddressList(char const* hostname)
     fAddressArray[0] = new NetAddress((u_int8_t*)&addr, sizeof (netAddressBits));
     return;
   }
-    
+
   // "hostname" is not an IP address string; try resolving it as a real host name instead:
 #if defined(USE_GETHOSTBYNAME) || defined(VXWORKS)
   struct hostent* host;
@@ -232,8 +232,8 @@ AddressPortLookupTable::~AddressPortLookupTable() {
 }
 
 void* AddressPortLookupTable::Add(netAddressBits address1,
-				  netAddressBits address2,
-				  Port port, void* value) {
+                  netAddressBits address2,
+                  Port port, void* value) {
   int key[3];
   key[0] = (int)address1;
   key[1] = (int)address2;
@@ -242,8 +242,8 @@ void* AddressPortLookupTable::Add(netAddressBits address1,
 }
 
 void* AddressPortLookupTable::Lookup(netAddressBits address1,
-				     netAddressBits address2,
-				     Port port) {
+                     netAddressBits address2,
+                     Port port) {
   int key[3];
   key[0] = (int)address1;
   key[1] = (int)address2;
@@ -252,8 +252,8 @@ void* AddressPortLookupTable::Lookup(netAddressBits address1,
 }
 
 Boolean AddressPortLookupTable::Remove(netAddressBits address1,
-				       netAddressBits address2,
-				       Port port) {
+                       netAddressBits address2,
+                       Port port) {
   int key[3];
   key[0] = (int)address1;
   key[1] = (int)address2;

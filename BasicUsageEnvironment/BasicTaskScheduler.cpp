@@ -29,7 +29,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 ////////// BasicTaskScheduler //////////
 
 BasicTaskScheduler* BasicTaskScheduler::createNew(unsigned maxSchedulerGranularity) {
-	return new BasicTaskScheduler(maxSchedulerGranularity);
+    return new BasicTaskScheduler(maxSchedulerGranularity);
 }
 
 BasicTaskScheduler::BasicTaskScheduler(unsigned maxSchedulerGranularity)
@@ -82,7 +82,7 @@ void BasicTaskScheduler::SingleStep(unsigned maxDelayTime) {
   if (maxDelayTime > 0 &&
       (tv_timeToDelay.tv_sec > (long)maxDelayTime/MILLION ||
        (tv_timeToDelay.tv_sec == (long)maxDelayTime/MILLION &&
-	tv_timeToDelay.tv_usec > (long)maxDelayTime%MILLION))) {
+    tv_timeToDelay.tv_usec > (long)maxDelayTime%MILLION))) {
     tv_timeToDelay.tv_sec = maxDelayTime/MILLION;
     tv_timeToDelay.tv_usec = maxDelayTime%MILLION;
   }
@@ -104,25 +104,25 @@ void BasicTaskScheduler::SingleStep(unsigned maxDelayTime) {
 #else
     if (errno != EINTR && errno != EAGAIN) {
 #endif
-	// Unexpected error - treat this as fatal:
+    // Unexpected error - treat this as fatal:
 #if !defined(_WIN32_WCE)
-	perror("BasicTaskScheduler::SingleStep(): select() fails");
-	// Because this failure is often "Bad file descriptor" - which is caused by an invalid socket number (i.e., a socket number
-	// that had already been closed) being used in "select()" - we print out the sockets that were being used in "select()",
-	// to assist in debugging:
-	fprintf(stderr, "socket numbers used in the select() call:");
-	for (int i = 0; i < 10000; ++i) {
-	  if (FD_ISSET(i, &fReadSet) || FD_ISSET(i, &fWriteSet) || FD_ISSET(i, &fExceptionSet)) {
-	    fprintf(stderr, " %d(", i);
-	    if (FD_ISSET(i, &fReadSet)) fprintf(stderr, "r");
-	    if (FD_ISSET(i, &fWriteSet)) fprintf(stderr, "w");
-	    if (FD_ISSET(i, &fExceptionSet)) fprintf(stderr, "e");
-	    fprintf(stderr, ")");
-	  }
-	}
-	fprintf(stderr, "\n");
+    perror("BasicTaskScheduler::SingleStep(): select() fails");
+    // Because this failure is often "Bad file descriptor" - which is caused by an invalid socket number (i.e., a socket number
+    // that had already been closed) being used in "select()" - we print out the sockets that were being used in "select()",
+    // to assist in debugging:
+    fprintf(stderr, "socket numbers used in the select() call:");
+    for (int i = 0; i < 10000; ++i) {
+      if (FD_ISSET(i, &fReadSet) || FD_ISSET(i, &fWriteSet) || FD_ISSET(i, &fExceptionSet)) {
+        fprintf(stderr, " %d(", i);
+        if (FD_ISSET(i, &fReadSet)) fprintf(stderr, "r");
+        if (FD_ISSET(i, &fWriteSet)) fprintf(stderr, "w");
+        if (FD_ISSET(i, &fExceptionSet)) fprintf(stderr, "e");
+        fprintf(stderr, ")");
+      }
+    }
+    fprintf(stderr, "\n");
 #endif
-	internalError();
+    internalError();
       }
   }
 
@@ -165,11 +165,11 @@ void BasicTaskScheduler::SingleStep(unsigned maxDelayTime) {
       if (FD_ISSET(sock, &writeSet) && FD_ISSET(sock, &fWriteSet)/*sanity check*/) resultConditionSet |= SOCKET_WRITABLE;
       if (FD_ISSET(sock, &exceptionSet) && FD_ISSET(sock, &fExceptionSet)/*sanity check*/) resultConditionSet |= SOCKET_EXCEPTION;
       if ((resultConditionSet&handler->conditionSet) != 0 && handler->handlerProc != NULL) {
-	fLastHandledSocketNum = sock;
-	    // Note: we set "fLastHandledSocketNum" before calling the handler,
+    fLastHandledSocketNum = sock;
+        // Note: we set "fLastHandledSocketNum" before calling the handler,
             // in case the handler calls "doEventLoop()" reentrantly.
-	(*handler->handlerProc)(handler->clientData, resultConditionSet);
-	break;
+    (*handler->handlerProc)(handler->clientData, resultConditionSet);
+    break;
       }
     }
     if (handler == NULL) fLastHandledSocketNum = -1;//because we didn't call a handler
@@ -182,7 +182,7 @@ void BasicTaskScheduler::SingleStep(unsigned maxDelayTime) {
       // Common-case optimization for a single event trigger:
       fTriggersAwaitingHandling &=~ fLastUsedTriggerMask;
       if (fTriggeredEventHandlers[fLastUsedTriggerNum] != NULL) {
-	(*fTriggeredEventHandlers[fLastUsedTriggerNum])(fTriggeredEventClientDatas[fLastUsedTriggerNum]);
+    (*fTriggeredEventHandlers[fLastUsedTriggerNum])(fTriggeredEventClientDatas[fLastUsedTriggerNum]);
       }
     } else {
       // Look for an event trigger that needs handling (making sure that we make forward progress through all possible triggers):
@@ -190,20 +190,20 @@ void BasicTaskScheduler::SingleStep(unsigned maxDelayTime) {
       EventTriggerId mask = fLastUsedTriggerMask;
 
       do {
-	i = (i+1)%MAX_NUM_EVENT_TRIGGERS;
-	mask >>= 1;
-	if (mask == 0) mask = 0x80000000;
+    i = (i+1)%MAX_NUM_EVENT_TRIGGERS;
+    mask >>= 1;
+    if (mask == 0) mask = 0x80000000;
 
-	if ((fTriggersAwaitingHandling&mask) != 0) {
-	  fTriggersAwaitingHandling &=~ mask;
-	  if (fTriggeredEventHandlers[i] != NULL) {
-	    (*fTriggeredEventHandlers[i])(fTriggeredEventClientDatas[i]);
-	  }
+    if ((fTriggersAwaitingHandling&mask) != 0) {
+      fTriggersAwaitingHandling &=~ mask;
+      if (fTriggeredEventHandlers[i] != NULL) {
+        (*fTriggeredEventHandlers[i])(fTriggeredEventClientDatas[i]);
+      }
 
-	  fLastUsedTriggerMask = mask;
-	  fLastUsedTriggerNum = i;
-	  break;
-	}
+      fLastUsedTriggerMask = mask;
+      fLastUsedTriggerNum = i;
+      break;
+    }
       } while (i != fLastUsedTriggerNum);
     }
   }

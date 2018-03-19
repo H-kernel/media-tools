@@ -40,8 +40,8 @@ extern "C"{
 **/
 struct _RtpProfile
 {
-	char *name;
-	PayloadType *payload[RTP_PROFILE_MAX_PAYLOADS];
+    char *name;
+    PayloadType *payload[RTP_PROFILE_MAX_PAYLOADS];
 };
 
 
@@ -49,33 +49,33 @@ typedef struct _RtpProfile RtpProfile;
 
 ORTP_VAR_PUBLIC RtpProfile av_profile;
 
-#define rtp_profile_get_name(profile) 	(const char*)((profile)->name)
+#define rtp_profile_get_name(profile)     (const char*)((profile)->name)
 
 ORTP_PUBLIC void rtp_profile_set_payload(RtpProfile *prof, int idx, PayloadType *pt);
 
 /**
- *	Set payload type number @index unassigned in the profile.
+ *    Set payload type number @index unassigned in the profile.
  *
  *@param profile an RTP profile
- *@param index	the payload type number
+ *@param index    the payload type number
 **/
 #define rtp_profile_clear_payload(profile,index) \
-	rtp_profile_set_payload(profile,index,NULL)
+    rtp_profile_set_payload(profile,index,NULL)
 
 /* I prefer have this function inlined because it is very often called in the code */
 /**
  *
- *	Gets the payload description of the payload type @index in the profile.
+ *    Gets the payload description of the payload type @index in the profile.
  *
  *@param profile an RTP profile (a #RtpProfile object)
- *@param index	the payload type number
+ *@param index    the payload type number
  *@return the payload description (a PayloadType object)
 **/
 static ORTP_INLINE PayloadType * rtp_profile_get_payload(const RtpProfile *prof, int idx){
-	if (idx<0 || idx>=RTP_PROFILE_MAX_PAYLOADS) {
-		return NULL;
-	}
-	return prof->payload[idx];
+    if (idx<0 || idx>=RTP_PROFILE_MAX_PAYLOADS) {
+        return NULL;
+    }
+    return prof->payload[idx];
 }
 ORTP_PUBLIC void rtp_profile_clear_all(RtpProfile *prof);
 ORTP_PUBLIC void rtp_profile_set_name(RtpProfile *prof, const char *name);

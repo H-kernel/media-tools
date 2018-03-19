@@ -90,7 +90,7 @@ struct evdns_base *evdns_get_global_base(void);
     function is evdns_base_shutdown().
 
   @param fail_requests if zero, active requests will be aborted; if non-zero,
-		active requests will return DNS_ERR_SHUTDOWN.
+        active requests will return DNS_ERR_SHUTDOWN.
   @see evdns_init()
  */
 void evdns_shutdown(int fail_requests);

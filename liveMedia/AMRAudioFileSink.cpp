@@ -26,7 +26,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 AMRAudioFileSink
 ::AMRAudioFileSink(UsageEnvironment& env, FILE* fid, unsigned bufferSize,
-		   char const* perFrameFileNamePrefix)
+           char const* perFrameFileNamePrefix)
   : FileSink(env, fid, bufferSize, perFrameFileNamePrefix),
     fHaveWrittenHeader(False) {
 }
@@ -36,7 +36,7 @@ AMRAudioFileSink::~AMRAudioFileSink() {
 
 AMRAudioFileSink*
 AMRAudioFileSink::createNew(UsageEnvironment& env, char const* fileName,
-			    unsigned bufferSize, Boolean oneFilePerFrame) {
+                unsigned bufferSize, Boolean oneFilePerFrame) {
   do {
     FILE* fid;
     char const* perFrameFileNamePrefix;
@@ -63,8 +63,8 @@ Boolean AMRAudioFileSink::sourceIsCompatibleWithUs(MediaSource& source) {
 }
 
 void AMRAudioFileSink::afterGettingFrame(unsigned frameSize,
-					 unsigned numTruncatedBytes,
-					 struct timeval presentationTime) {
+                     unsigned numTruncatedBytes,
+                     struct timeval presentationTime) {
   AMRAudioSource* source = (AMRAudioSource*)fSource;
   if (source == NULL) return; // sanity check
 
@@ -74,8 +74,8 @@ void AMRAudioFileSink::afterGettingFrame(unsigned frameSize,
     // (However, we don't do this if we're creating one file per frame.)
     char headerBuffer[100];
     sprintf(headerBuffer, "#!AMR%s%s\n",
-	    source->isWideband() ? "-WB" : "",
-	    source->numChannels() > 1 ? "_MC1.0" : "");
+        source->isWideband() ? "-WB" : "",
+        source->numChannels() > 1 ? "_MC1.0" : "");
     unsigned headerLength = strlen(headerBuffer);
     if (source->numChannels() > 1) {
       // Also add a 32-bit channel description field:

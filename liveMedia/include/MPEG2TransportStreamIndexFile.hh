@@ -33,7 +33,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class MPEG2TransportStreamIndexFile: public Medium {
 public:
   static MPEG2TransportStreamIndexFile* createNew(UsageEnvironment& env,
-						  char const* indexFileName);
+                          char const* indexFileName);
 
   virtual ~MPEG2TransportStreamIndexFile();
 
@@ -41,21 +41,21 @@ public:
   // in the original Transport Stream file:
 
   void lookupTSPacketNumFromNPT(float& npt, unsigned long& tsPacketNumber,
-			    unsigned long& indexRecordNumber);
+                unsigned long& indexRecordNumber);
     // Looks up the Transport Stream Packet number corresponding to "npt".
-	// (This may modify "npt" to a more exact value.)
+    // (This may modify "npt" to a more exact value.)
         // (We also return the index record number that we looked up.)
 
   void lookupPCRFromTSPacketNum(unsigned long& tsPacketNumber, Boolean reverseToPreviousCleanPoint,
-				float& pcr, unsigned long& indexRecordNumber);
+                float& pcr, unsigned long& indexRecordNumber);
     // Looks up the PCR timestamp for the transport packet "tsPacketNumber".
-	// (Adjust "tsPacketNumber" only if "reverseToPreviousCleanPoint" is True.)
+    // (Adjust "tsPacketNumber" only if "reverseToPreviousCleanPoint" is True.)
         // (We also return the index record number that we looked up.)
 
   // Miscellaneous functions used to implement 'trick play':
   Boolean readIndexRecordValues(unsigned long indexRecordNum,
-				unsigned long& transportPacketNum, u_int8_t& offset,
-				u_int8_t& size, float& pcr, u_int8_t& recordType);
+                unsigned long& transportPacketNum, u_int8_t& offset,
+                u_int8_t& size, float& pcr, u_int8_t& recordType);
   float getPlayingDuration();
   void stopReading() { closeFid(); }
 

@@ -22,7 +22,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 ByteStreamMultiFileSource
 ::ByteStreamMultiFileSource(UsageEnvironment& env, char const** fileNameArray,
-			    unsigned preferredFrameSize, unsigned playTimePerFrame)
+                unsigned preferredFrameSize, unsigned playTimePerFrame)
   : FramedSource(env),
     fPreferredFrameSize(preferredFrameSize), fPlayTimePerFrame(playTimePerFrame),
     fCurrentlyReadSourceNumber(0), fHaveStartedNewFile(False) {
@@ -63,10 +63,10 @@ ByteStreamMultiFileSource::~ByteStreamMultiFileSource() {
 
 ByteStreamMultiFileSource* ByteStreamMultiFileSource
 ::createNew(UsageEnvironment& env, char const** fileNameArray,
-	    unsigned preferredFrameSize, unsigned playTimePerFrame) {
+        unsigned preferredFrameSize, unsigned playTimePerFrame) {
   ByteStreamMultiFileSource* newSource
     = new ByteStreamMultiFileSource(env, fileNameArray,
-				    preferredFrameSize, playTimePerFrame);
+                    preferredFrameSize, playTimePerFrame);
 
   return newSource;
 }
@@ -82,16 +82,16 @@ void ByteStreamMultiFileSource::doGetNextFrame() {
     if (source == NULL) {
       // The current source hasn't been created yet.  Do this now:
       source = ByteStreamFileSource::createNew(envir(),
-		       fFileNameArray[fCurrentlyReadSourceNumber],
-		       fPreferredFrameSize, fPlayTimePerFrame);
+               fFileNameArray[fCurrentlyReadSourceNumber],
+               fPreferredFrameSize, fPlayTimePerFrame);
       if (source == NULL) break;
       fHaveStartedNewFile = True;
     }
 
     // (Attempt to) read from the current source.
     source->getNextFrame(fTo, fMaxSize,
-			       afterGettingFrame, this,
-			       onSourceClosure, this);
+                   afterGettingFrame, this,
+                   onSourceClosure, this);
     return;
   } while (0);
 
@@ -101,9 +101,9 @@ void ByteStreamMultiFileSource::doGetNextFrame() {
 
 void ByteStreamMultiFileSource
   ::afterGettingFrame(void* clientData,
-		      unsigned frameSize, unsigned numTruncatedBytes,
-		      struct timeval presentationTime,
-		      unsigned durationInMicroseconds) {
+              unsigned frameSize, unsigned numTruncatedBytes,
+              struct timeval presentationTime,
+              unsigned durationInMicroseconds) {
   ByteStreamMultiFileSource* source
     = (ByteStreamMultiFileSource*)clientData;
   source->fFrameSize = frameSize;

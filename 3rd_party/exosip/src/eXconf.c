@@ -1,17 +1,17 @@
 /*
   eXosip - This is the eXtended osip library.
   Copyright (C) 2001-2015 Aymeric MOIZARD amoizard@antisip.com
-  
+
   eXosip is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
-  
+
   eXosip is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
-  
+
   You should have received a copy of the GNU General Public License
   along with this program; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -574,7 +574,7 @@ eXosip_listen_addr (struct eXosip_t *excontext, int transport, const char *addr,
   if (addr != NULL)
     snprintf (excontext->eXtl_transport.proto_ifs, sizeof (excontext->eXtl_transport.proto_ifs), "%s", addr);
 
-#ifdef	AF_INET6
+#ifdef    AF_INET6
   if (family == AF_INET6 && !addr)
     snprintf (excontext->eXtl_transport.proto_ifs, sizeof (excontext->eXtl_transport.proto_ifs), "::0");
 #endif
@@ -761,41 +761,41 @@ eXosip_execute (struct eXosip_t *excontext)
     if (lower_tv.tv_sec > 10) {
       eXosip_reg_t *jr;
       time_t now;
-      
+
       osip_compensatetime ();
-      
+
       now = osip_getsystemtime (NULL);
-      
+
       lower_tv.tv_sec = 10;
-      
+
       eXosip_lock (excontext);
       for (jr = excontext->j_reg; jr != NULL; jr = jr->next) {
-	if (jr->r_id >= 1 && jr->r_last_tr != NULL) {
-	  if (jr->r_reg_period == 0) {
-	    /* skip refresh! */
-	  }
-	  else if (now - jr->r_last_tr->birth_time > jr->r_reg_period - (jr->r_reg_period / 10)) {
-	    /* automatic refresh at "timeout - 10%" */
-	    lower_tv.tv_sec = 1;
-	  }
-	}
+    if (jr->r_id >= 1 && jr->r_last_tr != NULL) {
+      if (jr->r_reg_period == 0) {
+        /* skip refresh! */
+      }
+      else if (now - jr->r_last_tr->birth_time > jr->r_reg_period - (jr->r_reg_period / 10)) {
+        /* automatic refresh at "timeout - 10%" */
+        lower_tv.tv_sec = 1;
+      }
+    }
       }
       eXosip_unlock (excontext);
-      
+
       if (lower_tv.tv_sec == 1) {
-	OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL, "eXosip: Reseting timer to 1s before waking up!\n"));
+    OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL, "eXosip: Reseting timer to 1s before waking up!\n"));
       }
       else {
-	OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL, "eXosip: Reseting timer to 10s before waking up!\n"));
+    OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL, "eXosip: Reseting timer to 10s before waking up!\n"));
       }
     }
     else {
       /* add a small amount of time on windows to avoid waking up too early. (probably a bad time precision) */
       if (lower_tv.tv_usec < 990000)
-	lower_tv.tv_usec += 10000;        /* add 10ms */
+    lower_tv.tv_usec += 10000;        /* add 10ms */
       else {
-	lower_tv.tv_usec = 10000; /* add 10ms */
-	lower_tv.tv_sec++;
+    lower_tv.tv_usec = 10000; /* add 10ms */
+    lower_tv.tv_sec++;
       }
     }
 #if 0
@@ -1184,7 +1184,7 @@ _eXosip_keep_alive (struct eXosip_t *excontext)
 
   osip_gettimeofday (&now, NULL);
 
-  /* 
+  /*
   the stack is waking up every 10 seconds when no action is required. So
   this method will be called at a maximum interval of 10 seconds and minimum
   2 seconds.

@@ -1,17 +1,17 @@
 /*
   The oSIP library implements the Session Initiation Protocol (SIP -rfc3261-)
   Copyright (C) 2001-2015 Aymeric MOIZARD amoizard@antisip.com
-  
+
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
-  
+
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-  
+
   You should have received a copy of the GNU Lesser General Public
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -45,24 +45,24 @@
  */
   struct osip_authorization
   {
-    char *auth_type;		/**< Authentication Type (Basic or Digest) */
-    char *username;		/**< login */
-    char *realm;		/**< realm (as a quoted-string) */
-    char *nonce;		/**< nonce */
-    char *uri;  		/**< uri */
-    char *response;		/**< response */
-    char *digest;		/**< digest */
-    char *algorithm;		/**< algorithm (optionnal) */
-    char *cnonce;		/**< cnonce (optionnal) */
-    char *opaque;		/**< opaque (optionnal) */
-    char *message_qop;		/**< message_qop (optionnal) */
-    char *nonce_count;		/**< nonce_count (optionnal) */
-    char *version;		/**< version (optional - NTLM) */
-    char *targetname;		/**< targetname (optional - NTLM) */
-    char *gssapi_data;		/**< gssapi-data (optional - NTLM) */
+    char *auth_type;        /**< Authentication Type (Basic or Digest) */
+    char *username;        /**< login */
+    char *realm;        /**< realm (as a quoted-string) */
+    char *nonce;        /**< nonce */
+    char *uri;          /**< uri */
+    char *response;        /**< response */
+    char *digest;        /**< digest */
+    char *algorithm;        /**< algorithm (optionnal) */
+    char *cnonce;        /**< cnonce (optionnal) */
+    char *opaque;        /**< opaque (optionnal) */
+    char *message_qop;        /**< message_qop (optionnal) */
+    char *nonce_count;        /**< nonce_count (optionnal) */
+    char *version;        /**< version (optional - NTLM) */
+    char *targetname;        /**< targetname (optional - NTLM) */
+    char *gssapi_data;        /**< gssapi-data (optional - NTLM) */
     char *crand;
-	  char *cnum;
-    char *auth_param;		/**< other parameters (optionnal) */
+      char *cnum;
+    char *auth_param;        /**< other parameters (optionnal) */
   };
 
 
@@ -99,7 +99,7 @@ extern "C"
  * @param dest A pointer on the copy of the element.
  */
   int osip_authorization_clone (const osip_authorization_t * header,
-  			   osip_authorization_t ** dest);
+                 osip_authorization_t ** dest);
 
 /**
  * Get value of the auth_type parameter from a Authorization element.
@@ -244,7 +244,7 @@ extern "C"
  * @param value The value of the new parameter.
  */
   void osip_authorization_set_version (osip_authorization_t * header,
-					char *value);
+                    char *value);
 /**
  * Get value of the targetname parameter from a Authorization element.
  * @param header The element to work on.
@@ -256,7 +256,7 @@ extern "C"
  * @param value The value of the new parameter.
  */
   void osip_authorization_set_targetname (osip_authorization_t * header,
-					char *value);
+                    char *value);
 /**
  * Get value of the gssapi_data parameter from a Authorization element.
  * @param header The element to work on.
@@ -268,7 +268,7 @@ extern "C"
  * @param value The value of the new parameter.
  */
   void osip_authorization_set_gssapi_data (osip_authorization_t * header,
-					char *value);
+                    char *value);
 /**
  * Get value of the crand parameter from a Authorization element.
  * @param header The element to work on.
@@ -280,7 +280,7 @@ extern "C"
  * @param value The value of the new parameter.
  */
   void osip_authorization_set_crand (osip_authorization_t * header,
-				     char *value);
+                     char *value);
 /**
  * Get value of the cnum parameter from a Authorization element.
  * @param header The element to work on.
@@ -292,7 +292,7 @@ extern "C"
  * @param value The value of the new parameter.
  */
   void osip_authorization_set_cnum (osip_authorization_t * header,
-				    char *value);
+                    char *value);
 
 #ifdef __cplusplus
 }

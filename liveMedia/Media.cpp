@@ -24,7 +24,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 ////////// Medium //////////
 
 Medium::Medium(UsageEnvironment& env)
-	: fEnviron(env), fNextTask(NULL) {
+    : fEnviron(env), fNextTask(NULL) {
   // First generate a name for the new medium:
   MediaLookupTable::ourMedia(env)->generateNewName(fMediumName, mediumNameMaxLen);
   env.setResultMsg(fMediumName);
@@ -39,7 +39,7 @@ Medium::~Medium() {
 }
 
 Boolean Medium::lookupByName(UsageEnvironment& env, char const* mediumName,
-				  Medium*& resultMedium) {
+                  Medium*& resultMedium) {
   resultMedium = MediaLookupTable::ourMedia(env)->lookup(mediumName);
   if (resultMedium == NULL) {
     env.setResultMsg("Medium ", mediumName, " does not exist");
@@ -149,7 +149,7 @@ void MediaLookupTable::remove(char const* name) {
 }
 
 void MediaLookupTable::generateNewName(char* mediumName,
-				       unsigned /*maxLen*/) {
+                       unsigned /*maxLen*/) {
   // We should really use snprintf() here, but not all systems have it
   sprintf(mediumName, "liveMedia%d", fNameGenerator++);
 }

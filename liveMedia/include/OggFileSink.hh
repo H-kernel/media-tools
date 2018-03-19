@@ -28,27 +28,27 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class OggFileSink: public FileSink {
 public:
   static OggFileSink* createNew(UsageEnvironment& env, char const* fileName,
-				unsigned samplingFrequency = 0, // used for granule_position
-				char const* configStr = NULL,
+                unsigned samplingFrequency = 0, // used for granule_position
+                char const* configStr = NULL,
       // "configStr" is an optional 'SDP format' string (Base64-encoded)
       // representing 'packed configuration headers' ("identification", "comment", "setup")
       // to prepend to the output.  (For 'Vorbis" audio and 'Theora' video.)
-				unsigned bufferSize = 100000,
-				Boolean oneFilePerFrame = False);
+                unsigned bufferSize = 100000,
+                Boolean oneFilePerFrame = False);
       // See "FileSink.hh" for a description of these parameters.
 
 protected:
   OggFileSink(UsageEnvironment& env, FILE* fid, unsigned samplingFrequency, char const* configStr,
-	      unsigned bufferSize, char const* perFrameFileNamePrefix);
+          unsigned bufferSize, char const* perFrameFileNamePrefix);
       // called only by createNew()
   virtual ~OggFileSink();
 
 protected: // redefined virtual functions:
   virtual Boolean continuePlaying();
   virtual void addData(unsigned char const* data, unsigned dataSize,
-		       struct timeval presentationTime);
+               struct timeval presentationTime);
   virtual void afterGettingFrame(unsigned frameSize, unsigned numTruncatedBytes,
-				 struct timeval presentationTime);
+                 struct timeval presentationTime);
 
 private:
   static void ourOnSourceClosure(void* clientData);

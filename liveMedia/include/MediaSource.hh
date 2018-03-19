@@ -28,7 +28,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class MediaSource: public Medium {
 public:
   static Boolean lookupByName(UsageEnvironment& env, char const* sourceName,
-			      MediaSource*& resultSource);
+                  MediaSource*& resultSource);
   virtual void getAttributes() const;
       // attributes are returned in "env's" 'result message'
 

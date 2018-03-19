@@ -22,12 +22,12 @@
 
 void rtp_timer_set_interval(RtpTimer *timer, struct timeval *interval)
 {
-	if (timer->state==RTP_TIMER_RUNNING){
-		ortp_warning("Cannot change timer interval while it is running.\n");
-		return;
-	}
-	timer->interval.tv_sec=interval->tv_sec;
-	timer->interval.tv_usec=interval->tv_usec;
+    if (timer->state==RTP_TIMER_RUNNING){
+        ortp_warning("Cannot change timer interval while it is running.\n");
+        return;
+    }
+    timer->interval.tv_sec=interval->tv_sec;
+    timer->interval.tv_usec=interval->tv_usec;
 }
 
 

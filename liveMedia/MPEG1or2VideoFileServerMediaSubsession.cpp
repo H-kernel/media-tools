@@ -26,20 +26,20 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 MPEG1or2VideoFileServerMediaSubsession*
 MPEG1or2VideoFileServerMediaSubsession::createNew(UsageEnvironment& env,
-						  char const* fileName,
-						  Boolean reuseFirstSource,
-						  Boolean iFramesOnly,
-						  double vshPeriod) {
+                          char const* fileName,
+                          Boolean reuseFirstSource,
+                          Boolean iFramesOnly,
+                          double vshPeriod) {
   return new MPEG1or2VideoFileServerMediaSubsession(env, fileName, reuseFirstSource,
-						    iFramesOnly, vshPeriod);
+                            iFramesOnly, vshPeriod);
 }
 
 MPEG1or2VideoFileServerMediaSubsession
 ::MPEG1or2VideoFileServerMediaSubsession(UsageEnvironment& env,
-					 char const* fileName,
-					 Boolean reuseFirstSource,
-					 Boolean iFramesOnly,
-					 double vshPeriod)
+                     char const* fileName,
+                     Boolean reuseFirstSource,
+                     Boolean iFramesOnly,
+                     double vshPeriod)
   : FileServerMediaSubsession(env, fileName, reuseFirstSource),
     fIFramesOnly(iFramesOnly), fVSHPeriod(vshPeriod) {
 }
@@ -63,7 +63,7 @@ FramedSource* MPEG1or2VideoFileServerMediaSubsession
 
 RTPSink* MPEG1or2VideoFileServerMediaSubsession
 ::createNewRTPSink(Groupsock* rtpGroupsock,
-		   unsigned char /*rtpPayloadTypeIfDynamic*/,
-		   FramedSource* /*inputSource*/) {
+           unsigned char /*rtpPayloadTypeIfDynamic*/,
+           FramedSource* /*inputSource*/) {
   return MPEG1or2VideoRTPSink::createNew(envir(), rtpGroupsock);
 }

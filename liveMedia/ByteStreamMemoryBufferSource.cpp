@@ -25,20 +25,20 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 ByteStreamMemoryBufferSource*
 ByteStreamMemoryBufferSource::createNew(UsageEnvironment& env,
-					u_int8_t* buffer, u_int64_t bufferSize,
-					Boolean deleteBufferOnClose,
-					unsigned preferredFrameSize,
-					unsigned playTimePerFrame) {
+                    u_int8_t* buffer, u_int64_t bufferSize,
+                    Boolean deleteBufferOnClose,
+                    unsigned preferredFrameSize,
+                    unsigned playTimePerFrame) {
   if (buffer == NULL) return NULL;
 
   return new ByteStreamMemoryBufferSource(env, buffer, bufferSize, deleteBufferOnClose, preferredFrameSize, playTimePerFrame);
 }
 
 ByteStreamMemoryBufferSource::ByteStreamMemoryBufferSource(UsageEnvironment& env,
-							   u_int8_t* buffer, u_int64_t bufferSize,
-							   Boolean deleteBufferOnClose,
-							   unsigned preferredFrameSize,
-							   unsigned playTimePerFrame)
+                               u_int8_t* buffer, u_int64_t bufferSize,
+                               Boolean deleteBufferOnClose,
+                               unsigned preferredFrameSize,
+                               unsigned playTimePerFrame)
   : FramedSource(env), fBuffer(buffer), fBufferSize(bufferSize), fCurIndex(0), fDeleteBufferOnClose(deleteBufferOnClose),
     fPreferredFrameSize(preferredFrameSize), fPlayTimePerFrame(playTimePerFrame), fLastPlayTime(0),
     fLimitNumBytesToStream(False), fNumBytesToStream(0) {
@@ -99,7 +99,7 @@ void ByteStreamMemoryBufferSource::doGetNextFrame() {
       gettimeofday(&fPresentationTime, NULL);
     } else {
       // Increment by the play time of the previous data:
-      unsigned uSeconds	= fPresentationTime.tv_usec + fLastPlayTime;
+      unsigned uSeconds    = fPresentationTime.tv_usec + fLastPlayTime;
       fPresentationTime.tv_sec += uSeconds/1000000;
       fPresentationTime.tv_usec = uSeconds%1000000;
     }

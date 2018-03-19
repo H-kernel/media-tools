@@ -26,8 +26,8 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 OggFileSink* OggFileSink
 ::createNew(UsageEnvironment& env, char const* fileName,
-	    unsigned samplingFrequency, char const* configStr,
-	    unsigned bufferSize, Boolean oneFilePerFrame) {
+        unsigned samplingFrequency, char const* configStr,
+        unsigned bufferSize, Boolean oneFilePerFrame) {
   do {
     FILE* fid;
     char const* perFrameFileNamePrefix;
@@ -49,8 +49,8 @@ OggFileSink* OggFileSink
 }
 
 OggFileSink::OggFileSink(UsageEnvironment& env, FILE* fid,
-			 unsigned samplingFrequency, char const* configStr,
-			 unsigned bufferSize, char const* perFrameFileNamePrefix)
+             unsigned samplingFrequency, char const* configStr,
+             unsigned bufferSize, char const* perFrameFileNamePrefix)
   : FileSink(env, fid, bufferSize, perFrameFileNamePrefix),
     fSamplingFrequency(samplingFrequency), fConfigStr(configStr),
     fHaveWrittenFirstFrame(False), fHaveSeenEOF(False),
@@ -86,15 +86,15 @@ Boolean OggFileSink::continuePlaying() {
   if (fSource == NULL) return False;
 
   fSource->getNextFrame(fBuffer, fBufferSize,
-			FileSink::afterGettingFrame, this,
-			ourOnSourceClosure, this);
+            FileSink::afterGettingFrame, this,
+            ourOnSourceClosure, this);
   return True;
 }
 
 #define PAGE_DATA_MAX_SIZE (255*255)
 
 void OggFileSink::addData(unsigned char const* data, unsigned dataSize,
-			  struct timeval presentationTime) {
+              struct timeval presentationTime) {
   if (dataSize == 0) return;
 
   // Set "fGranulePosition" for this frame:
@@ -140,12 +140,12 @@ void OggFileSink::addData(unsigned char const* data, unsigned dataSize,
     if (i > 0) header_type_flag |= 0x01; // 'continuation'
     if (fHaveSeenEOF && i == numPagesToWrite-1) header_type_flag |= 0x04; // 'eos'
     fPageHeaderBytes[5] = header_type_flag;
-    
+
     if (i < numPagesToWrite-1) {
       // For pages where the frame does not end, set 'granule_position' in the header to -1:
       fPageHeaderBytes[6] = fPageHeaderBytes[7] = fPageHeaderBytes[8] = fPageHeaderBytes[9] =
       fPageHeaderBytes[10] = fPageHeaderBytes[11] = fPageHeaderBytes[12] = fPageHeaderBytes[13]
-	= 0xFF;
+    = 0xFF;
     } else {
       fPageHeaderBytes[6] = (u_int8_t)fGranulePosition;
       fPageHeaderBytes[7] = (u_int8_t)(fGranulePosition>>8);
@@ -216,32 +216,32 @@ void OggFileSink::afterGettingFrame(unsigned frameSize, unsigned numTruncatedByt
       u_int8_t* setupHdr; unsigned setupHdrSize;
       u_int32_t identField;
       parseVorbisOrTheoraConfigStr(fConfigStr,
-				   identificationHdr, identificationHdrSize,
-				   commentHdr, commentHdrSize,
-				   setupHdr, setupHdrSize,
-				   identField);
+                   identificationHdr, identificationHdrSize,
+                   commentHdr, commentHdrSize,
+                   setupHdr, setupHdrSize,
+                   identField);
       if (identificationHdrSize >= 42
-	  && strncmp((const char*)&identificationHdr[1], "theora", 6) == 0) {
-	// Hack for Theora video: Parse the "identification" hdr to get the "KFGSHIFT" parameter:
-	fIsTheora = True;
-	u_int8_t const KFGSHIFT = ((identificationHdr[40]&3)<<3) | (identificationHdr[41]>>5);
-	fGranuleIncrementPerFrame = (u_int64_t)(1 << KFGSHIFT);
+      && strncmp((const char*)&identificationHdr[1], "theora", 6) == 0) {
+    // Hack for Theora video: Parse the "identification" hdr to get the "KFGSHIFT" parameter:
+    fIsTheora = True;
+    u_int8_t const KFGSHIFT = ((identificationHdr[40]&3)<<3) | (identificationHdr[41]>>5);
+    fGranuleIncrementPerFrame = (u_int64_t)(1 << KFGSHIFT);
       }
       OggFileSink::addData(identificationHdr, identificationHdrSize, presentationTime);
       OggFileSink::addData(commentHdr, commentHdrSize, presentationTime);
-      
+
       // Hack: Handle the "setup" header as if had arrived in the previous delivery, so it'll get
       // written properly below:
       if (setupHdrSize > fBufferSize) {
-	fAltFrameSize = fBufferSize;
-	fAltNumTruncatedBytes = setupHdrSize - fBufferSize;
+    fAltFrameSize = fBufferSize;
+    fAltNumTruncatedBytes = setupHdrSize - fBufferSize;
       } else {
-	fAltFrameSize = setupHdrSize;
-	fAltNumTruncatedBytes = 0;
+    fAltFrameSize = setupHdrSize;
+    fAltNumTruncatedBytes = 0;
       }
       memmove(fAltBuffer, setupHdr, fAltFrameSize);
       fAltPresentationTime = presentationTime;
-      
+
       delete[] identificationHdr;
       delete[] commentHdr;
       delete[] setupHdr;

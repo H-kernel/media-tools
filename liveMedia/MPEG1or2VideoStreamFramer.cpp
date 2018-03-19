@@ -40,8 +40,8 @@ enum MPEGParseState {
 class MPEG1or2VideoStreamParser: public MPEGVideoStreamParser {
 public:
   MPEG1or2VideoStreamParser(MPEG1or2VideoStreamFramer* usingSource,
-			FramedSource* inputSource,
-			Boolean iFramesOnly, double vshPeriod);
+            FramedSource* inputSource,
+            Boolean iFramesOnly, double vshPeriod);
   virtual ~MPEG1or2VideoStreamParser();
 
 private: // redefined virtual functions:
@@ -86,14 +86,14 @@ private:
 ////////// MPEG1or2VideoStreamFramer implementation //////////
 
 MPEG1or2VideoStreamFramer::MPEG1or2VideoStreamFramer(UsageEnvironment& env,
-						     FramedSource* inputSource,
-						     Boolean iFramesOnly,
-						     double vshPeriod,
-						     Boolean createParser)
+                             FramedSource* inputSource,
+                             Boolean iFramesOnly,
+                             double vshPeriod,
+                             Boolean createParser)
   : MPEGVideoStreamFramer(env, inputSource) {
   fParser = createParser
     ? new MPEG1or2VideoStreamParser(this, inputSource,
-				    iFramesOnly, vshPeriod)
+                    iFramesOnly, vshPeriod)
     : NULL;
 }
 
@@ -102,9 +102,9 @@ MPEG1or2VideoStreamFramer::~MPEG1or2VideoStreamFramer() {
 
 MPEG1or2VideoStreamFramer*
 MPEG1or2VideoStreamFramer::createNew(UsageEnvironment& env,
-				 FramedSource* inputSource,
-				 Boolean iFramesOnly,
-				 double vshPeriod) {
+                 FramedSource* inputSource,
+                 Boolean iFramesOnly,
+                 double vshPeriod) {
   // Need to add source type checking here???  #####
   return new MPEG1or2VideoStreamFramer(env, inputSource, iFramesOnly, vshPeriod);
 }
@@ -121,8 +121,8 @@ Boolean MPEG1or2VideoStreamFramer::isMPEG1or2VideoStreamFramer() const {
 
 MPEG1or2VideoStreamParser
 ::MPEG1or2VideoStreamParser(MPEG1or2VideoStreamFramer* usingSource,
-			FramedSource* inputSource,
-			Boolean iFramesOnly, double vshPeriod)
+            FramedSource* inputSource,
+            Boolean iFramesOnly, double vshPeriod)
   : MPEGVideoStreamParser(usingSource, inputSource),
     fCurrentParseState(PARSING_VIDEO_SEQUENCE_HEADER),
     fVSHPeriod(vshPeriod), fIFramesOnly(iFramesOnly) {
@@ -285,7 +285,7 @@ unsigned MPEG1or2VideoStreamParser
   } while (next4Bytes != GROUP_START_CODE && next4Bytes != PICTURE_START_CODE);
 
   setParseState((next4Bytes == GROUP_START_CODE)
-		? PARSING_GOP_HEADER_SEEN_CODE : PARSING_PICTURE_HEADER);
+        ? PARSING_GOP_HEADER_SEEN_CODE : PARSING_PICTURE_HEADER);
 
   // Compute this frame's timestamp by noting how many pictures we've seen
   // since the last GOP header:
@@ -348,8 +348,8 @@ unsigned MPEG1or2VideoStreamParser::parseGOPHeader(Boolean haveSeenStartCode) {
 
   // Record the time code:
   usingSource()->setTimeCode(time_code_hours, time_code_minutes,
-			     time_code_seconds, time_code_pictures,
-			     fPicturesSinceLastGOP);
+                 time_code_seconds, time_code_pictures,
+                 fPicturesSinceLastGOP);
 
   fPicturesSinceLastGOP = 0;
 
@@ -460,7 +460,7 @@ unsigned MPEG1or2VideoStreamParser::parseSlice() {
     }
     default: {
       usingSource()->envir() << "MPEG1or2VideoStreamParser::parseSlice(): Saw unexpected code "
-			    << (void*)next4Bytes << "\n";
+                << (void*)next4Bytes << "\n";
       setParseState(PARSING_SLICE); // the safest way to recover...
       break;
     }

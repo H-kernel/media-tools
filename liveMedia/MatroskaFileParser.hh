@@ -46,8 +46,8 @@ enum MatroskaParseState {
 class MatroskaFileParser: public StreamParser {
 public:
   MatroskaFileParser(MatroskaFile& ourFile, FramedSource* inputSource,
-		     FramedSource::onCloseFunc* onEndFunc, void* onEndClientData,
-		     MatroskaDemux* ourDemux = NULL);
+             FramedSource::onCloseFunc* onEndFunc, void* onEndClientData,
+             MatroskaDemux* ourDemux = NULL);
   virtual ~MatroskaFileParser();
 
   void seekToTime(double& seekNPT);

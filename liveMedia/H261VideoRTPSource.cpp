@@ -22,18 +22,18 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 H261VideoRTPSource*
 H261VideoRTPSource::createNew(UsageEnvironment& env, Groupsock* RTPgs,
-				  unsigned char rtpPayloadFormat,
-				  unsigned rtpTimestampFrequency) {
+                  unsigned char rtpPayloadFormat,
+                  unsigned rtpTimestampFrequency) {
   return new H261VideoRTPSource(env, RTPgs, rtpPayloadFormat,
-				    rtpTimestampFrequency);
+                    rtpTimestampFrequency);
 }
 
 H261VideoRTPSource
 ::H261VideoRTPSource(UsageEnvironment& env, Groupsock* RTPgs,
-			 unsigned char rtpPayloadFormat,
-			 unsigned rtpTimestampFrequency)
+             unsigned char rtpPayloadFormat,
+             unsigned rtpTimestampFrequency)
   : MultiFramedRTPSource(env, RTPgs,
-			 rtpPayloadFormat, rtpTimestampFrequency),
+             rtpPayloadFormat, rtpTimestampFrequency),
   fLastSpecialHeader(0) {
 }
 

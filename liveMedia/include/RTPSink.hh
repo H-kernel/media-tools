@@ -33,7 +33,7 @@ class RTPTransmissionStatsDB; // forward
 class RTPSink: public MediaSink {
 public:
   static Boolean lookupByName(UsageEnvironment& env, char const* sinkName,
-			      RTPSink*& resultSink);
+                  RTPSink*& resultSink);
 
   // used by RTSP servers:
   Groupsock const& groupsockBeingUsed() const { return *(fRTPInterface.gs()); }
@@ -91,11 +91,11 @@ public:
 
 protected:
   RTPSink(UsageEnvironment& env,
-	  Groupsock* rtpGS, unsigned char rtpPayloadType,
-	  u_int32_t rtpTimestampFrequency,
-	  char const* rtpPayloadFormatName,
-	  unsigned numChannels);
-	// abstract base class
+      Groupsock* rtpGS, unsigned char rtpPayloadType,
+      u_int32_t rtpTimestampFrequency,
+      char const* rtpPayloadFormatName,
+      unsigned numChannels);
+    // abstract base class
 
   virtual ~RTPSink();
 
@@ -206,9 +206,9 @@ private:
   virtual ~RTPTransmissionStats();
 
   void noteIncomingRR(struct sockaddr_in const& lastFromAddress,
-		      unsigned lossStats, unsigned lastPacketNumReceived,
+              unsigned lossStats, unsigned lastPacketNumReceived,
                       unsigned jitter,
-		      unsigned lastSRTime, unsigned diffSR_RRTime);
+              unsigned lastSRTime, unsigned diffSR_RRTime);
 
 private:
   RTPSink& fOurRTPSink;

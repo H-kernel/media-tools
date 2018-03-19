@@ -28,12 +28,12 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class DynamicRTSPServer: public RTSPServerSupportingHTTPStreaming {
 public:
   static DynamicRTSPServer* createNew(UsageEnvironment& env, Port ourPort,
-				      UserAuthenticationDatabase* authDatabase,
-				      unsigned reclamationTestSeconds = 65);
+                      UserAuthenticationDatabase* authDatabase,
+                      unsigned reclamationTestSeconds = 65);
 
 protected:
   DynamicRTSPServer(UsageEnvironment& env, int ourSocket, Port ourPort,
-		    UserAuthenticationDatabase* authDatabase, unsigned reclamationTestSeconds);
+            UserAuthenticationDatabase* authDatabase, unsigned reclamationTestSeconds);
   // called only by createNew();
   virtual ~DynamicRTSPServer();
 

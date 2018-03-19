@@ -64,7 +64,7 @@ private:
                                 struct timeval presentationTime,
                                 unsigned durationInMicroseconds);
   void afterGettingFrame(unsigned frameSize, unsigned numTruncatedBytes,
-			 struct timeval presentationTime, unsigned durationInMicroseconds);
+             struct timeval presentationTime, unsigned durationInMicroseconds);
 
   static void onSourceClosure(void* clientData);
   void onSourceClosure();
@@ -73,7 +73,7 @@ private:
 
 private:
   FramedSource* fInputSource;
-  Boolean fDeleteWhenLastReplicaDies, fInputSourceHasClosed; 
+  Boolean fDeleteWhenLastReplicaDies, fInputSourceHasClosed;
   unsigned fNumReplicas, fNumActiveReplicas, fNumDeliveriesMadeSoFar;
   int fFrameIndex; // 0 or 1; used to figure out if a replica is requesting the current frame, or the next frame
 

@@ -33,9 +33,9 @@ MPEG2TransportStreamIndexFile
   u_int64_t indexFileSize = GetFileSize(indexFileName, NULL);
   if (indexFileSize % INDEX_RECORD_SIZE != 0) {
     env << "Warning: Size of the index file \"" << indexFileName
- 	<< "\" (" << (unsigned)indexFileSize
-	<< ") is not a multiple of the index record size ("
-	<< INDEX_RECORD_SIZE << ")\n";
+     << "\" (" << (unsigned)indexFileSize
+    << ") is not a multiple of the index record size ("
+    << INDEX_RECORD_SIZE << ")\n";
   }
   fNumIndexRecords = (unsigned long)(indexFileSize/INDEX_RECORD_SIZE);
 }
@@ -62,7 +62,7 @@ MPEG2TransportStreamIndexFile::~MPEG2TransportStreamIndexFile() {
 
 void MPEG2TransportStreamIndexFile
 ::lookupTSPacketNumFromNPT(float& npt, unsigned long& tsPacketNumber,
-			   unsigned long& indexRecordNumber) {
+               unsigned long& indexRecordNumber) {
   if (npt <= 0.0 || fNumIndexRecords == 0) { // Fast-track a common case:
     npt = 0.0f;
     tsPacketNumber = indexRecordNumber = 0;
@@ -90,19 +90,19 @@ void MPEG2TransportStreamIndexFile
 
     while (ixRight-ixLeft > 1 && pcrLeft < npt && npt <= pcrRight) {
       unsigned long ixNew = ixLeft
-	+ (unsigned long)(((npt-pcrLeft)/(pcrRight-pcrLeft))*(ixRight-ixLeft));
+    + (unsigned long)(((npt-pcrLeft)/(pcrRight-pcrLeft))*(ixRight-ixLeft));
       if (ixNew == ixLeft || ixNew == ixRight) {
-	// use bisection instead:
-	ixNew = (ixLeft+ixRight)/2;
+    // use bisection instead:
+    ixNew = (ixLeft+ixRight)/2;
       }
       if (!readIndexRecord(ixNew)) break;
       float pcrNew = pcrFromBuf();
       if (pcrNew < npt) {
-	pcrLeft = pcrNew;
-	ixLeft = ixNew;
+    pcrLeft = pcrNew;
+    ixLeft = ixNew;
       } else {
-	pcrRight = pcrNew;
-	ixRight = ixNew;
+    pcrRight = pcrNew;
+    ixRight = ixNew;
       }
     }
     if (ixRight-ixLeft > 1 || npt <= pcrLeft || npt > pcrRight) break; // bad PCR values in index file?
@@ -127,7 +127,7 @@ void MPEG2TransportStreamIndexFile
 
 void MPEG2TransportStreamIndexFile
 ::lookupPCRFromTSPacketNum(unsigned long& tsPacketNumber, Boolean reverseToPreviousCleanPoint,
-			   float& pcr, unsigned long& indexRecordNumber) {
+               float& pcr, unsigned long& indexRecordNumber) {
   if (tsPacketNumber == 0 || fNumIndexRecords == 0) { // Fast-track a common case:
     pcr = 0.0f;
     indexRecordNumber = 0;
@@ -155,19 +155,19 @@ void MPEG2TransportStreamIndexFile
 
     while (ixRight-ixLeft > 1 && tsLeft < tsPacketNumber && tsPacketNumber <= tsRight) {
       unsigned long ixNew = ixLeft
-	+ (unsigned long)(((tsPacketNumber-tsLeft)/(tsRight-tsLeft))*(ixRight-ixLeft));
+    + (unsigned long)(((tsPacketNumber-tsLeft)/(tsRight-tsLeft))*(ixRight-ixLeft));
       if (ixNew == ixLeft || ixNew == ixRight) {
-	// Use bisection instead:
-	ixNew = (ixLeft+ixRight)/2;
+    // Use bisection instead:
+    ixNew = (ixLeft+ixRight)/2;
       }
       if (!readIndexRecord(ixNew)) break;
       unsigned long tsNew = tsPacketNumFromBuf();
       if (tsNew < tsPacketNumber) {
-	tsLeft = tsNew;
-	ixLeft = ixNew;
+    tsLeft = tsNew;
+    ixLeft = ixNew;
       } else {
-	tsRight = tsNew;
-	ixRight = ixNew;
+    tsRight = tsNew;
+    ixRight = ixNew;
       }
     }
     if (ixRight-ixLeft > 1 || tsPacketNumber <= tsLeft || tsPacketNumber > tsRight) break; // bad PCR values in index file?
@@ -197,8 +197,8 @@ void MPEG2TransportStreamIndexFile
 
 Boolean MPEG2TransportStreamIndexFile
 ::readIndexRecordValues(unsigned long indexRecordNum,
-			unsigned long& transportPacketNum, u_int8_t& offset,
-			u_int8_t& size, float& pcr, u_int8_t& recordType) {
+            unsigned long& transportPacketNum, u_int8_t& offset,
+            u_int8_t& size, float& pcr, u_int8_t& recordType) {
   if (!readIndexRecord(indexRecordNum)) return False;
 
   transportPacketNum = tsPacketNumFromBuf();
@@ -219,7 +219,7 @@ int MPEG2TransportStreamIndexFile::mpegVersion() {
   if (fMPEGVersion != 0) return fMPEGVersion; // we already know it
 
   // Read the first index record, and figure out the MPEG version from its type:
-  if (!readOneIndexRecord(0)) return 0; // unknown; perhaps the indecx file is empty?	
+  if (!readOneIndexRecord(0)) return 0; // unknown; perhaps the indecx file is empty?
 
   setMPEGVersionFromRecordType(recordTypeFromBuf());
   return fMPEGVersion;
@@ -283,7 +283,7 @@ unsigned long MPEG2TransportStreamIndexFile::tsPacketNumFromBuf() {
 
 void MPEG2TransportStreamIndexFile::setMPEGVersionFromRecordType(u_int8_t recordType) {
   if (fMPEGVersion != 0) return; // we already know it
- 
+
   u_int8_t const recordTypeWithoutStartBit = recordType&~0x80;
   if (recordTypeWithoutStartBit >= 1 && recordTypeWithoutStartBit <= 4) fMPEGVersion = 2;
   else if (recordTypeWithoutStartBit >= 5 && recordTypeWithoutStartBit <= 10) fMPEGVersion = 5;
@@ -303,37 +303,37 @@ Boolean MPEG2TransportStreamIndexFile::rewindToCleanPoint(unsigned long&ixFound)
 
     // A 'clean point' is the start of a 'frame' from which a decoder can cleanly resume
     // handling the stream.  For H.264, this is a SPS.  For H.265, this is a VPS.
-    // For MPEG-2, this is a Video Sequence Header, or a GOP. 
+    // For MPEG-2, this is a Video Sequence Header, or a GOP.
 
     if ((recordType&0x80) != 0) { // This is the start of a 'frame'
       recordType &=~ 0x80; // remove the 'start of frame' bit
       if (fMPEGVersion == 5) { // H.264
         if (recordType == 5/*SPS*/) {
-	  success = True;
-	  break;
-	}
+      success = True;
+      break;
+    }
       } else if (fMPEGVersion == 6) { // H.265
         if (recordType == 11/*VPS*/) {
-	  success = True;
-	  break;
-	}
+      success = True;
+      break;
+    }
       } else { // MPEG-1, 2, or 4
-	if (recordType == 1/*VSH*/) {
-	  success = True;
-	  break;
-	} else if (recordType == 2/*GOP*/) {
-	  // Hack: If the preceding record is for a Video Sequence Header, then use it instead:
-	  unsigned long newIxFound = ixFound;
+    if (recordType == 1/*VSH*/) {
+      success = True;
+      break;
+    } else if (recordType == 2/*GOP*/) {
+      // Hack: If the preceding record is for a Video Sequence Header, then use it instead:
+      unsigned long newIxFound = ixFound;
 
-	  while (--newIxFound > 0) {
-	    if (!readIndexRecord(newIxFound)) break;
-	    recordType = recordTypeFromBuf();
-	    if ((recordType&0x7F) != 1) break; // not a Video Sequence Header
-	    if ((recordType&0x80) != 0) { // this is the start of the VSH; use it
-	      ixFound = newIxFound;
-	      break;
-	    }
-	  }
+      while (--newIxFound > 0) {
+        if (!readIndexRecord(newIxFound)) break;
+        recordType = recordTypeFromBuf();
+        if ((recordType&0x7F) != 1) break; // not a Video Sequence Header
+        if ((recordType&0x80) != 0) { // this is the start of the VSH; use it
+          ixFound = newIxFound;
+          break;
+        }
+      }
         }
         success = True;
         break;

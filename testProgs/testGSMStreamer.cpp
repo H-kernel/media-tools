@@ -105,9 +105,9 @@ int main(int argc, char** argv) {
   CNAME[maxCNAMElen] = '\0'; // just in case
   sessionState.rtcpInstance
     = RTCPInstance::createNew(*env, sessionState.rtcpGroupsock,
-			      estimatedSessionBandwidth, CNAME,
-			      sessionState.sink, NULL /* we're a server */,
-			      isSSM);
+                  estimatedSessionBandwidth, CNAME,
+                  sessionState.sink, NULL /* we're a server */,
+                  isSSM);
   // Note: This starts RTCP running automatically
 
 #ifdef IMPLEMENT_RTSP_SERVER
@@ -118,7 +118,7 @@ int main(int argc, char** argv) {
   }
   ServerMediaSession* sms
     = ServerMediaSession::createNew(*env, "testStream", "GSM input",
-		"Session streamed by \"testGSMStreamer\"", isSSM);
+        "Session streamed by \"testGSMStreamer\"", isSSM);
   sms->addSubsession(PassiveServerMediaSubsession::createNew(*sessionState.sink, sessionState.rtcpInstance));
   rtspServer->addServerMediaSession(sms);
 

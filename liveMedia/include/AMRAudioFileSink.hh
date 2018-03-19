@@ -28,21 +28,21 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class AMRAudioFileSink: public FileSink {
 public:
   static AMRAudioFileSink* createNew(UsageEnvironment& env, char const* fileName,
-				     unsigned bufferSize = 10000,
-				     Boolean oneFilePerFrame = False);
+                     unsigned bufferSize = 10000,
+                     Boolean oneFilePerFrame = False);
   // (See "FileSink.hh" for a description of these parameters.)
 
 protected:
   AMRAudioFileSink(UsageEnvironment& env, FILE* fid, unsigned bufferSize,
-		   char const* perFrameFileNamePrefix);
+           char const* perFrameFileNamePrefix);
       // called only by createNew()
   virtual ~AMRAudioFileSink();
 
 protected: // redefined virtual functions:
   virtual Boolean sourceIsCompatibleWithUs(MediaSource& source);
   virtual void afterGettingFrame(unsigned frameSize,
-				 unsigned numTruncatedBytes,
-				 struct timeval presentationTime);
+                 unsigned numTruncatedBytes,
+                 struct timeval presentationTime);
 
 protected:
   Boolean fHaveWrittenHeader;

@@ -43,16 +43,16 @@ static unsigned debugCount = 0; /* for debugging */
 #define TRUNC_FAVORa
 
 void updateSideInfoForHuffman(MP3SideInfo& sideInfo, Boolean isMPEG2,
-			      unsigned char const* mainDataPtr,
-			      unsigned p23L0, unsigned p23L1,
-			      unsigned& part23Length0a,
-			      unsigned& part23Length0aTruncation,
-			      unsigned& part23Length0b,
-			      unsigned& part23Length0bTruncation,
-			      unsigned& part23Length1a,
-			      unsigned& part23Length1aTruncation,
-			      unsigned& part23Length1b,
-			      unsigned& part23Length1bTruncation) {
+                  unsigned char const* mainDataPtr,
+                  unsigned p23L0, unsigned p23L1,
+                  unsigned& part23Length0a,
+                  unsigned& part23Length0aTruncation,
+                  unsigned& part23Length0b,
+                  unsigned& part23Length0bTruncation,
+                  unsigned& part23Length1a,
+                  unsigned& part23Length1aTruncation,
+                  unsigned& part23Length1b,
+                  unsigned& part23Length1bTruncation) {
   int i, j;
   unsigned sfLength, origTotABsize, adjustment;
   MP3SideInfo::gr_info_s_t* gr;
@@ -77,12 +77,12 @@ void updateSideInfoForHuffman(MP3SideInfo& sideInfo, Boolean isMPEG2,
     /* Begin by computing new sizes for parts a & b (& their truncations) */
 #ifdef DEBUG
     fprintf(stderr, "usifh-0: %d, %d:%d, %d:%d, %d:%d, %d:%d, %d:%d\n",
-	    hei.numSamples,
-	    sfLength/8, sfLength%8,
-	    hei.reg1Start/8, hei.reg1Start%8,
-	    hei.reg2Start/8, hei.reg2Start%8,
-	    hei.bigvalStart/8, hei.bigvalStart%8,
-	    origTotABsize/8, origTotABsize%8);
+        hei.numSamples,
+        sfLength/8, sfLength%8,
+        hei.reg1Start/8, hei.reg1Start%8,
+        hei.reg2Start/8, hei.reg2Start%8,
+        hei.bigvalStart/8, hei.bigvalStart%8,
+        origTotABsize/8, origTotABsize%8);
 #endif
     if (p23L0 < sfLength) {
       /* We can't use this, so give it all to the next granule: */
@@ -97,18 +97,18 @@ void updateSideInfoForHuffman(MP3SideInfo& sideInfo, Boolean isMPEG2,
       /* We need to shorten one or both of fields a & b */
       unsigned truncation = origTotABsize - p23L0;
 #ifdef TRUNC_FAIRLY
-      part23Length0aTruncation	= (truncation*(part23Length0a-sfLength))
-	                          /(origTotABsize-sfLength);
+      part23Length0aTruncation    = (truncation*(part23Length0a-sfLength))
+                              /(origTotABsize-sfLength);
       part23Length0bTruncation = truncation - part23Length0aTruncation;
 #endif
 #ifdef TRUNC_FAVORa
       part23Length0bTruncation
-	= (truncation > part23Length0b) ? part23Length0b : truncation;
+    = (truncation > part23Length0b) ? part23Length0b : truncation;
       part23Length0aTruncation = truncation - part23Length0bTruncation;
 #endif
 #ifdef TRUNC_FAVORb
-      part23Length0aTruncation	= (truncation > part23Length0a-sfLength)
-	? (part23Length0a-sfLength) : truncation;
+      part23Length0aTruncation    = (truncation > part23Length0a-sfLength)
+    ? (part23Length0a-sfLength) : truncation;
       part23Length0bTruncation = truncation - part23Length0aTruncation;
 #endif
     }
@@ -117,8 +117,8 @@ void updateSideInfoForHuffman(MP3SideInfo& sideInfo, Boolean isMPEG2,
     part23Length0b -= part23Length0bTruncation;
 #ifdef DEBUG
     fprintf(stderr, "usifh-0: interim sizes: %d (%d), %d (%d)\n",
-	    part23Length0a, part23Length0aTruncation,
-	    part23Length0b, part23Length0bTruncation);
+        part23Length0a, part23Length0aTruncation,
+        part23Length0b, part23Length0bTruncation);
 #endif
 
     /* Adjust these new lengths so they end on sample bit boundaries: */
@@ -145,11 +145,11 @@ void updateSideInfoForHuffman(MP3SideInfo& sideInfo, Boolean isMPEG2,
     part23Length0bTruncation -= adjustment;
     for (j = i; j < (int)hei.numSamples; ++j) {
       if (hei.allBitOffsets[j]
-	  == part23Length0a + part23Length0aTruncation + part23Length0b)
-	break;
+      == part23Length0a + part23Length0aTruncation + part23Length0b)
+    break;
       else if (hei.allBitOffsets[j]
-	  > part23Length0a + part23Length0aTruncation + part23Length0b)
-	{--j; break;}
+      > part23Length0a + part23Length0aTruncation + part23Length0b)
+    {--j; break;}
     }
     if (j < 0) { /* should happen only if we couldn't fit sfLength */
       j = 0; adjustment = 0;
@@ -185,17 +185,17 @@ void updateSideInfoForHuffman(MP3SideInfo& sideInfo, Boolean isMPEG2,
     origTotABsize = gr->part2_3_length;
 
     MP3HuffmanDecode(gr, isMPEG2, mainDataPtr, granule1Offset,
-		     origTotABsize, sfLength, hei);
+             origTotABsize, sfLength, hei);
 
     /* Begin by computing new sizes for parts a & b (& their truncations) */
 #ifdef DEBUG
     fprintf(stderr, "usifh-1: %d, %d:%d, %d:%d, %d:%d, %d:%d, %d:%d\n",
-	    hei.numSamples,
-	    sfLength/8, sfLength%8,
-	    hei.reg1Start/8, hei.reg1Start%8,
-	    hei.reg2Start/8, hei.reg2Start%8,
-	    hei.bigvalStart/8, hei.bigvalStart%8,
-	    origTotABsize/8, origTotABsize%8);
+        hei.numSamples,
+        sfLength/8, sfLength%8,
+        hei.reg1Start/8, hei.reg1Start%8,
+        hei.reg2Start/8, hei.reg2Start%8,
+        hei.bigvalStart/8, hei.bigvalStart%8,
+        origTotABsize/8, origTotABsize%8);
 #endif
     if (p23L1 < sfLength) {
       /* We can't use this, so give up on this granule: */
@@ -209,18 +209,18 @@ void updateSideInfoForHuffman(MP3SideInfo& sideInfo, Boolean isMPEG2,
       /* We need to shorten one or both of fields a & b */
       unsigned truncation = origTotABsize - p23L1;
 #ifdef TRUNC_FAIRLY
-      part23Length1aTruncation	= (truncation*(part23Length1a-sfLength))
-	                          /(origTotABsize-sfLength);
+      part23Length1aTruncation    = (truncation*(part23Length1a-sfLength))
+                              /(origTotABsize-sfLength);
       part23Length1bTruncation = truncation - part23Length1aTruncation;
 #endif
 #ifdef TRUNC_FAVORa
       part23Length1bTruncation
-	= (truncation > part23Length1b) ? part23Length1b : truncation;
+    = (truncation > part23Length1b) ? part23Length1b : truncation;
       part23Length1aTruncation = truncation - part23Length1bTruncation;
 #endif
 #ifdef TRUNC_FAVORb
-      part23Length1aTruncation	= (truncation > part23Length1a-sfLength)
-	? (part23Length1a-sfLength) : truncation;
+      part23Length1aTruncation    = (truncation > part23Length1a-sfLength)
+    ? (part23Length1a-sfLength) : truncation;
       part23Length1bTruncation = truncation - part23Length1aTruncation;
 #endif
     }
@@ -229,8 +229,8 @@ void updateSideInfoForHuffman(MP3SideInfo& sideInfo, Boolean isMPEG2,
     part23Length1b -= part23Length1bTruncation;
 #ifdef DEBUG
     fprintf(stderr, "usifh-1: interim sizes: %d (%d), %d (%d)\n",
-	    part23Length1a, part23Length1aTruncation,
-	    part23Length1b, part23Length1bTruncation);
+        part23Length1a, part23Length1aTruncation,
+        part23Length1b, part23Length1bTruncation);
 #endif
 
     /* Adjust these new lengths so they end on sample bit boundaries: */
@@ -256,11 +256,11 @@ void updateSideInfoForHuffman(MP3SideInfo& sideInfo, Boolean isMPEG2,
     part23Length1bTruncation -= adjustment;
     for (j = i; j < (int)hei.numSamples; ++j) {
       if (hei.allBitOffsets[j]
-	  == part23Length1a + part23Length1aTruncation + part23Length1b)
-	break;
+      == part23Length1a + part23Length1aTruncation + part23Length1b)
+    break;
       else if (hei.allBitOffsets[j]
-	  > part23Length1a + part23Length1aTruncation + part23Length1b)
-	{--j; break;}
+      > part23Length1a + part23Length1aTruncation + part23Length1b)
+    {--j; break;}
     }
     if (j < 0) { /* should happen only if we couldn't fit sfLength */
       j = 0; adjustment = 0;
@@ -282,10 +282,10 @@ void updateSideInfoForHuffman(MP3SideInfo& sideInfo, Boolean isMPEG2,
   }
 #ifdef DEBUG
   fprintf(stderr, "usifh-end, new vals: %d (%d), %d (%d), %d (%d), %d (%d)\n",
-	  part23Length0a, part23Length0aTruncation,
-	  part23Length0b, part23Length0bTruncation,
-	  part23Length1a, part23Length1aTruncation,
-	  part23Length1b, part23Length1bTruncation);
+      part23Length0a, part23Length0aTruncation,
+      part23Length0b, part23Length0bTruncation,
+      part23Length1a, part23Length1aTruncation,
+      part23Length1b, part23Length1bTruncation);
 #endif
 }
 
@@ -320,21 +320,21 @@ static void rsfscanf(unsigned char **fi, unsigned int* v) {
 #define MXOFF   250
 
 struct huffcodetab {
-  char tablename[3];	/*string, containing table_description	*/
-  unsigned int xlen; 	/*max. x-index+			      	*/
-  unsigned int ylen;	/*max. y-index+				*/
-  unsigned int linbits; /*number of linbits			*/
-  unsigned int linmax;	/*max number to be stored in linbits	*/
-  int ref;		/*a positive value indicates a reference*/
-  HUFFBITS *table;	/*pointer to array[xlen][ylen]		*/
-  unsigned char *hlen;	/*pointer to array[xlen][ylen]		*/
-  unsigned char(*val)[2];/*decoder tree				*/
-  unsigned int treelen;	/*length of decoder tree		*/
+  char tablename[3];    /*string, containing table_description    */
+  unsigned int xlen;     /*max. x-index+                      */
+  unsigned int ylen;    /*max. y-index+                */
+  unsigned int linbits; /*number of linbits            */
+  unsigned int linmax;    /*max number to be stored in linbits    */
+  int ref;        /*a positive value indicates a reference*/
+  HUFFBITS *table;    /*pointer to array[xlen][ylen]        */
+  unsigned char *hlen;    /*pointer to array[xlen][ylen]        */
+  unsigned char(*val)[2];/*decoder tree                */
+  unsigned int treelen;    /*length of decoder tree        */
 };
 
 static struct huffcodetab rsf_ht[HTN]; // array of all huffcodetable headers
-				/* 0..31 Huffman code table 0..31	*/
-				/* 32,33 count1-tables			*/
+                /* 0..31 Huffman code table 0..31    */
+                /* 32,33 count1-tables            */
 
 /* read the huffman decoder table */
 static int read_decoder_table(unsigned char* fi) {
@@ -395,9 +395,9 @@ static int read_decoder_table(unsigned char* fi) {
         new unsigned char[2*(rsf_ht[n].treelen)];
       if ((rsf_ht[n].val == NULL) && ( rsf_ht[n].treelen != 0 )){
 #ifdef DEBUG
-    	fprintf(stderr, "heaperror at table %d\n",n);
+        fprintf(stderr, "heaperror at table %d\n",n);
 #endif
-	return -1;
+    return -1;
       }
       for (i=0;(unsigned)i<rsf_ht[n].treelen; i++) {
         rsfscanf(&fi, &v0);
@@ -529,20 +529,20 @@ static unsigned rsf_get_scale_factors_2(MP3SideInfo::gr_info_s_t *gr_info) {
 }
 
 static unsigned getScaleFactorsLength(MP3SideInfo::gr_info_s_t* gr,
-				      Boolean isMPEG2) {
+                      Boolean isMPEG2) {
   return isMPEG2 ? rsf_get_scale_factors_2(gr)
                  : rsf_get_scale_factors_1(gr);
 }
 
 static int rsf_huffman_decoder(BitVector& bv,
-			       struct huffcodetab const* h,
-			       int* x, int* y, int* v, int* w); // forward
+                   struct huffcodetab const* h,
+                   int* x, int* y, int* v, int* w); // forward
 
 void MP3HuffmanDecode(MP3SideInfo::gr_info_s_t* gr, Boolean isMPEG2,
-		      unsigned char const* fromBasePtr,
-		      unsigned fromBitOffset, unsigned fromLength,
-		      unsigned& scaleFactorsLength,
-		      MP3HuffmanEncodingInfo& hei) {
+              unsigned char const* fromBasePtr,
+              unsigned fromBitOffset, unsigned fromLength,
+              unsigned& scaleFactorsLength,
+              MP3HuffmanEncodingInfo& hei) {
    unsigned i;
    int x, y, v, w;
    struct huffcodetab *h;
@@ -568,13 +568,13 @@ void MP3HuffmanDecode(MP3SideInfo::gr_info_s_t* gr, Boolean isMPEG2,
        /* in region 1 */
        h = &rsf_ht[gr->table_select[1]];
        if (hei.reg1Start == 0) {
-	 hei.reg1Start = bv.curBitIndex();
+     hei.reg1Start = bv.curBitIndex();
        }
      } else {
        /* in region 2 */
        h = &rsf_ht[gr->table_select[2]];
        if (hei.reg2Start == 0) {
-	 hei.reg2Start = bv.curBitIndex();
+     hei.reg2Start = bv.curBitIndex();
        }
      }
 
@@ -608,12 +608,12 @@ void MP3HuffmanDecode(MP3SideInfo::gr_info_s_t* gr, Boolean isMPEG2,
 HUFFBITS dmask = 1 << (SIZEOF_HUFFBITS*8-1);
 unsigned int hs = SIZEOF_HUFFBITS*8;
 
-/* do the huffman-decoding 						*/
+/* do the huffman-decoding                         */
 static int rsf_huffman_decoder(BitVector& bv,
-		struct huffcodetab const* h, // ptr to huffman code record
-			/* unsigned */ int *x, // returns decoded x value
-			/* unsigned */ int *y,  // returns decoded y value
-			       int* v, int* w) {
+        struct huffcodetab const* h, // ptr to huffman code record
+            /* unsigned */ int *x, // returns decoded x value
+            /* unsigned */ int *y,  // returns decoded y value
+                   int* v, int* w) {
   HUFFBITS level;
   unsigned point = 0;
   int error = 1;
@@ -709,13 +709,13 @@ inline int getNextSample(unsigned char const*& fromPtr) {
 }
 
 static void rsf_huffman_encoder(BitVector& bv,
-				struct huffcodetab* h,
-				int x, int y, int v, int w); // forward
+                struct huffcodetab* h,
+                int x, int y, int v, int w); // forward
 
 unsigned MP3HuffmanEncode(MP3SideInfo::gr_info_s_t const* gr,
-			  unsigned char const* fromPtr,
-			  unsigned char* toPtr, unsigned toBitOffset,
-			  unsigned numHuffBits) {
+              unsigned char const* fromPtr,
+              unsigned char* toPtr, unsigned toBitOffset,
+              unsigned numHuffBits) {
    unsigned i;
    struct huffcodetab *h;
    int x, y, v, w;
@@ -762,8 +762,8 @@ unsigned MP3HuffmanEncode(MP3SideInfo::gr_info_s_t const* gr,
 }
 
 static Boolean lookupHuffmanTableEntry(struct huffcodetab const* h,
-				       HUFFBITS bits, unsigned bitsLength,
-				       unsigned char& xy) {
+                       HUFFBITS bits, unsigned bitsLength,
+                       unsigned char& xy) {
   unsigned point = 0;
   unsigned mask = 1;
   unsigned numBitsTestedSoFar = 0;
@@ -771,11 +771,11 @@ static Boolean lookupHuffmanTableEntry(struct huffcodetab const* h,
     if (h->val[point][0]==0) { // end of tree
       xy = h->val[point][1];
       if (h->hlen[xy] == 0) { // this entry hasn't already been used
-	h->table[xy] = bits;
-	h->hlen[xy] = bitsLength;
-	return True;
+    h->table[xy] = bits;
+    h->hlen[xy] = bitsLength;
+    return True;
       } else { // this entry has already been seen
-	return False;
+    return False;
       }
     }
 
@@ -815,8 +815,8 @@ static void buildHuffmanEncodingTable(struct huffcodetab* h) {
       // Find the table value - if any - for 'bits' (length 'bitsLength'):
       unsigned char xy;
       if (lookupHuffmanTableEntry(h, bits, bitsLength, xy)) {
-	++numEntries;
-	if (numEntries == maxNumEntries) return; // we're done
+    ++numEntries;
+    if (numEntries == maxNumEntries) return; // we're done
       }
     }
   }
@@ -826,7 +826,7 @@ static void buildHuffmanEncodingTable(struct huffcodetab* h) {
 }
 
 static void lookupXYandPutBits(BitVector& bv, struct huffcodetab const* h,
-			       unsigned char xy) {
+                   unsigned char xy) {
   HUFFBITS bits = h->table[xy];
   unsigned bitsLength = h->hlen[xy];
 
@@ -838,13 +838,13 @@ static void lookupXYandPutBits(BitVector& bv, struct huffcodetab const* h,
 }
 
 static void putLinbits(BitVector& bv, struct huffcodetab const* h,
-		       HUFFBITS bits) {
+               HUFFBITS bits) {
   bv.putBits(bits, h->linbits);
 }
 
 static void rsf_huffman_encoder(BitVector& bv,
-				struct huffcodetab* h,
-				int x, int y, int v, int w) {
+                struct huffcodetab* h,
+                int x, int y, int v, int w) {
   if (h->val == NULL) return;
 
   /* table 0 produces no bits */
@@ -930,32 +930,32 @@ static void rsf_huffman_encoder(BitVector& bv,
       linbitsX = (unsigned)(x - xl1);
       if (linbitsX > h->linmax) {
 #ifdef DEBUG
-	fprintf(stderr,"warning: Huffman X table overflow\n");
+    fprintf(stderr,"warning: Huffman X table overflow\n");
 #endif
-	linbitsX = h->linmax;
+    linbitsX = h->linmax;
       };
 
       if (y >= yl1) {
-	xy = (xl1<<4)|yl1;
-	lookupXYandPutBits(bv, h, xy);
-	linbitsY = (unsigned)(y - yl1);
-	if (linbitsY > h->linmax) {
+    xy = (xl1<<4)|yl1;
+    lookupXYandPutBits(bv, h, xy);
+    linbitsY = (unsigned)(y - yl1);
+    if (linbitsY > h->linmax) {
 #ifdef DEBUG
-	  fprintf(stderr,"warning: Huffman Y table overflow\n");
+      fprintf(stderr,"warning: Huffman Y table overflow\n");
 #endif
-	  linbitsY = h->linmax;
-	};
+      linbitsY = h->linmax;
+    };
 
-	if (h->linbits) putLinbits(bv, h, linbitsX);
-	if (x) bv.put1Bit(xIsNeg);
-	if (h->linbits) putLinbits(bv, h, linbitsY);
-	if (y) bv.put1Bit(yIsNeg);
+    if (h->linbits) putLinbits(bv, h, linbitsX);
+    if (x) bv.put1Bit(xIsNeg);
+    if (h->linbits) putLinbits(bv, h, linbitsY);
+    if (y) bv.put1Bit(yIsNeg);
       } else { /* x >= h->xlen, y < h->ylen */
-	xy = (xl1<<4)|y;
-	lookupXYandPutBits(bv, h, xy);
-	if (h->linbits) putLinbits(bv, h, linbitsX);
-	if (x) bv.put1Bit(xIsNeg);
-	if (y) bv.put1Bit(yIsNeg);
+    xy = (xl1<<4)|y;
+    lookupXYandPutBits(bv, h, xy);
+    if (h->linbits) putLinbits(bv, h, linbitsX);
+    if (x) bv.put1Bit(xIsNeg);
+    if (y) bv.put1Bit(yIsNeg);
       }
     } else { /* ((x < h->xlen) && (y >= h->ylen)) */
       xy = (x<<4)|yl1;
@@ -963,9 +963,9 @@ static void rsf_huffman_encoder(BitVector& bv,
       linbitsY = y-yl1;
       if (linbitsY > h->linmax) {
 #ifdef DEBUG
-	fprintf(stderr,"warning: Huffman Y table overflow\n");
+    fprintf(stderr,"warning: Huffman Y table overflow\n");
 #endif
-	linbitsY = h->linmax;
+    linbitsY = h->linmax;
       };
       if (x) bv.put1Bit(xIsNeg);
       if (h->linbits) putLinbits(bv, h, linbitsY);

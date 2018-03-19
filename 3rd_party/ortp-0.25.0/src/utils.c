@@ -28,75 +28,75 @@
 #include "utils.h"
 
 OList *o_list_new(void *data){
-	OList *new_elem=(OList*)ortp_new0(OList,1);
-	new_elem->data=data;
-	return new_elem;
+    OList *new_elem=(OList*)ortp_new0(OList,1);
+    new_elem->data=data;
+    return new_elem;
 }
 
 OList * o_list_append(OList *elem, void * data){
-	OList *new_elem=o_list_new(data);
-	OList *it=elem;
-	if (elem==NULL) return new_elem;
-	while (it->next!=NULL) it=o_list_next(it);
-	it->next=new_elem;
-	new_elem->prev=it;
-	return elem;
+    OList *new_elem=o_list_new(data);
+    OList *it=elem;
+    if (elem==NULL) return new_elem;
+    while (it->next!=NULL) it=o_list_next(it);
+    it->next=new_elem;
+    new_elem->prev=it;
+    return elem;
 }
 
 OList * o_list_free(OList *list){
-	OList *elem = list;
-	OList *tmp;
-	if (!list) return NULL;
-	while(elem->next!=NULL) {
-		tmp = elem;
-		elem = elem->next;
-		ortp_free(tmp);
-	}
-	ortp_free(elem);
-	return NULL;
+    OList *elem = list;
+    OList *tmp;
+    if (!list) return NULL;
+    while(elem->next!=NULL) {
+        tmp = elem;
+        elem = elem->next;
+        ortp_free(tmp);
+    }
+    ortp_free(elem);
+    return NULL;
 }
 
 OList *o_list_remove_link(OList *list, OList *elem){
-	OList *ret;
-	if (elem==list){
-		ret=elem->next;
-		elem->prev=NULL;
-		elem->next=NULL;
-		if (ret!=NULL) ret->prev=NULL;
-		ortp_free(elem);
-		return ret;
-	}
-	elem->prev->next=elem->next;
-	if (elem->next!=NULL) elem->next->prev=elem->prev;
-	elem->next=NULL;
-	elem->prev=NULL;
-	ortp_free(elem);
-	return list;
+    OList *ret;
+    if (elem==list){
+        ret=elem->next;
+        elem->prev=NULL;
+        elem->next=NULL;
+        if (ret!=NULL) ret->prev=NULL;
+        ortp_free(elem);
+        return ret;
+    }
+    elem->prev->next=elem->next;
+    if (elem->next!=NULL) elem->next->prev=elem->prev;
+    elem->next=NULL;
+    elem->prev=NULL;
+    ortp_free(elem);
+    return list;
 }
 
 OList * o_list_remove(OList *list, void *data){
-	OList *it;
-	for(it=list;it!=NULL;it=it->next){
-		if (it->data==data){
-			return o_list_remove_link(list,it);
-		}
-	}
-	return list;
+    OList *it;
+    for(it=list;it!=NULL;it=it->next){
+        if (it->data==data){
+            return o_list_remove_link(list,it);
+        }
+    }
+    return list;
 }
 
 
 uint64_t ortp_timeval_to_ntp(const struct timeval *tv){
-	uint64_t msw;
-	uint64_t lsw;
-	msw=tv->tv_sec + 0x83AA7E80; /* 0x83AA7E80 is the number of seconds from 1900 to 1970 */
-	lsw=(uint32_t)((double)tv->tv_usec*(double)(((uint64_t)1)<<32)*1.0e-6);
-	return msw<<32 | lsw;
+    uint64_t msw;
+    uint64_t lsw;
+    msw=tv->tv_sec + 0x83AA7E80; /* 0x83AA7E80 is the number of seconds from 1900 to 1970 */
+    lsw=(uint32_t)((double)tv->tv_usec*(double)(((uint64_t)1)<<32)*1.0e-6);
+    return msw<<32 | lsw;
 }
 
 bool_t ortp_stream_is_ipv6(OrtpStream *os) {
-	if (os->sockfamily == AF_INET6) {
-		struct sockaddr_in6 *in6 = (struct sockaddr_in6 *)&os->rem_addr;
-		return !IN6_IS_ADDR_V4MAPPED(&in6->sin6_addr);
-	}
-	return FALSE;
+    if (os->sockfamily == AF_INET6) {
+        struct sockaddr_in6 *in6 = (struct sockaddr_in6 *)&os->rem_addr;
+        return !IN6_IS_ADDR_V4MAPPED(&in6->sin6_addr);
+    }
+    return FALSE;
 }

@@ -40,7 +40,7 @@ class WAVAudioFileSource: public AudioInputDevice {
 public:
 
   static WAVAudioFileSource* createNew(UsageEnvironment& env,
-					char const* fileName);
+                    char const* fileName);
 
   unsigned numPCMBytes() const;
   void setScaleFactor(int scale);
@@ -52,7 +52,7 @@ public:
 
 protected:
   WAVAudioFileSource(UsageEnvironment& env, FILE* fid);
-	// called only by createNew()
+    // called only by createNew()
 
   virtual ~WAVAudioFileSource();
 

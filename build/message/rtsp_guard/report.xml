@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <report version="1.0">
     <check checkid="1234567890"> <!-- command:add,remove -->
-		<cameralist reg="0">
-            <camera ID="01234567890123456789",result="0",recv="1024",duration="30" />
+		<cameralist>
+            <camera ID="01234567890123456789",result="0",duration="30",video_recv="1024",audio_recv="1024" />
             <!-- result:0:success,1:geturlfail,2:rtsp request fail,3:no media data -->
 		</cameralist>
     </check>

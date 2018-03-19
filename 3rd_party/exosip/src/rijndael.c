@@ -39,7 +39,7 @@ typedef unsigned int u32;
 #define byte3(x)    ((u8)(x >> 24))
 
 
-/* Put or get a 32 bit u32 (v) in machine order from a byte	*
+/* Put or get a 32 bit u32 (v) in machine order from a byte    *
  * address in (x)                                           */
 
 #ifdef  LITTLE_ENDIAN

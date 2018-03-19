@@ -39,19 +39,19 @@ public:
 
 protected:
   MultiFramedRTPSink(UsageEnvironment& env,
-		     Groupsock* rtpgs, unsigned char rtpPayloadType,
-		     unsigned rtpTimestampFrequency,
-		     char const* rtpPayloadFormatName,
-		     unsigned numChannels = 1);
-	// we're a virtual base class
+             Groupsock* rtpgs, unsigned char rtpPayloadType,
+             unsigned rtpTimestampFrequency,
+             char const* rtpPayloadFormatName,
+             unsigned numChannels = 1);
+    // we're a virtual base class
 
   virtual ~MultiFramedRTPSink();
 
   virtual void doSpecialFrameHandling(unsigned fragmentationOffset,
-				      unsigned char* frameStart,
-				      unsigned numBytesInFrame,
-				      struct timeval framePresentationTime,
-				      unsigned numRemainingBytes);
+                      unsigned char* frameStart,
+                      unsigned numBytesInFrame,
+                      struct timeval framePresentationTime,
+                      unsigned numRemainingBytes);
       // perform any processing specific to the particular payload format
   virtual Boolean allowFragmentationAfterStart() const;
       // whether a frame can be fragmented if other frame(s) appear earlier
@@ -60,7 +60,7 @@ protected:
       // whether other frames can be packed into a packet following the
       // final fragment of a previous, fragmented frame (by default: False)
   virtual Boolean frameCanAppearAfterPacketStart(unsigned char const* frameStart,
-						 unsigned numBytesInFrame) const;
+                         unsigned numBytesInFrame) const;
       // whether this frame can appear in position >1 in a pkt (default: True)
   virtual unsigned specialHeaderSize() const;
       // returns the size of any special header used (following the RTP header) (default: 0)
@@ -80,13 +80,13 @@ protected:
   void setMarkerBit();
   void setTimestamp(struct timeval framePresentationTime);
   void setSpecialHeaderWord(unsigned word, /* 32 bits, in host order */
-			    unsigned wordPosition = 0);
+                unsigned wordPosition = 0);
   void setSpecialHeaderBytes(unsigned char const* bytes, unsigned numBytes,
-			     unsigned bytePosition = 0);
+                 unsigned bytePosition = 0);
   void setFrameSpecificHeaderWord(unsigned word, /* 32 bits, in host order */
-				  unsigned wordPosition = 0);
+                  unsigned wordPosition = 0);
   void setFrameSpecificHeaderBytes(unsigned char const* bytes, unsigned numBytes,
-				   unsigned bytePosition = 0);
+                   unsigned bytePosition = 0);
   void setFramePadding(unsigned numPaddingBytes);
   unsigned numFramesUsedSoFar() const { return fNumFramesUsedSoFar; }
   unsigned ourMaxPacketSize() const { return fOurMaxPacketSize; }
@@ -105,12 +105,12 @@ private:
   friend void sendNext(void*);
 
   static void afterGettingFrame(void* clientData,
-				unsigned numBytesRead, unsigned numTruncatedBytes,
-				struct timeval presentationTime,
-				unsigned durationInMicroseconds);
+                unsigned numBytesRead, unsigned numTruncatedBytes,
+                struct timeval presentationTime,
+                unsigned durationInMicroseconds);
   void afterGettingFrame1(unsigned numBytesRead, unsigned numTruncatedBytes,
-			  struct timeval presentationTime,
-			  unsigned durationInMicroseconds);
+              struct timeval presentationTime,
+              unsigned durationInMicroseconds);
   Boolean isTooBigForAPacket(unsigned numBytes) const;
 
   static void ourHandleClosure(void* clientData);

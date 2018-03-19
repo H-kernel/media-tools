@@ -22,19 +22,19 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 AC3AudioRTPSource*
 AC3AudioRTPSource::createNew(UsageEnvironment& env,
-			      Groupsock* RTPgs,
-			      unsigned char rtpPayloadFormat,
-			      unsigned rtpTimestampFrequency) {
+                  Groupsock* RTPgs,
+                  unsigned char rtpPayloadFormat,
+                  unsigned rtpTimestampFrequency) {
   return new AC3AudioRTPSource(env, RTPgs, rtpPayloadFormat,
-				rtpTimestampFrequency);
+                rtpTimestampFrequency);
 }
 
 AC3AudioRTPSource::AC3AudioRTPSource(UsageEnvironment& env,
-				       Groupsock* rtpGS,
-				       unsigned char rtpPayloadFormat,
-				       unsigned rtpTimestampFrequency)
+                       Groupsock* rtpGS,
+                       unsigned char rtpPayloadFormat,
+                       unsigned rtpTimestampFrequency)
   : MultiFramedRTPSource(env, rtpGS,
-			 rtpPayloadFormat, rtpTimestampFrequency) {
+             rtpPayloadFormat, rtpTimestampFrequency) {
 }
 
 AC3AudioRTPSource::~AC3AudioRTPSource() {
@@ -42,7 +42,7 @@ AC3AudioRTPSource::~AC3AudioRTPSource() {
 
 Boolean AC3AudioRTPSource
 ::processSpecialHeader(BufferedPacket* packet,
-		       unsigned& resultSpecialHeaderSize) {
+               unsigned& resultSpecialHeaderSize) {
   unsigned char* headerStart = packet->data();
   unsigned packetSize = packet->dataSize();
 

@@ -31,14 +31,14 @@ public:
 
 protected:
   GSMAudioRTPSink(UsageEnvironment& env, Groupsock* RTPgs);
-	// called only by createNew()
+    // called only by createNew()
 
   virtual ~GSMAudioRTPSink();
 
 private: // redefined virtual functions:
   virtual
   Boolean frameCanAppearAfterPacketStart(unsigned char const* frameStart,
-					 unsigned numBytesInFrame) const;
+                     unsigned numBytesInFrame) const;
 };
 
 #endif

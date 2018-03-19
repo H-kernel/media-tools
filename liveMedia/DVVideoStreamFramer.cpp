@@ -25,7 +25,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 ////////// DVVideoStreamFramer implementation //////////
 
 DVVideoStreamFramer::DVVideoStreamFramer(UsageEnvironment& env, FramedSource* inputSource,
-					 Boolean sourceIsSeekable, Boolean leavePresentationTimesUnmodified)
+                     Boolean sourceIsSeekable, Boolean leavePresentationTimesUnmodified)
   : FramedFilter(env, inputSource),
     fLeavePresentationTimesUnmodified(leavePresentationTimesUnmodified),
     fOurProfile(NULL), fInitialBlocksPresent(False), fSourceIsSeekable(sourceIsSeekable) {
@@ -39,7 +39,7 @@ DVVideoStreamFramer::~DVVideoStreamFramer() {
 
 DVVideoStreamFramer*
 DVVideoStreamFramer::createNew(UsageEnvironment& env, FramedSource* inputSource,
-			       Boolean sourceIsSeekable, Boolean leavePresentationTimesUnmodified) {
+                   Boolean sourceIsSeekable, Boolean leavePresentationTimesUnmodified) {
   return new DVVideoStreamFramer(env, inputSource, sourceIsSeekable, leavePresentationTimesUnmodified);
 }
 
@@ -87,8 +87,8 @@ Boolean DVVideoStreamFramer::getFrameParameters(unsigned& frameSize, double& fra
 void DVVideoStreamFramer::getProfile() {
   // To determine the stream's profile, we need to first read a chunk of data that we can parse:
   fInputSource->getNextFrame(fSavedInitialBlocks, DV_SAVED_INITIAL_BLOCKS_SIZE,
-			     afterGettingFrame, this, FramedSource::handleClosure, this);
-  
+                 afterGettingFrame, this, FramedSource::handleClosure, this);
+
   // Handle events until the requested data arrives:
   envir().taskScheduler().doEventLoop(&fInitialBlocksPresent);
 }
@@ -114,7 +114,7 @@ void DVVideoStreamFramer::doGetNextFrame() {
     fTo += DV_SAVED_INITIAL_BLOCKS_SIZE;
     fInitialBlocksPresent = False; // for the future
   }
-    
+
   // Arrange to read the (rest of the) requested data.
   // (But first, make sure that we read an integral multiple of the DV block size.)
   fMaxSize -= fMaxSize%DV_DIF_BLOCK_SIZE;
@@ -133,8 +133,8 @@ void DVVideoStreamFramer::getAndDeliverData() {
 }
 
 void DVVideoStreamFramer::afterGettingFrame(void* clientData, unsigned frameSize,
-					    unsigned numTruncatedBytes,
-					    struct timeval presentationTime, unsigned /*durationInMicroseconds*/) {
+                        unsigned numTruncatedBytes,
+                        struct timeval presentationTime, unsigned /*durationInMicroseconds*/) {
   DVVideoStreamFramer* source = (DVVideoStreamFramer*)clientData;
   source->afterGettingFrame(frameSize, numTruncatedBytes, presentationTime);
 }
@@ -165,21 +165,21 @@ void DVVideoStreamFramer::afterGettingFrame(unsigned frameSize, unsigned numTrun
       u_int8_t const packHeaderNum = DVData(0,0);
 
       if (sectionHeader == DV_SECTION_HEADER
-	  && (packHeaderNum == DV_PACK_HEADER_10 || packHeaderNum == DV_PACK_HEADER_12)
-	  && (sectionVAUX >= DV_SECTION_VAUX_MIN && sectionVAUX <= DV_SECTION_VAUX_MAX)) {
-	// This data begins a sequence; look up the DV profile from this:
-	u_int8_t const apt = DVData(0,1)&0x07;
-	u_int8_t const sType = DVData(5,48)&0x1F;
-	u_int8_t const sequenceCount = (packHeaderNum == DV_PACK_HEADER_10) ? 10 : 12;
+      && (packHeaderNum == DV_PACK_HEADER_10 || packHeaderNum == DV_PACK_HEADER_12)
+      && (sectionVAUX >= DV_SECTION_VAUX_MIN && sectionVAUX <= DV_SECTION_VAUX_MAX)) {
+    // This data begins a sequence; look up the DV profile from this:
+    u_int8_t const apt = DVData(0,1)&0x07;
+    u_int8_t const sType = DVData(5,48)&0x1F;
+    u_int8_t const sequenceCount = (packHeaderNum == DV_PACK_HEADER_10) ? 10 : 12;
 
-	// Use these three parameters (apt, sType, sequenceCount) to look up the DV profile:
-	for (DVVideoProfile const* profile = profiles; profile->name != NULL; ++profile) {
-	  if (profile->apt == apt && profile->sType == sType && profile->sequenceCount == sequenceCount) {
-	    fOurProfile = profile;
-	    break;
-	  }
-	}
-	break; // because we found a correct sequence header (even if we don't happen to define a profile for it)
+    // Use these three parameters (apt, sType, sequenceCount) to look up the DV profile:
+    for (DVVideoProfile const* profile = profiles; profile->name != NULL; ++profile) {
+      if (profile->apt == apt && profile->sType == sType && profile->sequenceCount == sequenceCount) {
+        fOurProfile = profile;
+        break;
+      }
+    }
+    break; // because we found a correct sequence header (even if we don't happen to define a profile for it)
       }
     }
   }
@@ -199,16 +199,16 @@ void DVVideoStreamFramer::afterGettingFrame(unsigned frameSize, unsigned numTrun
       fNumTruncatedBytes = totFrameSize - fFrameSize;
 
       if (fOurProfile != NULL) {
-	// Also set the presentation time, and increment it for next time,
-	// based on the length of this frame:
-	if (!fLeavePresentationTimesUnmodified) fPresentationTime = fNextFramePresentationTime;
+    // Also set the presentation time, and increment it for next time,
+    // based on the length of this frame:
+    if (!fLeavePresentationTimesUnmodified) fPresentationTime = fNextFramePresentationTime;
 
-	DVVideoProfile const* ourProfile =(DVVideoProfile const*)fOurProfile;
-	double durationInMicroseconds = (fFrameSize*ourProfile->frameDuration)/ourProfile->dvFrameSize;
-	fDurationInMicroseconds = (unsigned)durationInMicroseconds;
-	fNextFramePresentationTime.tv_usec += fDurationInMicroseconds;
-	fNextFramePresentationTime.tv_sec += fNextFramePresentationTime.tv_usec/MILLION;
-	fNextFramePresentationTime.tv_usec %= MILLION;
+    DVVideoProfile const* ourProfile =(DVVideoProfile const*)fOurProfile;
+    double durationInMicroseconds = (fFrameSize*ourProfile->frameDuration)/ourProfile->dvFrameSize;
+    fDurationInMicroseconds = (unsigned)durationInMicroseconds;
+    fNextFramePresentationTime.tv_usec += fDurationInMicroseconds;
+    fNextFramePresentationTime.tv_sec += fNextFramePresentationTime.tv_usec/MILLION;
+    fNextFramePresentationTime.tv_usec %= MILLION;
       }
 
       afterGetting(this);

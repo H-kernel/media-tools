@@ -28,10 +28,10 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class ByteStreamMemoryBufferSource: public FramedSource {
 public:
   static ByteStreamMemoryBufferSource* createNew(UsageEnvironment& env,
-						 u_int8_t* buffer, u_int64_t bufferSize,
-						 Boolean deleteBufferOnClose = True,
-						 unsigned preferredFrameSize = 0,
-						 unsigned playTimePerFrame = 0);
+                         u_int8_t* buffer, u_int64_t bufferSize,
+                         Boolean deleteBufferOnClose = True,
+                         unsigned preferredFrameSize = 0,
+                         unsigned playTimePerFrame = 0);
       // "preferredFrameSize" == 0 means 'no preference'
       // "playTimePerFrame" is in microseconds
 
@@ -43,11 +43,11 @@ public:
 
 protected:
   ByteStreamMemoryBufferSource(UsageEnvironment& env,
-			       u_int8_t* buffer, u_int64_t bufferSize,
-			       Boolean deleteBufferOnClose,
-			       unsigned preferredFrameSize,
-			       unsigned playTimePerFrame);
-	// called only by createNew()
+                   u_int8_t* buffer, u_int64_t bufferSize,
+                   Boolean deleteBufferOnClose,
+                   unsigned preferredFrameSize,
+                   unsigned playTimePerFrame);
+    // called only by createNew()
 
   virtual ~ByteStreamMemoryBufferSource();
 

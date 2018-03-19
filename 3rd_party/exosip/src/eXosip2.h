@@ -1,17 +1,17 @@
 /*
   eXosip - This is the eXtended osip library.
   Copyright (C) 2001-2015 Aymeric MOIZARD amoizard@antisip.com
-  
+
   eXosip is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
-  
+
   eXosip is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
-  
+
   You should have received a copy of the GNU General Public License
   along with this program; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -150,7 +150,7 @@
 
 #include "jpipe.h"
 
-#define EXOSIP_VERSION	"5.0.0"
+#define EXOSIP_VERSION    "5.0.0"
 
 #ifdef WIN32
 #define SOCKET_TYPE SOCKET
@@ -455,7 +455,7 @@ struct eXosip_counters {
 #endif
     int max_message_to_read;
     long int max_read_timeout;
-    
+
     osip_fifo_t *j_events;
 
     jauthinfo_t *authinfos;
@@ -544,7 +544,7 @@ struct eXosip_counters {
   int _eXosip_generating_bye (struct eXosip_t *excontext, osip_message_t ** bye, osip_dialog_t * dialog);
   int _eXosip_request_viamanager(struct eXosip_t *excontext, osip_transaction_t * tr, osip_message_t * sip, int proto, struct sockaddr_storage *udp_local_bind, int local_port, int sock, char *host);
   int _eXosip_message_contactmanager(struct eXosip_t *excontext, osip_transaction_t * tr, osip_message_t * sip, int proto, struct sockaddr_storage *udp_local_bind, int local_port, int sock, char *host);
-  
+
   int _eXosip_update_top_via (struct eXosip_t *excontext, osip_message_t * sip);
   int _eXosip_request_add_via (struct eXosip_t *excontext, osip_message_t * request);
 
@@ -655,7 +655,7 @@ struct eXosip_counters {
   */
   eXosip_tls_ctx_error eXosip_tls_verify_certificate (struct eXosip_t *excontext, int _tls_verify_client_certificate);
 
-  
+
 #ifndef EXOSIP_STATS_PERIOD
 #define EXOSIP_STATS_PERIOD 3600  /* default period in seconds */
 #endif

@@ -33,10 +33,10 @@ class OggFileServerDemux: public Medium {
 public:
   typedef void (onCreationFunc)(OggFileServerDemux* newDemux, void* clientData);
   static void createNew(UsageEnvironment& env, char const* fileName,
-			onCreationFunc* onCreation, void* onCreationClientData);
+            onCreationFunc* onCreation, void* onCreationClientData);
     // Note: Unlike most "createNew()" functions, this one doesn't return a new object immediately.  Instead, because this class
     // requires file reading (to parse the Ogg 'Track' headers) before a new object can be initialized, the creation of a new
-    // object is signalled by calling - from the event loop - an 'onCreationFunc' that is passed as a parameter to "createNew()". 
+    // object is signalled by calling - from the event loop - an 'onCreationFunc' that is passed as a parameter to "createNew()".
 
   ServerMediaSubsession* newServerMediaSubsession();
   ServerMediaSubsession* newServerMediaSubsession(u_int32_t& resultTrackNumber);
@@ -58,14 +58,14 @@ public:
 
 private:
   OggFileServerDemux(UsageEnvironment& env, char const* fileName,
-		     onCreationFunc* onCreation, void* onCreationClientData);
+             onCreationFunc* onCreation, void* onCreationClientData);
       // called only by createNew()
   virtual ~OggFileServerDemux();
 
   static void onOggFileCreation(OggFile* newFile, void* clientData);
   void onOggFileCreation(OggFile* newFile);
 private:
-  char const* fFileName; 
+  char const* fFileName;
   onCreationFunc* fOnCreation;
   void* fOnCreationClientData;
   OggFile* fOurOggFile;

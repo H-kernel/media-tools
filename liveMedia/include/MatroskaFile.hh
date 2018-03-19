@@ -35,7 +35,7 @@ class MatroskaFile: public Medium {
 public:
   typedef void (onCreationFunc)(MatroskaFile* newFile, void* clientData);
   static void createNew(UsageEnvironment& env, char const* fileName, onCreationFunc* onCreation, void* onCreationClientData,
-			char const* preferredLanguage = "eng");
+            char const* preferredLanguage = "eng");
     // Note: Unlike most "createNew()" functions, this one doesn't return a new object immediately.  Instead, because this class
     // requires file reading (to parse the Matroska 'Track' headers) before a new object can be initialized, the creation of a new
     // object is signalled by calling - from the event loop - an 'onCreationFunc' that is passed as a parameter to "createNew()".
@@ -49,7 +49,7 @@ public:
   unsigned timecodeScale() { return fTimecodeScale; } // in nanoseconds
   float segmentDuration() { return fSegmentDuration; } // in units of "timecodeScale()"
   float fileDuration(); // in seconds
-  
+
   char const* fileName() const { return fFileName; }
 
   unsigned chosenVideoTrackNumber() { return fChosenVideoTrackNumber; }
@@ -58,18 +58,18 @@ public:
 
   FramedSource*
   createSourceForStreaming(FramedSource* baseSource, unsigned trackNumber,
-			   unsigned& estBitrate, unsigned& numFiltersInFrontOfTrack);
+               unsigned& estBitrate, unsigned& numFiltersInFrontOfTrack);
     // Takes a data source (which must be a demultiplexed track from this file) and returns
     // a (possibly modified) data source that can be used for streaming.
 
   RTPSink* createRTPSinkForTrackNumber(unsigned trackNumber, Groupsock* rtpGroupsock,
-				       unsigned char rtpPayloadTypeIfDynamic);
+                       unsigned char rtpPayloadTypeIfDynamic);
     // Creates a "RTPSink" object that would be appropriate for streaming the specified track,
     // or NULL if no appropriate "RTPSink" exists
 
 private:
   MatroskaFile(UsageEnvironment& env, char const* fileName, onCreationFunc* onCreation, void* onCreationClientData,
-	       char const* preferredLanguage);
+           char const* preferredLanguage);
       // called only by createNew()
   virtual ~MatroskaFile();
 

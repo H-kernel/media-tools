@@ -39,7 +39,7 @@ int TimeCode::operator==(TimeCode const& arg2) {
 ////////// MPEGVideoStreamFramer implementation //////////
 
 MPEGVideoStreamFramer::MPEGVideoStreamFramer(UsageEnvironment& env,
-					     FramedSource* inputSource)
+                         FramedSource* inputSource)
   : FramedFilter(env, inputSource),
     fFrameRate(0.0) /* until we learn otherwise */,
     fParser(NULL) {
@@ -111,7 +111,7 @@ void MPEGVideoStreamFramer
 
 void MPEGVideoStreamFramer
 ::setTimeCode(unsigned hours, unsigned minutes, unsigned seconds,
-	      unsigned pictures, unsigned picturesSinceLastGOP) {
+          unsigned pictures, unsigned picturesSinceLastGOP) {
   TimeCode& tc = fCurGOPTimeCode; // abbrev
   unsigned days = tc.days;
   if (hours < tc.hours) {
@@ -149,8 +149,8 @@ void MPEGVideoStreamFramer::doStopGettingFrames() {
 
 void MPEGVideoStreamFramer
 ::continueReadProcessing(void* clientData,
-			 unsigned char* /*ptr*/, unsigned /*size*/,
-			 struct timeval /*presentationTime*/) {
+             unsigned char* /*ptr*/, unsigned /*size*/,
+             struct timeval /*presentationTime*/) {
   MPEGVideoStreamFramer* framer = (MPEGVideoStreamFramer*)clientData;
   framer->continueReadProcessing();
 }

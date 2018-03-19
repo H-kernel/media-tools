@@ -31,14 +31,14 @@ class uLawFromPCMAudioSource: public FramedFilter {
 public:
   static uLawFromPCMAudioSource*
   createNew(UsageEnvironment& env, FramedSource* inputSource,
-	    int byteOrdering = 0);
+        int byteOrdering = 0);
   // "byteOrdering" == 0 => host order (the default)
   // "byteOrdering" == 1 => little-endian order
   // "byteOrdering" == 2 => network (i.e., big-endian) order
 
 protected:
   uLawFromPCMAudioSource(UsageEnvironment& env, FramedSource* inputSource,
-			 int byteOrdering);
+             int byteOrdering);
       // called only by createNew()
   virtual ~uLawFromPCMAudioSource();
 
@@ -48,13 +48,13 @@ private:
 
 private:
   static void afterGettingFrame(void* clientData, unsigned frameSize,
-				unsigned numTruncatedBytes,
-				struct timeval presentationTime,
-				unsigned durationInMicroseconds);
+                unsigned numTruncatedBytes,
+                struct timeval presentationTime,
+                unsigned durationInMicroseconds);
   void afterGettingFrame1(unsigned frameSize,
-			  unsigned numTruncatedBytes,
-			  struct timeval presentationTime,
-			  unsigned durationInMicroseconds);
+              unsigned numTruncatedBytes,
+              struct timeval presentationTime,
+              unsigned durationInMicroseconds);
 
 private:
   int fByteOrdering;
@@ -72,7 +72,7 @@ public:
 
 protected:
   PCMFromuLawAudioSource(UsageEnvironment& env,
-			 FramedSource* inputSource);
+             FramedSource* inputSource);
       // called only by createNew()
   virtual ~PCMFromuLawAudioSource();
 
@@ -82,13 +82,13 @@ private:
 
 private:
   static void afterGettingFrame(void* clientData, unsigned frameSize,
-				unsigned numTruncatedBytes,
-				struct timeval presentationTime,
-				unsigned durationInMicroseconds);
+                unsigned numTruncatedBytes,
+                struct timeval presentationTime,
+                unsigned durationInMicroseconds);
   void afterGettingFrame1(unsigned frameSize,
-			  unsigned numTruncatedBytes,
-			  struct timeval presentationTime,
-			  unsigned durationInMicroseconds);
+              unsigned numTruncatedBytes,
+              struct timeval presentationTime,
+              unsigned durationInMicroseconds);
 
 private:
   unsigned char* fInputBuffer;
@@ -114,13 +114,13 @@ private:
 
 private:
   static void afterGettingFrame(void* clientData, unsigned frameSize,
-				unsigned numTruncatedBytes,
-				struct timeval presentationTime,
-				unsigned durationInMicroseconds);
+                unsigned numTruncatedBytes,
+                struct timeval presentationTime,
+                unsigned durationInMicroseconds);
   void afterGettingFrame1(unsigned frameSize,
-			  unsigned numTruncatedBytes,
-			  struct timeval presentationTime,
-			  unsigned durationInMicroseconds);
+              unsigned numTruncatedBytes,
+              struct timeval presentationTime,
+              unsigned durationInMicroseconds);
 };
 
 
@@ -142,13 +142,13 @@ private:
 
 private:
   static void afterGettingFrame(void* clientData, unsigned frameSize,
-				unsigned numTruncatedBytes,
-				struct timeval presentationTime,
-				unsigned durationInMicroseconds);
+                unsigned numTruncatedBytes,
+                struct timeval presentationTime,
+                unsigned durationInMicroseconds);
   void afterGettingFrame1(unsigned frameSize,
-			  unsigned numTruncatedBytes,
-			  struct timeval presentationTime,
-			  unsigned durationInMicroseconds);
+              unsigned numTruncatedBytes,
+              struct timeval presentationTime,
+              unsigned durationInMicroseconds);
 };
 
 
@@ -169,13 +169,13 @@ private:
 
 private:
   static void afterGettingFrame(void* clientData, unsigned frameSize,
-				unsigned numTruncatedBytes,
-				struct timeval presentationTime,
-				unsigned durationInMicroseconds);
+                unsigned numTruncatedBytes,
+                struct timeval presentationTime,
+                unsigned durationInMicroseconds);
   void afterGettingFrame1(unsigned frameSize,
-			  unsigned numTruncatedBytes,
-			  struct timeval presentationTime,
-			  unsigned durationInMicroseconds);
+              unsigned numTruncatedBytes,
+              struct timeval presentationTime,
+              unsigned durationInMicroseconds);
 };
 
 
@@ -196,13 +196,13 @@ private:
 
 private:
   static void afterGettingFrame(void* clientData, unsigned frameSize,
-				unsigned numTruncatedBytes,
-				struct timeval presentationTime,
-				unsigned durationInMicroseconds);
+                unsigned numTruncatedBytes,
+                struct timeval presentationTime,
+                unsigned durationInMicroseconds);
   void afterGettingFrame1(unsigned frameSize,
-			  unsigned numTruncatedBytes,
-			  struct timeval presentationTime,
-			  unsigned durationInMicroseconds);
+              unsigned numTruncatedBytes,
+              struct timeval presentationTime,
+              unsigned durationInMicroseconds);
 };
 
 #endif

@@ -28,7 +28,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class ADTSAudioFileSource: public FramedFileSource {
 public:
   static ADTSAudioFileSource* createNew(UsageEnvironment& env,
-				       char const* fileName);
+                       char const* fileName);
 
   unsigned samplingFrequency() const { return fSamplingFrequency; }
   unsigned numChannels() const { return fNumChannels; }
@@ -37,8 +37,8 @@ public:
 
 private:
   ADTSAudioFileSource(UsageEnvironment& env, FILE* fid, u_int8_t profile,
-		      u_int8_t samplingFrequencyIndex, u_int8_t channelConfiguration);
-	// called only by createNew()
+              u_int8_t samplingFrequencyIndex, u_int8_t channelConfiguration);
+    // called only by createNew()
 
   virtual ~ADTSAudioFileSource();
 

@@ -31,18 +31,18 @@ class JPEGVideoRTPSource: public MultiFramedRTPSource {
 public:
   static JPEGVideoRTPSource*
   createNew(UsageEnvironment& env, Groupsock* RTPgs,
-	    unsigned char rtpPayloadFormat = 26,
-	    unsigned rtpPayloadFrequency = 90000,
-	    unsigned defaultWidth = 0, unsigned defaultHeight = 0);
+        unsigned char rtpPayloadFormat = 26,
+        unsigned rtpPayloadFrequency = 90000,
+        unsigned defaultWidth = 0, unsigned defaultHeight = 0);
 
 protected:
   virtual ~JPEGVideoRTPSource();
 
 private:
   JPEGVideoRTPSource(UsageEnvironment& env, Groupsock* RTPgs,
-		     unsigned char rtpPayloadFormat,
-		     unsigned rtpTimestampFrequency,
-		     unsigned defaultWidth, unsigned defaultHeight);
+             unsigned char rtpPayloadFormat,
+             unsigned rtpTimestampFrequency,
+             unsigned defaultWidth, unsigned defaultHeight);
       // called only by createNew()
 
   // Image dimensions from the SDP description, if any

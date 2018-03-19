@@ -553,7 +553,7 @@ void ASRtspClient::shutdownStream(int exitCode) {
     }
 
     /* not close here ,it will be closed by the close URL */
-    Medium::close(this);			//Modified by Chris@201712011000;
+    Medium::close(this);            //Modified by Chris@201712011000;
     // Note that this will also cause this stream's "ASRtspStreamState" structure to get reclaimed.
 }
 

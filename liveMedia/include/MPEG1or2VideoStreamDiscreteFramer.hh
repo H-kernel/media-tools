@@ -36,7 +36,7 @@ public:
   createNew(UsageEnvironment& env, FramedSource* inputSource,
             Boolean iFramesOnly = False, // see MPEG1or2VideoStreamFramer.hh
             double vshPeriod = 5.0, // see MPEG1or2VideoStreamFramer.hh
-	    Boolean leavePresentationTimesUnmodified = False);
+        Boolean leavePresentationTimesUnmodified = False);
 
 protected:
   MPEG1or2VideoStreamDiscreteFramer(UsageEnvironment& env,

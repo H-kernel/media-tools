@@ -28,7 +28,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 RTSPServerSupportingHTTPStreaming*
 RTSPServerSupportingHTTPStreaming::createNew(UsageEnvironment& env, Port rtspPort,
-					     UserAuthenticationDatabase* authDatabase, unsigned reclamationTestSeconds) {
+                         UserAuthenticationDatabase* authDatabase, unsigned reclamationTestSeconds) {
   int ourSocket = setUpOurSocket(env, rtspPort);
   if (ourSocket == -1) return NULL;
 
@@ -37,7 +37,7 @@ RTSPServerSupportingHTTPStreaming::createNew(UsageEnvironment& env, Port rtspPor
 
 RTSPServerSupportingHTTPStreaming
 ::RTSPServerSupportingHTTPStreaming(UsageEnvironment& env, int ourSocket, Port rtspPort,
-				    UserAuthenticationDatabase* authDatabase, unsigned reclamationTestSeconds)
+                    UserAuthenticationDatabase* authDatabase, unsigned reclamationTestSeconds)
   : RTSPServer(env, ourSocket, rtspPort, authDatabase, reclamationTestSeconds) {
 }
 
@@ -92,8 +92,8 @@ void RTSPServerSupportingHTTPStreaming::RTSPClientConnectionSupportingHTTPStream
     do {
       ServerMediaSession* session = fOurServer.lookupServerMediaSession(streamName);
       if (session == NULL) {
-	handleHTTPCmd_notFound();
-	break;
+    handleHTTPCmd_notFound();
+    break;
       }
 
       // We can't send multi-subsession streams over HTTP (because there's no defined way to multiplex more than one subsession).
@@ -101,9 +101,9 @@ void RTSPServerSupportingHTTPStreaming::RTSPClientConnectionSupportingHTTPStream
       ServerMediaSubsessionIterator iter(*session);
       ServerMediaSubsession* subsession = iter.next();
       if (subsession == NULL) {
-	// Treat an 'empty' ServerMediaSession the same as one that doesn't exist at all:
-	handleHTTPCmd_notFound();
-	break;
+    // Treat an 'empty' ServerMediaSession the same as one that doesn't exist at all:
+    handleHTTPCmd_notFound();
+    break;
       }
 
       // Call "getStreamParameters()" to create the stream's source.  (Because we're not actually streaming via RTP/RTCP, most
@@ -115,45 +115,45 @@ void RTSPServerSupportingHTTPStreaming::RTSPClientConnectionSupportingHTTPStream
       Boolean isMulticast = False;
       void* streamToken;
       subsession->getStreamParameters(fClientSessionId, 0, clientRTPPort,clientRTCPPort, -1,0,0, destinationAddress,destinationTTL, isMulticast, serverRTPPort,serverRTCPPort, streamToken);
-      
+
       // Seek the stream source to the desired place, with the desired duration, and (as a side effect) get the number of bytes:
       double dOffsetInSeconds = (double)offsetInSeconds;
       u_int64_t numBytes;
       subsession->seekStream(fClientSessionId, streamToken, dOffsetInSeconds, (double)durationInSeconds, numBytes);
       unsigned numTSBytesToStream = (unsigned)numBytes;
-      
+
       if (numTSBytesToStream == 0) {
-	// For some reason, we do not know the size of the requested range.  We can't handle this request:
-	handleHTTPCmd_notSupported();
-	break;
+    // For some reason, we do not know the size of the requested range.  We can't handle this request:
+    handleHTTPCmd_notSupported();
+    break;
       }
-      
+
       // Construct our response:
       snprintf((char*)fResponseBuffer, sizeof fResponseBuffer,
-	       "HTTP/1.1 200 OK\r\n"
-	       "%s"
-	       "Server: LIVE555 Streaming Media v%s\r\n"
-	       "%s"
-	       "Content-Length: %d\r\n"
-	       "Content-Type: text/plain; charset=ISO-8859-1\r\n"
-	       "\r\n",
-	       dateHeader(),
-	       LIVEMEDIA_LIBRARY_VERSION_STRING,
-	       lastModifiedHeader(streamName),
-	       numTSBytesToStream);
+           "HTTP/1.1 200 OK\r\n"
+           "%s"
+           "Server: LIVE555 Streaming Media v%s\r\n"
+           "%s"
+           "Content-Length: %d\r\n"
+           "Content-Type: text/plain; charset=ISO-8859-1\r\n"
+           "\r\n",
+           dateHeader(),
+           LIVEMEDIA_LIBRARY_VERSION_STRING,
+           lastModifiedHeader(streamName),
+           numTSBytesToStream);
       // Send the response now, because we're about to add more data (from the source):
       send(fClientOutputSocket, (char const*)fResponseBuffer, strlen((char*)fResponseBuffer), 0);
       fResponseBuffer[0] = '\0'; // We've already sent the response.  This tells the calling code not to send it again.
-      
+
       // Ask the media source to deliver - to the TCP sink - the desired data:
       if (fStreamSource != NULL) { // sanity check
-	if (fTCPSink != NULL) fTCPSink->stopPlaying();
-	Medium::close(fStreamSource);
+    if (fTCPSink != NULL) fTCPSink->stopPlaying();
+    Medium::close(fStreamSource);
       }
       fStreamSource = subsession->getStreamSource(streamToken);
       if (fStreamSource != NULL) {
-	if (fTCPSink == NULL) fTCPSink = TCPStreamSink::createNew(envir(), fClientOutputSocket);
-	fTCPSink->startPlaying(*fStreamSource, afterStreaming, this);
+    if (fTCPSink == NULL) fTCPSink = TCPStreamSink::createNew(envir(), fClientOutputSocket);
+    fTCPSink->startPlaying(*fStreamSource, afterStreaming, this);
       }
     } while(0);
 
@@ -227,17 +227,17 @@ void RTSPServerSupportingHTTPStreaming::RTSPClientConnectionSupportingHTTPStream
 
   // Construct our response:
   snprintf((char*)fResponseBuffer, sizeof fResponseBuffer,
-	   "HTTP/1.1 200 OK\r\n"
-	   "%s"
-	   "Server: LIVE555 Streaming Media v%s\r\n"
-	   "%s"
-	   "Content-Length: %d\r\n"
-	   "Content-Type: application/vnd.apple.mpegurl\r\n"
-	   "\r\n",
-	   dateHeader(),
-	   LIVEMEDIA_LIBRARY_VERSION_STRING,
-	   lastModifiedHeader(urlSuffix),
-	   playlistLen);
+       "HTTP/1.1 200 OK\r\n"
+       "%s"
+       "Server: LIVE555 Streaming Media v%s\r\n"
+       "%s"
+       "Content-Length: %d\r\n"
+       "Content-Type: application/vnd.apple.mpegurl\r\n"
+       "\r\n",
+       dateHeader(),
+       LIVEMEDIA_LIBRARY_VERSION_STRING,
+       lastModifiedHeader(urlSuffix),
+       playlistLen);
 
   // Send the response header now, because we're about to add more data (the playlist):
   send(fClientOutputSocket, (char const*)fResponseBuffer, strlen((char*)fResponseBuffer), 0);

@@ -34,7 +34,7 @@ class DVVideoStreamFramer: public FramedFilter {
 public:
   static DVVideoStreamFramer*
   createNew(UsageEnvironment& env, FramedSource* inputSource,
-	    Boolean sourceIsSeekable = False, Boolean leavePresentationTimesUnmodified = False);
+        Boolean sourceIsSeekable = False, Boolean leavePresentationTimesUnmodified = False);
       // Set "sourceIsSeekable" to True if the input source is a seekable object (e.g. a file), and the server that uses us
       // does a seek-to-zero on the source before reading from it.  (Our RTSP server implementation does this.)
   char const* profileName();
@@ -42,7 +42,7 @@ public:
 
 protected:
   DVVideoStreamFramer(UsageEnvironment& env, FramedSource* inputSource,
-		      Boolean sourceIsSeekable, Boolean leavePresentationTimesUnmodified);
+              Boolean sourceIsSeekable, Boolean leavePresentationTimesUnmodified);
       // called only by createNew(), or by subclass constructors
   virtual ~DVVideoStreamFramer();
 

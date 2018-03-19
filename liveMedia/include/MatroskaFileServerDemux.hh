@@ -33,11 +33,11 @@ class MatroskaFileServerDemux: public Medium {
 public:
   typedef void (onCreationFunc)(MatroskaFileServerDemux* newDemux, void* clientData);
   static void createNew(UsageEnvironment& env, char const* fileName,
-			onCreationFunc* onCreation, void* onCreationClientData,
-			char const* preferredLanguage = "eng");
+            onCreationFunc* onCreation, void* onCreationClientData,
+            char const* preferredLanguage = "eng");
     // Note: Unlike most "createNew()" functions, this one doesn't return a new object immediately.  Instead, because this class
     // requires file reading (to parse the Matroska 'Track' headers) before a new object can be initialized, the creation of a new
-    // object is signalled by calling - from the event loop - an 'onCreationFunc' that is passed as a parameter to "createNew()". 
+    // object is signalled by calling - from the event loop - an 'onCreationFunc' that is passed as a parameter to "createNew()".
 
   ServerMediaSubsession* newServerMediaSubsession();
   ServerMediaSubsession* newServerMediaSubsession(unsigned& resultTrackNumber);
@@ -60,15 +60,15 @@ public:
 
 private:
   MatroskaFileServerDemux(UsageEnvironment& env, char const* fileName,
-			  onCreationFunc* onCreation, void* onCreationClientData,
-			  char const* preferredLanguage);
+              onCreationFunc* onCreation, void* onCreationClientData,
+              char const* preferredLanguage);
       // called only by createNew()
   virtual ~MatroskaFileServerDemux();
 
   static void onMatroskaFileCreation(MatroskaFile* newFile, void* clientData);
   void onMatroskaFileCreation(MatroskaFile* newFile);
 private:
-  char const* fFileName; 
+  char const* fFileName;
   onCreationFunc* fOnCreation;
   void* fOnCreationClientData;
   MatroskaFile* fOurMatroskaFile;

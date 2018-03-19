@@ -31,7 +31,7 @@ public:
 
 protected:
   VP9VideoRTPSink(UsageEnvironment& env, Groupsock* RTPgs, unsigned char rtpPayloadFormat);
-	// called only by createNew()
+    // called only by createNew()
 
   virtual ~VP9VideoRTPSink();
 
@@ -43,7 +43,7 @@ private: // redefined virtual functions:
                                       unsigned numRemainingBytes);
   virtual
   Boolean frameCanAppearAfterPacketStart(unsigned char const* frameStart,
-					 unsigned numBytesInFrame) const;
+                     unsigned numBytesInFrame) const;
   virtual unsigned specialHeaderSize() const;
 };
 

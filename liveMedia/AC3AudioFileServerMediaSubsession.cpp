@@ -26,14 +26,14 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 AC3AudioFileServerMediaSubsession*
 AC3AudioFileServerMediaSubsession::createNew(UsageEnvironment& env,
-					     char const* fileName,
-					     Boolean reuseFirstSource) {
+                         char const* fileName,
+                         Boolean reuseFirstSource) {
   return new AC3AudioFileServerMediaSubsession(env, fileName, reuseFirstSource);
 }
 
 AC3AudioFileServerMediaSubsession
 ::AC3AudioFileServerMediaSubsession(UsageEnvironment& env,
-				    char const* fileName, Boolean reuseFirstSource)
+                    char const* fileName, Boolean reuseFirstSource)
   : FileServerMediaSubsession(env, fileName, reuseFirstSource) {
 }
 
@@ -52,10 +52,10 @@ FramedSource* AC3AudioFileServerMediaSubsession
 
 RTPSink* AC3AudioFileServerMediaSubsession
 ::createNewRTPSink(Groupsock* rtpGroupsock,
-		   unsigned char rtpPayloadTypeIfDynamic,
-		   FramedSource* inputSource) {
+           unsigned char rtpPayloadTypeIfDynamic,
+           FramedSource* inputSource) {
   AC3AudioStreamFramer* audioSource = (AC3AudioStreamFramer*)inputSource;
   return AC3AudioRTPSink::createNew(envir(), rtpGroupsock,
-				    rtpPayloadTypeIfDynamic,
-				    audioSource->samplingRate());
+                    rtpPayloadTypeIfDynamic,
+                    audioSource->samplingRate());
 }

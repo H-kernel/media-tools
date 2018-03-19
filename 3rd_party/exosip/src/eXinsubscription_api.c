@@ -1,17 +1,17 @@
 /*
   eXosip - This is the eXtended osip library.
   Copyright (C) 2001-2015 Aymeric MOIZARD amoizard@antisip.com
-  
+
   eXosip is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
-  
+
   eXosip is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
-  
+
   You should have received a copy of the GNU General Public License
   along with this program; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -492,7 +492,7 @@ _eXosip_insubscription_auto_send_notify (struct eXosip_t *excontext, int did, in
     osip_message_free (notify);
     return i;
   }
-  snprintf (xml, sizeof (xml), "<?xml version=\"1.0\"?>" "\r\n" "<dialog-info xmlns=\"urn:ietf:params:xml:ns:dialog-info\"" "\r\n" "	version=\"2\" state=\"full\"" "\r\n" "	entity=\"%s\">" "\r\n", entity);
+  snprintf (xml, sizeof (xml), "<?xml version=\"1.0\"?>" "\r\n" "<dialog-info xmlns=\"urn:ietf:params:xml:ns:dialog-info\"" "\r\n" "    version=\"2\" state=\"full\"" "\r\n" "    entity=\"%s\">" "\r\n", entity);
   osip_free (entity);
 
   /* loop over all jc/jd */
@@ -521,16 +521,16 @@ _eXosip_insubscription_auto_send_notify (struct eXosip_t *excontext, int did, in
         if (remote_uri != NULL) {
           /* add dialog info */
           snprintf (tmp_dialog, sizeof (tmp_dialog),
-                    "	<dialog id=\"%s\" call-id=\"%s\"" "\r\n"
-                    "		local-tag=\"%s\" remote-tag=\"%s\""
-                    "\r\n" "		direction=\"%s\">"
+                    "    <dialog id=\"%s\" call-id=\"%s\"" "\r\n"
+                    "        local-tag=\"%s\" remote-tag=\"%s\""
+                    "\r\n" "        direction=\"%s\">"
                     "\r\n"
-                    "		<state>%s</state>"
+                    "        <state>%s</state>"
                     "\r\n"
-                    "		<remote>"
+                    "        <remote>"
                     "\r\n"
-                    "			<identity>%s</identity>"
-                    "\r\n" "		</remote>" "\r\n" "	</dialog>" "\r\n", jd->d_dialog->call_id, jd->d_dialog->call_id, jd->d_dialog->local_tag, jd->d_dialog->remote_tag, direction, dlg_state, remote_uri);
+                    "            <identity>%s</identity>"
+                    "\r\n" "        </remote>" "\r\n" "    </dialog>" "\r\n", jd->d_dialog->call_id, jd->d_dialog->call_id, jd->d_dialog->local_tag, jd->d_dialog->remote_tag, direction, dlg_state, remote_uri);
           if (strlen (xml) + strlen (tmp_dialog) < sizeof (xml))
             strcat (xml, tmp_dialog);
         }

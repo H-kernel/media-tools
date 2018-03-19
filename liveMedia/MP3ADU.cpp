@@ -29,7 +29,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 // Segment data structures, used in the implementation below:
 
-#define SegmentBufSize 2000	/* conservatively high */
+#define SegmentBufSize 2000    /* conservatively high */
 
 class Segment {
 public:
@@ -84,10 +84,10 @@ public:
 
 private:
   static void sqAfterGettingSegment(void* clientData,
-				    unsigned numBytesRead,
-				    unsigned numTruncatedBytes,
-				    struct timeval presentationTime,
-				    unsigned durationInMicroseconds);
+                    unsigned numBytesRead,
+                    unsigned numTruncatedBytes,
+                    struct timeval presentationTime,
+                    unsigned durationInMicroseconds);
 
   Boolean sqAfterGettingCommon(Segment& seg, unsigned numBytesRead);
   Boolean isEmptyOrFull() {return headIndex() == nextFreeIndex();}
@@ -109,12 +109,12 @@ private:
 ////////// ADUFromMP3Source //////////
 
 ADUFromMP3Source::ADUFromMP3Source(UsageEnvironment& env,
-				   FramedSource* inputSource,
-				   Boolean includeADUdescriptors)
+                   FramedSource* inputSource,
+                   Boolean includeADUdescriptors)
   : FramedFilter(env, inputSource),
     fAreEnqueueingMP3Frame(False),
     fSegments(new SegmentQueue(True /* because we're MP3->ADU */,
-			       False /*no descriptors in incoming frames*/)),
+                   False /*no descriptors in incoming frames*/)),
     fIncludeADUdescriptors(includeADUdescriptors),
     fTotalDataSizeBeforePreviousRead(0), fScale(1), fFrameCounter(0) {
 }
@@ -182,7 +182,7 @@ Boolean ADUFromMP3Source::doGetNextFrame1() {
     tailSeg = &(fSegments->s[tailIndex]);
 
     needMoreData
-	  = fTotalDataSizeBeforePreviousRead < tailSeg->backpointer // bp points back too far
+      = fTotalDataSizeBeforePreviousRead < tailSeg->backpointer // bp points back too far
       || tailSeg->backpointer + tailSeg->dataHere() < tailSeg->aduSize; // not enough data
   }
 
@@ -204,8 +204,8 @@ Boolean ADUFromMP3Source::doGetNextFrame1() {
 #endif
   if (descriptorSize + fFrameSize > fMaxSize) {
     envir() << "ADUFromMP3Source::doGetNextFrame1(): not enough room ("
-	    << descriptorSize + fFrameSize << ">"
-	    << fMaxSize << ")\n";
+        << descriptorSize + fFrameSize << ">"
+        << fMaxSize << ")\n";
     fFrameSize = 0;
     return False;
   }
@@ -218,7 +218,7 @@ Boolean ADUFromMP3Source::doGetNextFrame1() {
 
   // output header and side info:
   memmove(toPtr, tailSeg->dataStart(),
-	  tailSeg->headerSize + tailSeg->sideInfoSize);
+      tailSeg->headerSize + tailSeg->sideInfoSize);
   toPtr += tailSeg->headerSize + tailSeg->sideInfoSize;
 
   // go back to the frame that contains the start of our data:
@@ -272,12 +272,12 @@ Boolean ADUFromMP3Source::doGetNextFrame1() {
 ////////// MP3FromADUSource //////////
 
 MP3FromADUSource::MP3FromADUSource(UsageEnvironment& env,
-				   FramedSource* inputSource,
-				   Boolean includeADUdescriptors)
+                   FramedSource* inputSource,
+                   Boolean includeADUdescriptors)
   : FramedFilter(env, inputSource),
     fAreEnqueueingADU(False),
     fSegments(new SegmentQueue(False /* because we're ADU->MP3 */,
-			       includeADUdescriptors)) {
+                   includeADUdescriptors)) {
 }
 
 MP3FromADUSource::~MP3FromADUSource() {
@@ -289,8 +289,8 @@ char const* MP3FromADUSource::MIMEtype() const {
 }
 
 MP3FromADUSource* MP3FromADUSource::createNew(UsageEnvironment& env,
-					      FramedSource* inputSource,
-					      Boolean includeADUdescriptors) {
+                          FramedSource* inputSource,
+                          Boolean includeADUdescriptors) {
   // The source must be an MP3 ADU source:
   if (strcmp(inputSource->MIMEtype(), "audio/MPA-ROBUST") != 0) {
     env.setResultMsg(inputSource->name(), " is not an MP3 ADU source");
@@ -315,21 +315,21 @@ void MP3FromADUSource::doGetNextFrame() {
     static Boolean packetIsLost;
     while (1) {
       if ((frameCount++)%framesPerPacket == 0) {
-	packetIsLost = (our_random()%10 == 0); // simulate 10% packet loss #####
+    packetIsLost = (our_random()%10 == 0); // simulate 10% packet loss #####
       }
 
       if (packetIsLost) {
-	// Read and discard the next input frame (that would be part of
-	// a lost packet):
-	Segment dummySegment;
-	unsigned numBytesRead;
-	struct timeval presentationTime;
-	// (this works only if the source can be read synchronously)
-	fInputSource->syncGetNextFrame(dummySegment.buf,
-				       sizeof dummySegment.buf, numBytesRead,
-				       presentationTime);
+    // Read and discard the next input frame (that would be part of
+    // a lost packet):
+    Segment dummySegment;
+    unsigned numBytesRead;
+    struct timeval presentationTime;
+    // (this works only if the source can be read synchronously)
+    fInputSource->syncGetNextFrame(dummySegment.buf,
+                       sizeof dummySegment.buf, numBytesRead,
+                       presentationTime);
       } else {
-	break; // from while (1)
+    break; // from while (1)
       }
     }
 #endif
@@ -361,9 +361,9 @@ Boolean MP3FromADUSource::needToGetAnADU() {
     while (1) {
       int endOfData = frameOffset - seg->backpointer + seg->aduSize;
       if (endOfData >= endOfHeadFrame) {
-	// We already have enough data to generate a frame
-	needToEnqueue = False;
-	break;
+    // We already have enough data to generate a frame
+    needToEnqueue = False;
+    break;
       }
 
       frameOffset += seg->dataHere();
@@ -397,10 +397,10 @@ void MP3FromADUSource::insertDummyADUsIfNecessary() {
       Segment& prevSegment = fSegments->s[prevIndex];
       prevADUend = prevSegment.dataHere() + prevSegment.backpointer;
       if (prevSegment.aduSize > prevADUend) {
-	// shouldn't happen if the previous ADU was well-formed
-	prevADUend = 0;
+    // shouldn't happen if the previous ADU was well-formed
+    prevADUend = 0;
       } else {
-	prevADUend -= prevSegment.aduSize;
+    prevADUend -= prevSegment.aduSize;
       }
     } else {
       prevADUend = 0;
@@ -455,27 +455,27 @@ Boolean MP3FromADUSource::generateFrameFromHeadADU() {
 
       int endOfData = startOfData + seg->aduSize;
       if (endOfData > (int)endOfHeadFrame) {
-	endOfData = endOfHeadFrame;
+    endOfData = endOfHeadFrame;
       }
 
       unsigned fromOffset;
       if (startOfData <= (int)toOffset) {
-	fromOffset = toOffset - startOfData;
-	startOfData = toOffset;
-	if (endOfData < startOfData) endOfData = startOfData;
+    fromOffset = toOffset - startOfData;
+    startOfData = toOffset;
+    if (endOfData < startOfData) endOfData = startOfData;
       } else {
-	fromOffset = 0;
+    fromOffset = 0;
 
-	// we may need some padding bytes beforehand
-	unsigned bytesToZero = startOfData - toOffset;
+    // we may need some padding bytes beforehand
+    unsigned bytesToZero = startOfData - toOffset;
 #ifdef DEBUG
-	if (bytesToZero > 0) fprintf(stderr, "a->m:outputting %d zero bytes (%d, %d, %d, %d)\n", bytesToZero, startOfData, toOffset, frameOffset, seg->backpointer);
+    if (bytesToZero > 0) fprintf(stderr, "a->m:outputting %d zero bytes (%d, %d, %d, %d)\n", bytesToZero, startOfData, toOffset, frameOffset, seg->backpointer);
 #endif
-	toOffset += bytesToZero;
+    toOffset += bytesToZero;
       }
 
       unsigned char* fromPtr
-	= &seg->dataStart()[seg->headerSize + seg->sideInfoSize + fromOffset];
+    = &seg->dataStart()[seg->headerSize + seg->sideInfoSize + fromOffset];
       unsigned bytesUsedHere = endOfData - startOfData;
 #ifdef DEBUG
       if (bytesUsedHere > 0) fprintf(stderr, "a->m:outputting %d bytes from %d<-%d\n", bytesUsedHere, seg->aduSize, seg->backpointer);
@@ -509,7 +509,7 @@ unsigned Segment::dataHere() {
 ////////// SegmentQueue //////////
 
 void SegmentQueue::enqueueNewSegment(FramedSource* inputSource,
-				     FramedSource* usingSource) {
+                     FramedSource* usingSource) {
   if (isFull()) {
     usingSource->envir() << "SegmentQueue::enqueueNewSegment() overflow\n";
     usingSource->handleClosure();
@@ -520,15 +520,15 @@ void SegmentQueue::enqueueNewSegment(FramedSource* inputSource,
 
   Segment& seg = nextFreeSegment();
   inputSource->getNextFrame(seg.buf, sizeof seg.buf,
-			    sqAfterGettingSegment, this,
-			    FramedSource::handleClosure, usingSource);
+                sqAfterGettingSegment, this,
+                FramedSource::handleClosure, usingSource);
 }
 
 void SegmentQueue::sqAfterGettingSegment(void* clientData,
-					 unsigned numBytesRead,
-					 unsigned /*numTruncatedBytes*/,
-					 struct timeval presentationTime,
-					 unsigned durationInMicroseconds) {
+                     unsigned numBytesRead,
+                     unsigned /*numTruncatedBytes*/,
+                     struct timeval presentationTime,
+                     unsigned durationInMicroseconds) {
   SegmentQueue* segQueue = (SegmentQueue*)clientData;
   Segment& seg = segQueue->nextFreeSegment();
 
@@ -548,7 +548,7 @@ void SegmentQueue::sqAfterGettingSegment(void* clientData,
 
 // Common code called after a new segment is enqueued
 Boolean SegmentQueue::sqAfterGettingCommon(Segment& seg,
-					   unsigned numBytesRead) {
+                       unsigned numBytesRead) {
   unsigned char* fromPtr = seg.buf;
 
   if (fIncludeADUdescriptors) {
@@ -564,9 +564,9 @@ Boolean SegmentQueue::sqAfterGettingCommon(Segment& seg,
   unsigned hdr;
   MP3SideInfo sideInfo;
   if (!GetADUInfoFromMP3Frame(fromPtr, numBytesRead,
-			      hdr, seg.frameSize,
-			      sideInfo, seg.sideInfoSize,
-			      seg.backpointer, seg.aduSize)) {
+                  hdr, seg.frameSize,
+                  sideInfo, seg.sideInfoSize,
+                  seg.backpointer, seg.aduSize)) {
     return False;
   }
 
@@ -626,7 +626,7 @@ Boolean SegmentQueue::insertDummyBeforeTail(unsigned backpointer) {
 
   // Then zero out the side info of the dummy frame:
   if (!ZeroOutMP3SideInfo(ptr, oldTailSeg.frameSize,
-			  backpointer)) return False;
+              backpointer)) return False;
 
   unsigned dummyNumBytesRead
     = oldTailSeg.descriptorSize + 4/*header size*/ + oldTailSeg.sideInfoSize;

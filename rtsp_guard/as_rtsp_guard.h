@@ -66,17 +66,6 @@
 #define GW_PORT_PAIR_SIZE              4
 
 
-#define XML_MSG_COMMAND_ADD        "add"
-#define XML_MSG_COMMAND_REMOVE     "remove"
-
-
-#define XML_MSG_NODE_USERNAME      "username"
-#define XML_MSG_NODE_PASSWORD      "password"
-#define XML_MSG_NODE_DOMAIN        "domain"
-#define XML_MSG_NODE_REALM         "realm"
-#define XML_MSG_NODE_CAMERAID      "cameraid"
-#define XML_MSG_NODE_STREAMTYPE    "streamtype"
-
 #define SIP_STATIC_INTER          60000
 #define SIP_SESSION_EXPIRY        1800
 #define SIP_LOCAL_IP_LENS          128
@@ -92,6 +81,8 @@
 #define RTSP_CLINET_HANDLE_MAX    200
 
 #define RTSP_CLINET_RUN_DURATION  60
+
+#define RTSP_CHECK_TMP_BUF_SIZE   256
 
 
 
@@ -123,15 +114,23 @@
 
 #define RTSP_AGENT_NAME                 "all stream media"
 
+enum AS_RTSP_CHECK_RESULT
+{
+    AS_RTSP_CHECK_RESULT_SUCCESS    = 0,
+    AS_RTSP_CHECK_RESULT_URL_FAIL   = 1, /* get the url fail */
+    AS_RTSP_CHECK_RESULT_OPEN_URL   = 2, /* opne the url fail */
+    AS_RTSP_CHECK_RESULT_RECV_DATA  = 3, /* recv video data fail */
+};
+
 
 // Define a class to hold per-stream state that we maintain throughout each stream's lifetime:
 enum AS_RTSP_STATUS {
-    AS_RTSP_STATUS_INIT = 0x00,
-    AS_RTSP_STATUS_SETUP = 0x01,
-    AS_RTSP_STATUS_PLAY = 0x02,
-    AS_RTSP_STATUS_PAUSE = 0x03,
+    AS_RTSP_STATUS_INIT     = 0x00,
+    AS_RTSP_STATUS_SETUP    = 0x01,
+    AS_RTSP_STATUS_PLAY     = 0x02,
+    AS_RTSP_STATUS_PAUSE    = 0x03,
     AS_RTSP_STATUS_TEARDOWN = 0x04,
-    AS_RTSP_STATUS_INVALID = 0xFF,
+    AS_RTSP_STATUS_INVALID  = 0xFF,
 };
 
 class ASRtspStatusObervser
@@ -140,6 +139,8 @@ public:
     ASRtspStatusObervser(){};
     virtual ~ASRtspStatusObervser(){};
     virtual void NotifyStatus(AS_RTSP_STATUS status) = 0;
+    virtual void NotifyRecvData(AS_RTSP_CHECK_RESULT enResult,uint32_t ulDuration,
+                                uint64_t ulVideoRecv,uint64_t ulAudioRecv) = 0;
 };
 
 
@@ -160,17 +161,17 @@ public:
 // showing how to play multiple streams, concurrently, we can't do that.  Instead, we have to have a separate "ASRtsp2SipStreamState"
 // structure for each "RTSPClient".  To do this, we subclass "RTSPClient", and add a "ASRtsp2SipStreamState" field to the subclass:
 
-class ASRtsp2RtpChannel: public RTSPClient {
+class ASRtspCheckChannel: public RTSPClient {
 public:
-    static ASRtsp2RtpChannel* createNew(u_int32_t ulEnvIndex,UsageEnvironment& env, char const* rtspURL,
+    static ASRtspCheckChannel* createNew(u_int32_t ulEnvIndex,UsageEnvironment& env, char const* rtspURL,
                   int verbosityLevel = 0,
                   char const* applicationName = NULL,
                   portNumBits tunnelOverHTTPPortNum = 0);
 protected:
-    ASRtsp2RtpChannel(u_int32_t ulEnvIndex,UsageEnvironment& env, char const* rtspURL,
+    ASRtspCheckChannel(u_int32_t ulEnvIndex,UsageEnvironment& env, char const* rtspURL,
             int verbosityLevel, char const* applicationName, portNumBits tunnelOverHTTPPortNum);
     // called only by createNew();
-    virtual ~ASRtsp2RtpChannel();
+    virtual ~ASRtspCheckChannel();
 public:
     int32_t open(uint32_t ulDuration,ASRtspStatusObervser* observer);
     void    close();
@@ -184,10 +185,11 @@ public:
     void    handle_after_play(int resultCode, char* resultString);
     void    handle_after_teardown(int resultCode, char* resultString);
     void    handle_subsession_after_playing(MediaSubsession* subsession);
+    void    handle_after_timeout();
     // Used to iterate through each stream's 'subsessions', setting up each one:
-     void setupNextSubsession();
+    void    setupNextSubsession();
     // Used to shut down and close a stream (including its "RTSPClient" object):
-    void shutdownStream(int exitCode = 1);
+    void    shutdownStream();
 public:
     // RTSP 'response handlers':
     static void continueAfterOPTIONS(RTSPClient* rtspClient, int resultCode, char* resultString);
@@ -207,9 +209,12 @@ public:
 private:
     u_int32_t             m_ulEnvIndex;
     Boolean               m_bSupportsGetParameter;
-    std::string           m_strRtspSdp;
     AS_RTSP_STATUS        m_enStatus;
     ASRtspStatusObervser *m_bObervser;
+    Boolean               m_bStop;
+    uint32_t              m_ulDuration;
+    time_t                m_ulStartTime;
+    AS_RTSP_CHECK_RESULT  m_enCheckResult;
 };
 
 // Define a data sink (a subclass of "MediaSink") to receive the data for each subsession (i.e., each audio or video 'substream').
@@ -219,7 +224,9 @@ private:
 
 class ASRtspCheckVideoSink: public MediaSink {
 public:
-  static ASRtspCheckVideoSink* createNew(UsageEnvironment& env, MediaSubsession& subsession); // identifies the stream itself (optional)
+  static ASRtspCheckVideoSink* createNew(UsageEnvironment& env, MediaSubsession& subsession);
+
+  uint64_t getRecvVideoSize() { return m_ulRecvSize;};
 
 private:
   ASRtspCheckVideoSink(UsageEnvironment& env, MediaSubsession& subsession);
@@ -237,17 +244,16 @@ private:
   // redefined virtual functions:
   virtual Boolean continuePlaying();
 private:
-  u_int8_t*        fReceiveBuffer;
-  u_int8_t         fMediaBuffer[DUMMY_SINK_MEDIA_BUFFER_SIZE];
-  u_int32_t        prefixSize;
+  u_int8_t  fMediaBuffer[DUMMY_SINK_MEDIA_BUFFER_SIZE];
   MediaSubsession& fSubsession;
-  u_int32_t        m_rtpTimestampdiff;
-  u_int32_t        m_lastTS;
+  uint64_t        m_ulRecvSize;
 };
 
 class ASRtspCheckAudioSink: public MediaSink {
 public:
-  static ASRtspCheckAudioSink* createNew(UsageEnvironment& env, MediaSubsession& subsession); // identifies the stream itself (optional)
+  static ASRtspCheckAudioSink* createNew(UsageEnvironment& env, MediaSubsession& subsession);
+
+  uint64_t getRecvAudioSize() { return m_ulRecvSize;};
 
 private:
   ASRtspCheckAudioSink(UsageEnvironment& env, MediaSubsession& subsession);
@@ -265,10 +271,9 @@ private:
   // redefined virtual functions:
   virtual Boolean continuePlaying();
 private:
-  u_int8_t         fMediaBuffer[DUMMY_SINK_MEDIA_BUFFER_SIZE];
+  u_int8_t  fMediaBuffer[DUMMY_SINK_MEDIA_BUFFER_SIZE];
   MediaSubsession& fSubsession;
-  u_int32_t        m_rtpTimestampdiff;
-  u_int32_t        m_lastTS;
+  uint64_t        m_ulRecvSize;
 };
 
 
@@ -287,7 +292,14 @@ public:
     void setLensInfo(std::string& strCameraID,std::string& strStreamType);
     void check();
     CHECK_STATUS Status();
+    std::string getCameraID(){return m_strCameraID;};
+    AS_RTSP_CHECK_RESULT    getResult(){return m_enCheckResult;};
+    uint32_t    getDuration(){return m_ulDuration;};
+    uint64_t    getVideoRecv(){return m_ulVideoRecv;};
+    uint64_t    getAudioRecv(){return m_ulAudioRecv;};
     virtual void NotifyStatus(AS_RTSP_STATUS status);
+    virtual void NotifyRecvData(AS_RTSP_CHECK_RESULT enResult,uint32_t ulDuration,uint64_t ulVideoRecv,uint64_t ulAudioRecv);
+
 private:
     int32_t StartRtspCheck();
     void    stopRtspCheck();
@@ -297,6 +309,10 @@ private:
     AS_HANDLE      m_handle;
     CHECK_STATUS   m_Status;
     time_t         m_time;
+    AS_RTSP_CHECK_RESULT m_enCheckResult;
+    uint32_t       m_ulDuration;
+    uint64_t       m_ulVideoRecv;
+    uint64_t       m_ulAudioRecv;
 };
 
 typedef std::list<ASLensInfo*>    LENSINFOLIST;
@@ -314,7 +330,6 @@ public:
     void checkTask();
     CHECK_STATUS TaskStatus();
 private:
-    void checkAllLensStatus();
     void ReportTaskStatus();
 private:
     std::string   m_strCheckID;
@@ -334,7 +349,7 @@ public:
     ASEvLiveHttpClient();
     virtual ~ASEvLiveHttpClient();
     int32_t send_live_url_request(std::string& strCameraID,std::string& strStreamType,std::string& strRtspUrl);
-    void    report_check_task_status(std::string& strUrl,ASRtspCheckTask* task);
+    void    report_check_msg(std::string& strUrl,std::string& strMsg);
 public:
     void handle_remote_read(struct evhttp_request* remote_rsp);
     void handle_readchunk(struct evhttp_request* remote_rsp);

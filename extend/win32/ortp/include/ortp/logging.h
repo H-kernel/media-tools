@@ -34,13 +34,13 @@ extern "C"
 #endif
 
 typedef enum {
-	ORTP_DEBUG=1,
-	ORTP_MESSAGE=1<<1,
-	ORTP_WARNING=1<<2,
-	ORTP_ERROR=1<<3,
-	ORTP_FATAL=1<<4,
-	ORTP_TRACE=1<<5,
-	ORTP_LOGLEV_END=1<<6
+    ORTP_DEBUG=1,
+    ORTP_MESSAGE=1<<1,
+    ORTP_WARNING=1<<2,
+    ORTP_ERROR=1<<3,
+    ORTP_FATAL=1<<4,
+    ORTP_TRACE=1<<5,
+    ORTP_LOGLEV_END=1<<6
 } OrtpLogLevel;
 
 
@@ -52,7 +52,7 @@ ORTP_PUBLIC OrtpLogFunc ortp_get_log_handler();
 
 ORTP_VAR_PUBLIC OrtpLogFunc ortp_logv_out;
 
-#define ortp_log_level_enabled(level)	(ortp_get_log_level_mask() & (level))
+#define ortp_log_level_enabled(level)    (ortp_get_log_level_mask() & (level))
 
 ORTP_PUBLIC void ortp_logv(int level, const char *fmt, va_list args);
 
@@ -104,44 +104,44 @@ static ORTP_INLINE void CHECK_FORMAT_ARGS(1,2) ortp_debug(const char *fmt,...)
 #else
 
 static ORTP_INLINE void CHECK_FORMAT_ARGS(2,3) ortp_log(OrtpLogLevel lev, const char *fmt,...) {
-	va_list args;
-	va_start (args, fmt);
-	ortp_logv(lev, fmt, args);
-	va_end (args);
+    va_list args;
+    va_start (args, fmt);
+    ortp_logv(lev, fmt, args);
+    va_end (args);
 }
 
 static ORTP_INLINE void CHECK_FORMAT_ARGS(1,2) ortp_message(const char *fmt,...)
 {
-	va_list args;
-	va_start (args, fmt);
-	ortp_logv(ORTP_MESSAGE, fmt, args);
-	va_end (args);
+    va_list args;
+    va_start (args, fmt);
+    ortp_logv(ORTP_MESSAGE, fmt, args);
+    va_end (args);
 }
 
 static ORTP_INLINE void CHECK_FORMAT_ARGS(1,2) ortp_warning(const char *fmt,...)
 {
-	va_list args;
-	va_start (args, fmt);
-	ortp_logv(ORTP_WARNING, fmt, args);
-	va_end (args);
+    va_list args;
+    va_start (args, fmt);
+    ortp_logv(ORTP_WARNING, fmt, args);
+    va_end (args);
 }
 
 #endif
 
 static ORTP_INLINE void CHECK_FORMAT_ARGS(1,2) ortp_error(const char *fmt,...)
 {
-	va_list args;
-	va_start (args, fmt);
-	ortp_logv(ORTP_ERROR, fmt, args);
-	va_end (args);
+    va_list args;
+    va_start (args, fmt);
+    ortp_logv(ORTP_ERROR, fmt, args);
+    va_end (args);
 }
 
 static ORTP_INLINE void CHECK_FORMAT_ARGS(1,2) ortp_fatal(const char *fmt,...)
 {
-	va_list args;
-	va_start (args, fmt);
-	ortp_logv(ORTP_FATAL, fmt, args);
-	va_end (args);
+    va_list args;
+    va_start (args, fmt);
+    ortp_logv(ORTP_FATAL, fmt, args);
+    va_end (args);
 }
 
 

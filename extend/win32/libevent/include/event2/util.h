@@ -328,8 +328,8 @@ int evutil_closesocket(evutil_socket_t sock);
 /** Return the most recent socket error.  Not idempotent on all platforms. */
 #define EVUTIL_SOCKET_ERROR() WSAGetLastError()
 /** Replace the most recent socket error with errcode */
-#define EVUTIL_SET_SOCKET_ERROR(errcode)		\
-	do { WSASetLastError(errcode); } while (0)
+#define EVUTIL_SET_SOCKET_ERROR(errcode)        \
+    do { WSASetLastError(errcode); } while (0)
 /** Return the most recent socket error to occur on sock. */
 int evutil_socket_geterror(evutil_socket_t sock);
 /** Convert a socket error to a string. */
@@ -360,8 +360,8 @@ const char *evutil_socket_error_to_string(int errcode);
 /**@}*/
 #else
 #define EVUTIL_SOCKET_ERROR() (errno)
-#define EVUTIL_SET_SOCKET_ERROR(errcode)		\
-		do { errno = (errcode); } while (0)
+#define EVUTIL_SET_SOCKET_ERROR(errcode)        \
+        do { errno = (errcode); } while (0)
 #define evutil_socket_geterror(sock) (errno)
 #define evutil_socket_error_to_string(errcode) (strerror(errcode))
 #endif
@@ -379,44 +379,44 @@ const char *evutil_socket_error_to_string(int errcode);
 #define evutil_timeradd(tvp, uvp, vvp) timeradd((tvp), (uvp), (vvp))
 #define evutil_timersub(tvp, uvp, vvp) timersub((tvp), (uvp), (vvp))
 #else
-#define evutil_timeradd(tvp, uvp, vvp)					\
-	do {								\
-		(vvp)->tv_sec = (tvp)->tv_sec + (uvp)->tv_sec;		\
-		(vvp)->tv_usec = (tvp)->tv_usec + (uvp)->tv_usec;       \
-		if ((vvp)->tv_usec >= 1000000) {			\
-			(vvp)->tv_sec++;				\
-			(vvp)->tv_usec -= 1000000;			\
-		}							\
-	} while (0)
-#define	evutil_timersub(tvp, uvp, vvp)					\
-	do {								\
-		(vvp)->tv_sec = (tvp)->tv_sec - (uvp)->tv_sec;		\
-		(vvp)->tv_usec = (tvp)->tv_usec - (uvp)->tv_usec;	\
-		if ((vvp)->tv_usec < 0) {				\
-			(vvp)->tv_sec--;				\
-			(vvp)->tv_usec += 1000000;			\
-		}							\
-	} while (0)
+#define evutil_timeradd(tvp, uvp, vvp)                    \
+    do {                                \
+        (vvp)->tv_sec = (tvp)->tv_sec + (uvp)->tv_sec;        \
+        (vvp)->tv_usec = (tvp)->tv_usec + (uvp)->tv_usec;       \
+        if ((vvp)->tv_usec >= 1000000) {            \
+            (vvp)->tv_sec++;                \
+            (vvp)->tv_usec -= 1000000;            \
+        }                            \
+    } while (0)
+#define    evutil_timersub(tvp, uvp, vvp)                    \
+    do {                                \
+        (vvp)->tv_sec = (tvp)->tv_sec - (uvp)->tv_sec;        \
+        (vvp)->tv_usec = (tvp)->tv_usec - (uvp)->tv_usec;    \
+        if ((vvp)->tv_usec < 0) {                \
+            (vvp)->tv_sec--;                \
+            (vvp)->tv_usec += 1000000;            \
+        }                            \
+    } while (0)
 #endif /* !_EVENT_HAVE_HAVE_TIMERADD */
 
 #ifdef _EVENT_HAVE_TIMERCLEAR
 #define evutil_timerclear(tvp) timerclear(tvp)
 #else
-#define	evutil_timerclear(tvp)	(tvp)->tv_sec = (tvp)->tv_usec = 0
+#define    evutil_timerclear(tvp)    (tvp)->tv_sec = (tvp)->tv_usec = 0
 #endif
 /**@}*/
 
 /** Return true iff the tvp is related to uvp according to the relational
  * operator cmp.  Recognized values for cmp are ==, <=, <, >=, and >. */
-#define	evutil_timercmp(tvp, uvp, cmp)					\
-	(((tvp)->tv_sec == (uvp)->tv_sec) ?				\
-	 ((tvp)->tv_usec cmp (uvp)->tv_usec) :				\
-	 ((tvp)->tv_sec cmp (uvp)->tv_sec))
+#define    evutil_timercmp(tvp, uvp, cmp)                    \
+    (((tvp)->tv_sec == (uvp)->tv_sec) ?                \
+     ((tvp)->tv_usec cmp (uvp)->tv_usec) :                \
+     ((tvp)->tv_sec cmp (uvp)->tv_sec))
 
 #ifdef _EVENT_HAVE_TIMERISSET
 #define evutil_timerisset(tvp) timerisset(tvp)
 #else
-#define	evutil_timerisset(tvp)	((tvp)->tv_sec || (tvp)->tv_usec)
+#define    evutil_timerisset(tvp)    ((tvp)->tv_sec || (tvp)->tv_usec)
 #endif
 
 /** Replacement for offsetof on platforms that don't define it. */
@@ -443,7 +443,7 @@ int evutil_gettimeofday(struct timeval *tv, struct timezone *tz);
  */
 int evutil_snprintf(char *buf, size_t buflen, const char *format, ...)
 #ifdef __GNUC__
-	__attribute__((format(printf, 3, 4)))
+    __attribute__((format(printf, 3, 4)))
 #endif
 ;
 /** Replacement for vsnprintf to get consistent behavior on platforms for
@@ -451,7 +451,7 @@ int evutil_snprintf(char *buf, size_t buflen, const char *format, ...)
  */
 int evutil_vsnprintf(char *buf, size_t buflen, const char *format, va_list ap)
 #ifdef __GNUC__
-	__attribute__((format(printf, 3, 0)))
+    __attribute__((format(printf, 3, 0)))
 #endif
 ;
 
@@ -511,14 +511,14 @@ int evutil_ascii_strncasecmp(const char *str1, const char *str2, size_t n);
     struct addrinfo.)
 */
 struct evutil_addrinfo {
-	int     ai_flags;     /* AI_PASSIVE, AI_CANONNAME, AI_NUMERICHOST */
-	int     ai_family;    /* PF_xxx */
-	int     ai_socktype;  /* SOCK_xxx */
-	int     ai_protocol;  /* 0 or IPPROTO_xxx for IPv4 and IPv6 */
-	size_t  ai_addrlen;   /* length of ai_addr */
-	char   *ai_canonname; /* canonical name for nodename */
-	struct sockaddr  *ai_addr; /* binary address */
-	struct evutil_addrinfo  *ai_next; /* next structure in linked list */
+    int     ai_flags;     /* AI_PASSIVE, AI_CANONNAME, AI_NUMERICHOST */
+    int     ai_family;    /* PF_xxx */
+    int     ai_socktype;  /* SOCK_xxx */
+    int     ai_protocol;  /* 0 or IPPROTO_xxx for IPv4 and IPv6 */
+    size_t  ai_addrlen;   /* length of ai_addr */
+    char   *ai_canonname; /* canonical name for nodename */
+    struct sockaddr  *ai_addr; /* binary address */
+    struct evutil_addrinfo  *ai_next; /* next structure in linked list */
 };
 #endif
 /** @name evutil_getaddrinfo() error codes

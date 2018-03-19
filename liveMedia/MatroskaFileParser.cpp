@@ -24,8 +24,8 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #include <GroupsockHelper.hh> // for "gettimeofday()
 
 MatroskaFileParser::MatroskaFileParser(MatroskaFile& ourFile, FramedSource* inputSource,
-				       FramedSource::onCloseFunc* onEndFunc, void* onEndClientData,
-				       MatroskaDemux* ourDemux)
+                       FramedSource::onCloseFunc* onEndFunc, void* onEndClientData,
+                       MatroskaDemux* ourDemux)
   : StreamParser(inputSource, onEndFunc, onEndClientData, continueParsing, this),
     fOurFile(ourFile), fInputSource(inputSource),
     fOnEndFunc(onEndFunc), fOnEndClientData(onEndClientData),
@@ -112,59 +112,59 @@ Boolean MatroskaFileParser::parse() {
     do {
       switch (fCurrentParseState) {
         case PARSING_START_OF_FILE: {
-	  areDone = parseStartOfFile();
-	  break;
-	}
+      areDone = parseStartOfFile();
+      break;
+    }
         case LOOKING_FOR_TRACKS: {
-	  lookForNextTrack();
-	  break;
-	}
+      lookForNextTrack();
+      break;
+    }
         case PARSING_TRACK: {
-	  areDone = parseTrack();
-	  if (areDone && fOurFile.fCuesOffset > 0) {
-	    // We've finished parsing the 'Track' information.  There are also 'Cues' in the file, so parse those before finishing:
-	    // Seek to the specified position in the file.  We were already told that the 'Cues' begins there:
+      areDone = parseTrack();
+      if (areDone && fOurFile.fCuesOffset > 0) {
+        // We've finished parsing the 'Track' information.  There are also 'Cues' in the file, so parse those before finishing:
+        // Seek to the specified position in the file.  We were already told that the 'Cues' begins there:
 #ifdef DEBUG
-	    fprintf(stderr, "Seeking to file position %llu (the previously-reported location of 'Cues')\n", fOurFile.fCuesOffset);
+        fprintf(stderr, "Seeking to file position %llu (the previously-reported location of 'Cues')\n", fOurFile.fCuesOffset);
 #endif
-	    seekToFilePosition(fOurFile.fCuesOffset);
-	    fCurrentParseState = PARSING_CUES;
-	    areDone = False;
-	  }
-	  break;
-	}
+        seekToFilePosition(fOurFile.fCuesOffset);
+        fCurrentParseState = PARSING_CUES;
+        areDone = False;
+      }
+      break;
+    }
         case PARSING_CUES: {
-	  areDone = parseCues();
-	  break;
-	}
+      areDone = parseCues();
+      break;
+    }
         case LOOKING_FOR_CLUSTER: {
-	  if (fOurFile.fClusterOffset > 0) {
-	    // Optimization: Seek to the specified position in the file.  We were already told that the 'Cluster' begins there:
+      if (fOurFile.fClusterOffset > 0) {
+        // Optimization: Seek to the specified position in the file.  We were already told that the 'Cluster' begins there:
 #ifdef DEBUG
-	    fprintf(stderr, "Optimization: Seeking to file position %llu (the previously-reported location of a 'Cluster')\n", fOurFile.fClusterOffset);
+        fprintf(stderr, "Optimization: Seeking to file position %llu (the previously-reported location of a 'Cluster')\n", fOurFile.fClusterOffset);
 #endif
-	    seekToFilePosition(fOurFile.fClusterOffset);
-	  }
-	  fCurrentParseState = LOOKING_FOR_BLOCK;
-	  break;
-	}
+        seekToFilePosition(fOurFile.fClusterOffset);
+      }
+      fCurrentParseState = LOOKING_FOR_BLOCK;
+      break;
+    }
         case LOOKING_FOR_BLOCK: {
-	  lookForNextBlock();
-	  break;
-	}
+      lookForNextBlock();
+      break;
+    }
         case PARSING_BLOCK: {
-	  parseBlock();
-	  break;
-	}
+      parseBlock();
+      break;
+    }
         case DELIVERING_FRAME_WITHIN_BLOCK: {
-	  if (!deliverFrameWithinBlock()) return False;
-	  break;
-	}
+      if (!deliverFrameWithinBlock()) return False;
+      break;
+    }
         case DELIVERING_FRAME_BYTES: {
-	  deliverFrameBytes();
-	  return False; // Halt parsing for now.  A new 'read' from downstream will cause parsing to resume.
-	  break;
-	}
+      deliverFrameBytes();
+      return False; // Halt parsing for now.  A new 'read' from downstream will cause parsing to resume.
+      break;
+    }
       }
     } while (!areDone);
 
@@ -214,83 +214,83 @@ void MatroskaFileParser::lookForNextTrack() {
 #endif
     switch (id.val()) {
       case MATROSKA_ID_SEGMENT: { // 'Segment' header: enter this
-	// Remember the position, within the file, of the start of Segment data, because Seek Positions are relative to this:
-	fOurFile.fSegmentDataOffset = fCurOffsetInFile;
-	break;
+    // Remember the position, within the file, of the start of Segment data, because Seek Positions are relative to this:
+    fOurFile.fSegmentDataOffset = fCurOffsetInFile;
+    break;
       }
       case MATROSKA_ID_SEEK_HEAD: { // 'Seek Head' header: enter this
-	break;
+    break;
       }
       case MATROSKA_ID_SEEK: { // 'Seek' header: enter this
-	break;
+    break;
       }
       case MATROSKA_ID_SEEK_ID: { // 'Seek ID' header: get this value
-	if (parseEBMLNumber(fLastSeekId)) {
+    if (parseEBMLNumber(fLastSeekId)) {
 #ifdef DEBUG
-	  fprintf(stderr, "\tSeek ID 0x%s:\t%s\n", fLastSeekId.hexString(), fLastSeekId.stringName());
+      fprintf(stderr, "\tSeek ID 0x%s:\t%s\n", fLastSeekId.hexString(), fLastSeekId.stringName());
 #endif
-	}
-	break;
+    }
+    break;
       }
       case MATROSKA_ID_SEEK_POSITION: { // 'Seek Position' header: get this value
-	u_int64_t seekPosition;
-	if (parseEBMLVal_unsigned64(size, seekPosition)) {
-	  u_int64_t offsetInFile = fOurFile.fSegmentDataOffset + seekPosition;
+    u_int64_t seekPosition;
+    if (parseEBMLVal_unsigned64(size, seekPosition)) {
+      u_int64_t offsetInFile = fOurFile.fSegmentDataOffset + seekPosition;
 #ifdef DEBUG
-	  fprintf(stderr, "\tSeek Position %llu (=> offset within the file: %llu (0x%llx))\n", seekPosition, offsetInFile, offsetInFile);
+      fprintf(stderr, "\tSeek Position %llu (=> offset within the file: %llu (0x%llx))\n", seekPosition, offsetInFile, offsetInFile);
 #endif
-	  // The only 'Seek Position's that we care about are for 'Cluster' and 'Cues':
-	  if (fLastSeekId == MATROSKA_ID_CLUSTER) {
-	    fOurFile.fClusterOffset = offsetInFile;
-	  } else if (fLastSeekId == MATROSKA_ID_CUES) {
-	    fOurFile.fCuesOffset = offsetInFile;
-	  }
-	}
-	break;
+      // The only 'Seek Position's that we care about are for 'Cluster' and 'Cues':
+      if (fLastSeekId == MATROSKA_ID_CLUSTER) {
+        fOurFile.fClusterOffset = offsetInFile;
+      } else if (fLastSeekId == MATROSKA_ID_CUES) {
+        fOurFile.fCuesOffset = offsetInFile;
+      }
+    }
+    break;
       }
       case MATROSKA_ID_INFO: { // 'Segment Info' header: enter this
-	break;
+    break;
       }
       case MATROSKA_ID_TIMECODE_SCALE: { // 'Timecode Scale' header: get this value
         unsigned timecodeScale;
-	if (parseEBMLVal_unsigned(size, timecodeScale) && timecodeScale > 0) {
-	  fOurFile.fTimecodeScale = timecodeScale;
+    if (parseEBMLVal_unsigned(size, timecodeScale) && timecodeScale > 0) {
+      fOurFile.fTimecodeScale = timecodeScale;
 #ifdef DEBUG
-	  fprintf(stderr, "\tTimecode Scale %u ns (=> Segment Duration == %f seconds)\n",
-		  fOurFile.timecodeScale(), fOurFile.segmentDuration()*(fOurFile.fTimecodeScale/1000000000.0f));
+      fprintf(stderr, "\tTimecode Scale %u ns (=> Segment Duration == %f seconds)\n",
+          fOurFile.timecodeScale(), fOurFile.segmentDuration()*(fOurFile.fTimecodeScale/1000000000.0f));
 #endif
-	}
-	break;
+    }
+    break;
       }
       case MATROSKA_ID_DURATION: { // 'Segment Duration' header: get this value
-	if (parseEBMLVal_float(size, fOurFile.fSegmentDuration)) {
+    if (parseEBMLVal_float(size, fOurFile.fSegmentDuration)) {
 #ifdef DEBUG
-	  fprintf(stderr, "\tSegment Duration %f (== %f seconds)\n",
-		  fOurFile.segmentDuration(), fOurFile.segmentDuration()*(fOurFile.fTimecodeScale/1000000000.0f));
+      fprintf(stderr, "\tSegment Duration %f (== %f seconds)\n",
+          fOurFile.segmentDuration(), fOurFile.segmentDuration()*(fOurFile.fTimecodeScale/1000000000.0f));
 #endif
-	}
-	break;
+    }
+    break;
       }
 #ifdef DEBUG
       case MATROSKA_ID_TITLE: { // 'Segment Title': display this value
-	char* title;
-	if (parseEBMLVal_string(size, title)) {
+    char* title;
+    if (parseEBMLVal_string(size, title)) {
 #ifdef DEBUG
-	  fprintf(stderr, "\tTitle: %s\n", title);
+      fprintf(stderr, "\tTitle: %s\n", title);
 #endif
-	  delete[] title;
-	}
-	break;
+      delete[] title;
+    }
+    break;
       }
 #endif
       case MATROSKA_ID_TRACKS: { // enter this, and move on to parsing 'Tracks'
-	fLimitOffsetInFile = fCurOffsetInFile + size.val(); // Make sure we don't read past the end of this header
-	fCurrentParseState = PARSING_TRACK;
-	break;
+    fLimitOffsetInFile = fCurOffsetInFile + size.val(); // Make sure we don't read past the end of this header
+    fCurrentParseState = PARSING_TRACK;
+    break;
       }
       default: { // skip over this header
-	skipHeader(size);
-	break;
+    skipHeader(size);
+    break;
       }
     }
     setParseState();
@@ -313,349 +313,349 @@ Boolean MatroskaFileParser::parseTrack() {
 #endif
     switch (id.val()) {
       case MATROSKA_ID_TRACK_ENTRY: { // 'Track Entry' header: enter this
-	// Create a new "MatroskaTrack" object for this entry:
-	if (track != NULL && track->trackNumber == 0) delete track; // We had a previous "MatroskaTrack" object that was never used
-	track = new MatroskaTrack;
-	break;
+    // Create a new "MatroskaTrack" object for this entry:
+    if (track != NULL && track->trackNumber == 0) delete track; // We had a previous "MatroskaTrack" object that was never used
+    track = new MatroskaTrack;
+    break;
       }
       case MATROSKA_ID_TRACK_NUMBER: {
-	unsigned trackNumber;
-	if (parseEBMLVal_unsigned(size, trackNumber)) {
+    unsigned trackNumber;
+    if (parseEBMLVal_unsigned(size, trackNumber)) {
 #ifdef DEBUG
-	  fprintf(stderr, "\tTrack Number %d\n", trackNumber);
+      fprintf(stderr, "\tTrack Number %d\n", trackNumber);
 #endif
-	  if (track != NULL && trackNumber != 0) {
-	    track->trackNumber = trackNumber;
-	    fOurFile.addTrack(track, trackNumber);
-	  }
-	}
-	break;
+      if (track != NULL && trackNumber != 0) {
+        track->trackNumber = trackNumber;
+        fOurFile.addTrack(track, trackNumber);
+      }
+    }
+    break;
       }
       case MATROSKA_ID_TRACK_TYPE: {
-	unsigned trackType;
-	if (parseEBMLVal_unsigned(size, trackType) && track != NULL) {
-	  // We convert the Matroska 'track type' code into our own code (which we can use as a bitmap):
-	  track->trackType
-	    = trackType == 1 ? MATROSKA_TRACK_TYPE_VIDEO : trackType == 2 ? MATROSKA_TRACK_TYPE_AUDIO
-	    : trackType == 0x11 ? MATROSKA_TRACK_TYPE_SUBTITLE : MATROSKA_TRACK_TYPE_OTHER;
+    unsigned trackType;
+    if (parseEBMLVal_unsigned(size, trackType) && track != NULL) {
+      // We convert the Matroska 'track type' code into our own code (which we can use as a bitmap):
+      track->trackType
+        = trackType == 1 ? MATROSKA_TRACK_TYPE_VIDEO : trackType == 2 ? MATROSKA_TRACK_TYPE_AUDIO
+        : trackType == 0x11 ? MATROSKA_TRACK_TYPE_SUBTITLE : MATROSKA_TRACK_TYPE_OTHER;
 #ifdef DEBUG
-	  fprintf(stderr, "\tTrack Type 0x%02x (%s)\n", trackType,
-		  track->trackType == MATROSKA_TRACK_TYPE_VIDEO ? "video" :
-		  track->trackType == MATROSKA_TRACK_TYPE_AUDIO ? "audio" :
-		  track->trackType == MATROSKA_TRACK_TYPE_SUBTITLE ? "subtitle" :
-		  "<other>");
+      fprintf(stderr, "\tTrack Type 0x%02x (%s)\n", trackType,
+          track->trackType == MATROSKA_TRACK_TYPE_VIDEO ? "video" :
+          track->trackType == MATROSKA_TRACK_TYPE_AUDIO ? "audio" :
+          track->trackType == MATROSKA_TRACK_TYPE_SUBTITLE ? "subtitle" :
+          "<other>");
 #endif
-	}
-	break;
+    }
+    break;
       }
       case MATROSKA_ID_FLAG_ENABLED: {
-	unsigned flagEnabled;
-	if (parseEBMLVal_unsigned(size, flagEnabled)) {
+    unsigned flagEnabled;
+    if (parseEBMLVal_unsigned(size, flagEnabled)) {
 #ifdef DEBUG
-	  fprintf(stderr, "\tTrack is Enabled: %d\n", flagEnabled);
+      fprintf(stderr, "\tTrack is Enabled: %d\n", flagEnabled);
 #endif
-	  if (track != NULL) track->isEnabled = flagEnabled != 0;
-	}
-	break;
+      if (track != NULL) track->isEnabled = flagEnabled != 0;
+    }
+    break;
       }
       case MATROSKA_ID_FLAG_DEFAULT: {
-	unsigned flagDefault;
-	if (parseEBMLVal_unsigned(size, flagDefault)) {
+    unsigned flagDefault;
+    if (parseEBMLVal_unsigned(size, flagDefault)) {
 #ifdef DEBUG
-	  fprintf(stderr, "\tTrack is Default: %d\n", flagDefault);
+      fprintf(stderr, "\tTrack is Default: %d\n", flagDefault);
 #endif
-	  if (track != NULL) track->isDefault = flagDefault != 0;
-	}
-	break;
+      if (track != NULL) track->isDefault = flagDefault != 0;
+    }
+    break;
       }
       case MATROSKA_ID_FLAG_FORCED: {
-	unsigned flagForced;
-	if (parseEBMLVal_unsigned(size, flagForced)) {
+    unsigned flagForced;
+    if (parseEBMLVal_unsigned(size, flagForced)) {
 #ifdef DEBUG
-	  fprintf(stderr, "\tTrack is Forced: %d\n", flagForced);
+      fprintf(stderr, "\tTrack is Forced: %d\n", flagForced);
 #endif
-	  if (track != NULL) track->isForced = flagForced != 0;
-	}
-	break;
+      if (track != NULL) track->isForced = flagForced != 0;
+    }
+    break;
       }
       case MATROSKA_ID_DEFAULT_DURATION: {
-	unsigned defaultDuration;
-	if (parseEBMLVal_unsigned(size, defaultDuration)) {
+    unsigned defaultDuration;
+    if (parseEBMLVal_unsigned(size, defaultDuration)) {
 #ifdef DEBUG
-	  fprintf(stderr, "\tDefault duration %f ms\n", defaultDuration/1000000.0);
+      fprintf(stderr, "\tDefault duration %f ms\n", defaultDuration/1000000.0);
 #endif
-	  if (track != NULL) track->defaultDuration = defaultDuration;
-	}
-	break;
+      if (track != NULL) track->defaultDuration = defaultDuration;
+    }
+    break;
       }
       case MATROSKA_ID_MAX_BLOCK_ADDITION_ID: {
-	unsigned maxBlockAdditionID;
-	if (parseEBMLVal_unsigned(size, maxBlockAdditionID)) {
+    unsigned maxBlockAdditionID;
+    if (parseEBMLVal_unsigned(size, maxBlockAdditionID)) {
 #ifdef DEBUG
-	  fprintf(stderr, "\tMax Block Addition ID: %u\n", maxBlockAdditionID);
+      fprintf(stderr, "\tMax Block Addition ID: %u\n", maxBlockAdditionID);
 #endif
-	}
-	break;
+    }
+    break;
       }
       case MATROSKA_ID_NAME: {
-	char* name;
-	if (parseEBMLVal_string(size, name)) {
+    char* name;
+    if (parseEBMLVal_string(size, name)) {
 #ifdef DEBUG
-	  fprintf(stderr, "\tName: %s\n", name);
+      fprintf(stderr, "\tName: %s\n", name);
 #endif
-	  if (track != NULL) {
-	    delete[] track->name; track->name = name;
-	  } else {
-	    delete[] name;
-	  }
-	}
-	break;
+      if (track != NULL) {
+        delete[] track->name; track->name = name;
+      } else {
+        delete[] name;
+      }
+    }
+    break;
       }
       case MATROSKA_ID_LANGUAGE: {
-	char* language;
-	if (parseEBMLVal_string(size, language)) {
+    char* language;
+    if (parseEBMLVal_string(size, language)) {
 #ifdef DEBUG
-	  fprintf(stderr, "\tLanguage: %s\n", language);
+      fprintf(stderr, "\tLanguage: %s\n", language);
 #endif
-	  if (track != NULL) {
-	    delete[] track->language; track->language = language;
-	  } else {
-	    delete[] language;
-	  }
-	}
-	break;
+      if (track != NULL) {
+        delete[] track->language; track->language = language;
+      } else {
+        delete[] language;
+      }
+    }
+    break;
       }
       case MATROSKA_ID_CODEC: {
-	char* codecID;
-	if (parseEBMLVal_string(size, codecID)) {
+    char* codecID;
+    if (parseEBMLVal_string(size, codecID)) {
 #ifdef DEBUG
-	  fprintf(stderr, "\tCodec ID: %s\n", codecID);
+      fprintf(stderr, "\tCodec ID: %s\n", codecID);
 #endif
-	  if (track != NULL) {
-	    delete[] track->codecID; track->codecID = codecID;
+      if (track != NULL) {
+        delete[] track->codecID; track->codecID = codecID;
 
-	    // Also set the track's "mimeType" field, if we can deduce it from the "codecID":
-	    if (strcmp(codecID, "A_PCM/INT/BIG") == 0) {
-	      track->mimeType = "audio/L16";
-	    } else if (strncmp(codecID, "A_MPEG", 6) == 0) {
-	      track->mimeType = "audio/MPEG";
-	    } else if (strncmp(codecID, "A_AAC", 5) == 0) {
-	      track->mimeType = "audio/AAC";
-	    } else if (strncmp(codecID, "A_AC3", 5) == 0) {
-	      track->mimeType = "audio/AC3";
-	    } else if (strncmp(codecID, "A_VORBIS", 8) == 0) {
-	      track->mimeType = "audio/VORBIS";
-	    } else if (strcmp(codecID, "A_OPUS") == 0) {
-	      track->mimeType = "audio/OPUS";
-	      track->codecIsOpus = True;
-	    } else if (strcmp(codecID, "V_MPEG4/ISO/AVC") == 0) {
-	      track->mimeType = "video/H264";
-	    } else if (strcmp(codecID, "V_MPEGH/ISO/HEVC") == 0) {
-	      track->mimeType = "video/H265";
-	    } else if (strncmp(codecID, "V_VP8", 5) == 0) {
-	      track->mimeType = "video/VP8";
-	    } else if (strncmp(codecID, "V_VP9", 5) == 0) {
-	      track->mimeType = "video/VP9";
-	    } else if (strncmp(codecID, "V_THEORA", 8) == 0) {
-	      track->mimeType = "video/THEORA";
-	    } else if (strncmp(codecID, "S_TEXT", 6) == 0) {
-	      track->mimeType = "text/T140";
-	    }
-	  } else {
-	    delete[] codecID;
-	  }
-	}
-	break;
+        // Also set the track's "mimeType" field, if we can deduce it from the "codecID":
+        if (strcmp(codecID, "A_PCM/INT/BIG") == 0) {
+          track->mimeType = "audio/L16";
+        } else if (strncmp(codecID, "A_MPEG", 6) == 0) {
+          track->mimeType = "audio/MPEG";
+        } else if (strncmp(codecID, "A_AAC", 5) == 0) {
+          track->mimeType = "audio/AAC";
+        } else if (strncmp(codecID, "A_AC3", 5) == 0) {
+          track->mimeType = "audio/AC3";
+        } else if (strncmp(codecID, "A_VORBIS", 8) == 0) {
+          track->mimeType = "audio/VORBIS";
+        } else if (strcmp(codecID, "A_OPUS") == 0) {
+          track->mimeType = "audio/OPUS";
+          track->codecIsOpus = True;
+        } else if (strcmp(codecID, "V_MPEG4/ISO/AVC") == 0) {
+          track->mimeType = "video/H264";
+        } else if (strcmp(codecID, "V_MPEGH/ISO/HEVC") == 0) {
+          track->mimeType = "video/H265";
+        } else if (strncmp(codecID, "V_VP8", 5) == 0) {
+          track->mimeType = "video/VP8";
+        } else if (strncmp(codecID, "V_VP9", 5) == 0) {
+          track->mimeType = "video/VP9";
+        } else if (strncmp(codecID, "V_THEORA", 8) == 0) {
+          track->mimeType = "video/THEORA";
+        } else if (strncmp(codecID, "S_TEXT", 6) == 0) {
+          track->mimeType = "text/T140";
+        }
+      } else {
+        delete[] codecID;
+      }
+    }
+    break;
       }
       case MATROSKA_ID_CODEC_PRIVATE: {
-	u_int8_t* codecPrivate;
-	unsigned codecPrivateSize;
-	if (parseEBMLVal_binary(size, codecPrivate)) {
-	  codecPrivateSize = (unsigned)size.val();
+    u_int8_t* codecPrivate;
+    unsigned codecPrivateSize;
+    if (parseEBMLVal_binary(size, codecPrivate)) {
+      codecPrivateSize = (unsigned)size.val();
 #ifdef DEBUG
-	  fprintf(stderr, "\tCodec Private: ");
-	  for (unsigned i = 0; i < codecPrivateSize; ++i) fprintf(stderr, "%02x:", codecPrivate[i]);
-	  fprintf(stderr, "\n");
+      fprintf(stderr, "\tCodec Private: ");
+      for (unsigned i = 0; i < codecPrivateSize; ++i) fprintf(stderr, "%02x:", codecPrivate[i]);
+      fprintf(stderr, "\n");
 #endif
-	  if (track != NULL) {
-	    delete[] track->codecPrivate; track->codecPrivate = codecPrivate;
-	    track->codecPrivateSize = codecPrivateSize;
+      if (track != NULL) {
+        delete[] track->codecPrivate; track->codecPrivate = codecPrivate;
+        track->codecPrivateSize = codecPrivateSize;
 
-	    // Hack for H.264 and H.265: The 'codec private' data contains
-	    // the size of NAL unit lengths:
-	    if (track->codecID != NULL) {
-	      if (strcmp(track->codecID, "V_MPEG4/ISO/AVC") == 0) { // H.264
-		// Byte 4 of the 'codec private' data contains 'lengthSizeMinusOne':
-		if (codecPrivateSize >= 5) track->subframeSizeSize = (codecPrivate[4]&0x3) + 1;
-	      } else if (strcmp(track->codecID, "V_MPEGH/ISO/HEVC") == 0) { // H.265
-		// H.265 'codec private' data is *supposed* to use the format that's described in
-		// http://lists.matroska.org/pipermail/matroska-devel/2013-September/004567.html
-		// However, some Matroska files use the same format that was used for H.264.
-		// We check for this here, by checking various fields that are supposed to be
-		// 'all-1' in the 'correct' format:
-		if (codecPrivateSize < 23 || (codecPrivate[13]&0xF0) != 0xF0 ||
-		    (codecPrivate[15]&0xFC) != 0xFC || (codecPrivate[16]&0xFC) != 0xFC ||
-		    (codecPrivate[17]&0xF8) != 0xF8 || (codecPrivate[18]&0xF8) != 0xF8) {
-		  // The 'correct' format isn't being used, so assume the H.264 format instead:
-		  track->codecPrivateUsesH264FormatForH265 = True;
-		  
-		  // Byte 4 of the 'codec private' data contains 'lengthSizeMinusOne':
-		  if (codecPrivateSize >= 5) track->subframeSizeSize = (codecPrivate[4]&0x3) + 1;
-		} else {
-		  // This looks like the 'correct' format:
-		  track->codecPrivateUsesH264FormatForH265 = False;
+        // Hack for H.264 and H.265: The 'codec private' data contains
+        // the size of NAL unit lengths:
+        if (track->codecID != NULL) {
+          if (strcmp(track->codecID, "V_MPEG4/ISO/AVC") == 0) { // H.264
+        // Byte 4 of the 'codec private' data contains 'lengthSizeMinusOne':
+        if (codecPrivateSize >= 5) track->subframeSizeSize = (codecPrivate[4]&0x3) + 1;
+          } else if (strcmp(track->codecID, "V_MPEGH/ISO/HEVC") == 0) { // H.265
+        // H.265 'codec private' data is *supposed* to use the format that's described in
+        // http://lists.matroska.org/pipermail/matroska-devel/2013-September/004567.html
+        // However, some Matroska files use the same format that was used for H.264.
+        // We check for this here, by checking various fields that are supposed to be
+        // 'all-1' in the 'correct' format:
+        if (codecPrivateSize < 23 || (codecPrivate[13]&0xF0) != 0xF0 ||
+            (codecPrivate[15]&0xFC) != 0xFC || (codecPrivate[16]&0xFC) != 0xFC ||
+            (codecPrivate[17]&0xF8) != 0xF8 || (codecPrivate[18]&0xF8) != 0xF8) {
+          // The 'correct' format isn't being used, so assume the H.264 format instead:
+          track->codecPrivateUsesH264FormatForH265 = True;
 
-		  // Byte 21 of the 'codec private' data contains 'lengthSizeMinusOne':
-		  track->subframeSizeSize = (codecPrivate[21]&0x3) + 1;
-		}
-	      }
-	    }
-	  } else {
-	    delete[] codecPrivate;
-	  }
-	}
-	break;
+          // Byte 4 of the 'codec private' data contains 'lengthSizeMinusOne':
+          if (codecPrivateSize >= 5) track->subframeSizeSize = (codecPrivate[4]&0x3) + 1;
+        } else {
+          // This looks like the 'correct' format:
+          track->codecPrivateUsesH264FormatForH265 = False;
+
+          // Byte 21 of the 'codec private' data contains 'lengthSizeMinusOne':
+          track->subframeSizeSize = (codecPrivate[21]&0x3) + 1;
+        }
+          }
+        }
+      } else {
+        delete[] codecPrivate;
+      }
+    }
+    break;
       }
       case MATROSKA_ID_VIDEO: { // 'Video settings' header: enter this
-	break;
+    break;
       }
       case MATROSKA_ID_PIXEL_WIDTH: {
-	unsigned pixelWidth;
-	if (parseEBMLVal_unsigned(size, pixelWidth)) {
+    unsigned pixelWidth;
+    if (parseEBMLVal_unsigned(size, pixelWidth)) {
 #ifdef DEBUG
-	  fprintf(stderr, "\tPixel Width %d\n", pixelWidth);
+      fprintf(stderr, "\tPixel Width %d\n", pixelWidth);
 #endif
-	}
-	break;
+    }
+    break;
       }
       case MATROSKA_ID_PIXEL_HEIGHT: {
-	unsigned pixelHeight;
-	if (parseEBMLVal_unsigned(size, pixelHeight)) {
+    unsigned pixelHeight;
+    if (parseEBMLVal_unsigned(size, pixelHeight)) {
 #ifdef DEBUG
-	  fprintf(stderr, "\tPixel Height %d\n", pixelHeight);
+      fprintf(stderr, "\tPixel Height %d\n", pixelHeight);
 #endif
-	}
-	break;
+    }
+    break;
       }
       case MATROSKA_ID_DISPLAY_WIDTH: {
-	unsigned displayWidth;
-	if (parseEBMLVal_unsigned(size, displayWidth)) {
+    unsigned displayWidth;
+    if (parseEBMLVal_unsigned(size, displayWidth)) {
 #ifdef DEBUG
-	  fprintf(stderr, "\tDisplay Width %d\n", displayWidth);
+      fprintf(stderr, "\tDisplay Width %d\n", displayWidth);
 #endif
-	}
-	break;
+    }
+    break;
       }
       case MATROSKA_ID_DISPLAY_HEIGHT: {
-	unsigned displayHeight;
-	if (parseEBMLVal_unsigned(size, displayHeight)) {
+    unsigned displayHeight;
+    if (parseEBMLVal_unsigned(size, displayHeight)) {
 #ifdef DEBUG
-	  fprintf(stderr, "\tDisplay Height %d\n", displayHeight);
+      fprintf(stderr, "\tDisplay Height %d\n", displayHeight);
 #endif
-	}
-	break;
+    }
+    break;
       }
       case MATROSKA_ID_DISPLAY_UNIT: {
-	unsigned displayUnit;
-	if (parseEBMLVal_unsigned(size, displayUnit)) {
+    unsigned displayUnit;
+    if (parseEBMLVal_unsigned(size, displayUnit)) {
 #ifdef DEBUG
-	  fprintf(stderr, "\tDisplay Unit %d\n", displayUnit);
+      fprintf(stderr, "\tDisplay Unit %d\n", displayUnit);
 #endif
-	}
-	break;
+    }
+    break;
       }
       case MATROSKA_ID_AUDIO: { // 'Audio settings' header: enter this
-	break;
+    break;
       }
       case MATROSKA_ID_SAMPLING_FREQUENCY: {
-	float samplingFrequency;
-	if (parseEBMLVal_float(size, samplingFrequency)) {
-	  if (track != NULL) {
-	    track->samplingFrequency = (unsigned)samplingFrequency;
+    float samplingFrequency;
+    if (parseEBMLVal_float(size, samplingFrequency)) {
+      if (track != NULL) {
+        track->samplingFrequency = (unsigned)samplingFrequency;
 #ifdef DEBUG
-	    fprintf(stderr, "\tSampling frequency %f (->%d)\n", samplingFrequency, track->samplingFrequency);
+        fprintf(stderr, "\tSampling frequency %f (->%d)\n", samplingFrequency, track->samplingFrequency);
 #endif
-	  }
-	}
-	break;
+      }
+    }
+    break;
       }
       case MATROSKA_ID_OUTPUT_SAMPLING_FREQUENCY: {
-	float outputSamplingFrequency;
-	if (parseEBMLVal_float(size, outputSamplingFrequency)) {
+    float outputSamplingFrequency;
+    if (parseEBMLVal_float(size, outputSamplingFrequency)) {
 #ifdef DEBUG
-	  fprintf(stderr, "\tOutput sampling frequency %f\n", outputSamplingFrequency);
+      fprintf(stderr, "\tOutput sampling frequency %f\n", outputSamplingFrequency);
 #endif
-	}
-	break;
+    }
+    break;
       }
       case MATROSKA_ID_CHANNELS: {
-	unsigned numChannels;
-	if (parseEBMLVal_unsigned(size, numChannels)) {
+    unsigned numChannels;
+    if (parseEBMLVal_unsigned(size, numChannels)) {
 #ifdef DEBUG
-	  fprintf(stderr, "\tChannels %d\n", numChannels);
+      fprintf(stderr, "\tChannels %d\n", numChannels);
 #endif
-	  if (track != NULL) track->numChannels = numChannels;
-	}
-	break;
+      if (track != NULL) track->numChannels = numChannels;
+    }
+    break;
       }
       case MATROSKA_ID_BIT_DEPTH: {
-	unsigned bitDepth;
-	if (parseEBMLVal_unsigned(size, bitDepth)) {
+    unsigned bitDepth;
+    if (parseEBMLVal_unsigned(size, bitDepth)) {
 #ifdef DEBUG
-	  fprintf(stderr, "\tBit Depth %d\n", bitDepth);
+      fprintf(stderr, "\tBit Depth %d\n", bitDepth);
 #endif
-	}
-	break;
+    }
+    break;
       }
       case MATROSKA_ID_CONTENT_ENCODINGS:
       case MATROSKA_ID_CONTENT_ENCODING: { // 'Content Encodings' or 'Content Encoding' header: enter this
-	break;
+    break;
       }
       case MATROSKA_ID_CONTENT_COMPRESSION: { // 'Content Compression' header: enter this
-	// Note: We currently support only 'Header Stripping' compression, not 'zlib' compression (the default algorithm).
-	// Therefore, we disable this track, unless/until we later see that 'Header Stripping' is supported:
-	if (track != NULL) track->isEnabled = False;
-	break;
+    // Note: We currently support only 'Header Stripping' compression, not 'zlib' compression (the default algorithm).
+    // Therefore, we disable this track, unless/until we later see that 'Header Stripping' is supported:
+    if (track != NULL) track->isEnabled = False;
+    break;
       }
       case MATROSKA_ID_CONTENT_COMP_ALGO: {
-	unsigned contentCompAlgo;
-	if (parseEBMLVal_unsigned(size, contentCompAlgo)) {
+    unsigned contentCompAlgo;
+    if (parseEBMLVal_unsigned(size, contentCompAlgo)) {
 #ifdef DEBUG
-	  fprintf(stderr, "\tContent Compression Algorithm %d (%s)\n", contentCompAlgo,
-		  contentCompAlgo == 0 ? "zlib" : contentCompAlgo == 3 ? "Header Stripping" : "<unknown>");
+      fprintf(stderr, "\tContent Compression Algorithm %d (%s)\n", contentCompAlgo,
+          contentCompAlgo == 0 ? "zlib" : contentCompAlgo == 3 ? "Header Stripping" : "<unknown>");
 #endif
-	  // The only compression algorithm that we support is #3: Header Stripping; disable the track otherwise
-	  if (track != NULL) track->isEnabled = contentCompAlgo == 3;
-	}
-	break;
+      // The only compression algorithm that we support is #3: Header Stripping; disable the track otherwise
+      if (track != NULL) track->isEnabled = contentCompAlgo == 3;
+    }
+    break;
       }
       case MATROSKA_ID_CONTENT_COMP_SETTINGS: {
-	u_int8_t* headerStrippedBytes;
-	unsigned headerStrippedBytesSize;
-	if (parseEBMLVal_binary(size, headerStrippedBytes)) {
-	  headerStrippedBytesSize = (unsigned)size.val();
+    u_int8_t* headerStrippedBytes;
+    unsigned headerStrippedBytesSize;
+    if (parseEBMLVal_binary(size, headerStrippedBytes)) {
+      headerStrippedBytesSize = (unsigned)size.val();
 #ifdef DEBUG
-	  fprintf(stderr, "\tHeader Stripped Bytes: ");
-	  for (unsigned i = 0; i < headerStrippedBytesSize; ++i) fprintf(stderr, "%02x:", headerStrippedBytes[i]);
-	  fprintf(stderr, "\n");
+      fprintf(stderr, "\tHeader Stripped Bytes: ");
+      for (unsigned i = 0; i < headerStrippedBytesSize; ++i) fprintf(stderr, "%02x:", headerStrippedBytes[i]);
+      fprintf(stderr, "\n");
 #endif
-	  if (track != NULL) {
-	    delete[] track->headerStrippedBytes; track->headerStrippedBytes = headerStrippedBytes;
-	    track->headerStrippedBytesSize = headerStrippedBytesSize;
-	  } else {
-	    delete[] headerStrippedBytes;
-	  }
-	}
-	break;
+      if (track != NULL) {
+        delete[] track->headerStrippedBytes; track->headerStrippedBytes = headerStrippedBytes;
+        track->headerStrippedBytesSize = headerStrippedBytesSize;
+      } else {
+        delete[] headerStrippedBytes;
+      }
+    }
+    break;
       }
       case MATROSKA_ID_CONTENT_ENCRYPTION: { // 'Content Encrpytion' header: skip this
-	// Note: We don't currently support encryption at all.  Therefore, we disable this track:
-	if (track != NULL) track->isEnabled = False;
-	// Fall through to...
+    // Note: We don't currently support encryption at all.  Therefore, we disable this track:
+    if (track != NULL) track->isEnabled = False;
+    // Fall through to...
       }
       default: { // We don't process this header, so just skip over it:
-	skipHeader(size);
-	break;
+    skipHeader(size);
+    break;
       }
     }
     setParseState();
@@ -680,90 +680,90 @@ void MatroskaFileParser::lookForNextBlock() {
 #endif
     switch (id.val()) {
       case MATROSKA_ID_SEGMENT: { // 'Segment' header: enter this
-	break;
+    break;
       }
       case MATROSKA_ID_CLUSTER: { // 'Cluster' header: enter this
-	break;
+    break;
       }
       case MATROSKA_ID_TIMECODE: { // 'Timecode' header: get this value
-	unsigned timecode;
-	if (parseEBMLVal_unsigned(size, timecode)) {
-	  fClusterTimecode = timecode;
+    unsigned timecode;
+    if (parseEBMLVal_unsigned(size, timecode)) {
+      fClusterTimecode = timecode;
 #ifdef DEBUG
-	  fprintf(stderr, "\tCluster timecode: %d (== %f seconds)\n", fClusterTimecode, fClusterTimecode*(fOurFile.fTimecodeScale/1000000000.0));
+      fprintf(stderr, "\tCluster timecode: %d (== %f seconds)\n", fClusterTimecode, fClusterTimecode*(fOurFile.fTimecodeScale/1000000000.0));
 #endif
-	}
-	break;
+    }
+    break;
       }
       case MATROSKA_ID_BLOCK_GROUP: { // 'Block Group' header: enter this
-	break;
+    break;
       }
       case MATROSKA_ID_SIMPLEBLOCK:
       case MATROSKA_ID_BLOCK: { // 'SimpleBlock' or 'Block' header: enter this (and we're done)
-	fBlockSize = (unsigned)size.val();
-	fCurrentParseState = PARSING_BLOCK;
-	break;
+    fBlockSize = (unsigned)size.val();
+    fCurrentParseState = PARSING_BLOCK;
+    break;
       }
       case MATROSKA_ID_BLOCK_DURATION: { // 'Block Duration' header: get this value (but we currently don't do anything with it)
-	unsigned blockDuration;
-	if (parseEBMLVal_unsigned(size, blockDuration)) {
+    unsigned blockDuration;
+    if (parseEBMLVal_unsigned(size, blockDuration)) {
 #ifdef DEBUG
-	  fprintf(stderr, "\tblock duration: %d (== %f ms)\n", blockDuration, (float)(blockDuration*fOurFile.fTimecodeScale/1000000.0));
+      fprintf(stderr, "\tblock duration: %d (== %f ms)\n", blockDuration, (float)(blockDuration*fOurFile.fTimecodeScale/1000000.0));
 #endif
-	}
-	break;
+    }
+    break;
       }
       // Attachments are parsed only if we're in DEBUG mode (otherwise we just skip over them):
 #ifdef DEBUG
       case MATROSKA_ID_ATTACHMENTS: { // 'Attachments': enter this
-	break;
+    break;
       }
       case MATROSKA_ID_ATTACHED_FILE: { // 'Attached File': enter this
-	break;
+    break;
       }
       case MATROSKA_ID_FILE_DESCRIPTION: { // 'File Description': get this value
-	char* fileDescription;
-	if (parseEBMLVal_string(size, fileDescription)) {
+    char* fileDescription;
+    if (parseEBMLVal_string(size, fileDescription)) {
 #ifdef DEBUG
-	  fprintf(stderr, "\tFile Description: %s\n", fileDescription);
+      fprintf(stderr, "\tFile Description: %s\n", fileDescription);
 #endif
-	  delete[] fileDescription;
-	}
-	break;
+      delete[] fileDescription;
+    }
+    break;
       }
       case MATROSKA_ID_FILE_NAME: { // 'File Name': get this value
-	char* fileName;
-	if (parseEBMLVal_string(size, fileName)) {
+    char* fileName;
+    if (parseEBMLVal_string(size, fileName)) {
 #ifdef DEBUG
-	  fprintf(stderr, "\tFile Name: %s\n", fileName);
+      fprintf(stderr, "\tFile Name: %s\n", fileName);
 #endif
-	  delete[] fileName;
-	}
-	break;
+      delete[] fileName;
+    }
+    break;
       }
       case MATROSKA_ID_FILE_MIME_TYPE: { // 'File MIME Type': get this value
-	char* fileMIMEType;
-	if (parseEBMLVal_string(size, fileMIMEType)) {
+    char* fileMIMEType;
+    if (parseEBMLVal_string(size, fileMIMEType)) {
 #ifdef DEBUG
-	  fprintf(stderr, "\tFile MIME Type: %s\n", fileMIMEType);
+      fprintf(stderr, "\tFile MIME Type: %s\n", fileMIMEType);
 #endif
-	  delete[] fileMIMEType;
-	}
-	break;
+      delete[] fileMIMEType;
+    }
+    break;
       }
       case MATROSKA_ID_FILE_UID: { // 'File UID': get this value
-	unsigned fileUID;
-	if (parseEBMLVal_unsigned(size, fileUID)) {
+    unsigned fileUID;
+    if (parseEBMLVal_unsigned(size, fileUID)) {
 #ifdef DEBUG
-	  fprintf(stderr, "\tFile UID: 0x%x\n", fileUID);
+      fprintf(stderr, "\tFile UID: 0x%x\n", fileUID);
 #endif
-	}
-	break;
+    }
+    break;
       }
 #endif
       default: { // skip over this header
-	skipHeader(size);
-	break;
+    skipHeader(size);
+    break;
       }
     }
     setParseState();
@@ -792,56 +792,56 @@ Boolean MatroskaFileParser::parseCues() {
 #endif
     switch (id.val()) {
       case MATROSKA_ID_CUE_POINT: { // 'Cue Point' header: enter this
-	break;
+    break;
       }
       case MATROSKA_ID_CUE_TIME: { // 'Cue Time' header: get this value
-	unsigned cueTime;
-	if (parseEBMLVal_unsigned(size, cueTime)) {
-	  currentCueTime = cueTime*(fOurFile.fTimecodeScale/1000000000.0);
+    unsigned cueTime;
+    if (parseEBMLVal_unsigned(size, cueTime)) {
+      currentCueTime = cueTime*(fOurFile.fTimecodeScale/1000000000.0);
 #ifdef DEBUG_CUES
-	  fprintf(stderr, "\tCue Time %d (== %f seconds)\n", cueTime, currentCueTime);
+      fprintf(stderr, "\tCue Time %d (== %f seconds)\n", cueTime, currentCueTime);
 #endif
-	}
-	break;
+    }
+    break;
       }
       case MATROSKA_ID_CUE_TRACK_POSITIONS: { // 'Cue Track Positions' header: enter this
-	break;
+    break;
       }
       case MATROSKA_ID_CUE_TRACK: { // 'Cue Track' header: get this value (but only for debugging; we don't do anything with it)
-	unsigned cueTrack;
-	if (parseEBMLVal_unsigned(size, cueTrack)) {
+    unsigned cueTrack;
+    if (parseEBMLVal_unsigned(size, cueTrack)) {
 #ifdef DEBUG_CUES
-	  fprintf(stderr, "\tCue Track %d\n", cueTrack);
+      fprintf(stderr, "\tCue Track %d\n", cueTrack);
 #endif
-	}
-	break;
+    }
+    break;
       }
       case MATROSKA_ID_CUE_CLUSTER_POSITION: { // 'Cue Cluster Position' header: get this value
-	u_int64_t cueClusterPosition;
-	if (parseEBMLVal_unsigned64(size, cueClusterPosition)) {
-	  currentClusterOffsetInFile = fOurFile.fSegmentDataOffset + cueClusterPosition;
+    u_int64_t cueClusterPosition;
+    if (parseEBMLVal_unsigned64(size, cueClusterPosition)) {
+      currentClusterOffsetInFile = fOurFile.fSegmentDataOffset + cueClusterPosition;
 #ifdef DEBUG_CUES
-	  fprintf(stderr, "\tCue Cluster Position %llu (=> offset within the file: %llu (0x%llx))\n", cueClusterPosition, currentClusterOffsetInFile, currentClusterOffsetInFile);
+      fprintf(stderr, "\tCue Cluster Position %llu (=> offset within the file: %llu (0x%llx))\n", cueClusterPosition, currentClusterOffsetInFile, currentClusterOffsetInFile);
 #endif
-	  // Record this cue point:
-	  fOurFile.addCuePoint(currentCueTime, currentClusterOffsetInFile, 1/*default block number within cluster*/);
-	}
-	break;
+      // Record this cue point:
+      fOurFile.addCuePoint(currentCueTime, currentClusterOffsetInFile, 1/*default block number within cluster*/);
+    }
+    break;
       }
       case MATROSKA_ID_CUE_BLOCK_NUMBER: { // 'Cue Block Number' header: get this value
-	unsigned cueBlockNumber;
-	if (parseEBMLVal_unsigned(size, cueBlockNumber) && cueBlockNumber != 0) {
+    unsigned cueBlockNumber;
+    if (parseEBMLVal_unsigned(size, cueBlockNumber) && cueBlockNumber != 0) {
 #ifdef DEBUG_CUES
-	  fprintf(stderr, "\tCue Block Number %d\n", cueBlockNumber);
+      fprintf(stderr, "\tCue Block Number %d\n", cueBlockNumber);
 #endif
-	  // Record this cue point (overwriting any existing entry for this cue time):
-	  fOurFile.addCuePoint(currentCueTime, currentClusterOffsetInFile, cueBlockNumber);
-	}
-	break;
+      // Record this cue point (overwriting any existing entry for this cue time):
+      fOurFile.addCuePoint(currentCueTime, currentClusterOffsetInFile, cueBlockNumber);
+    }
+    break;
       }
       default: { // We don't process this header, so just skip over it:
-	skipHeader(size);
-	break;
+    skipHeader(size);
+    break;
       }
     }
     setParseState();
@@ -877,7 +877,7 @@ void MatroskaFileParser::parseBlock() {
     if (fOurDemux->lookupDemuxedTrack(fBlockTrackNumber) == NULL) {
       unsigned headerBytesSeen = curOffset() - blockStartPos;
       if (headerBytesSeen < fBlockSize) {
-	skipBytes(fBlockSize - headerBytesSeen);
+    skipBytes(fBlockSize - headerBytesSeen);
       }
 #ifdef DEBUG
       fprintf(stderr, "\tSkipped block for unused track number %d\n", fBlockTrackNumber);
@@ -909,7 +909,7 @@ void MatroskaFileParser::parseBlock() {
     }
     delete[] fFrameSizesWithinBlock; fFrameSizesWithinBlock = new unsigned[fNumFramesInBlock];
     if (fFrameSizesWithinBlock == NULL) break;
-  
+
     if (lacingType == NoLacing) {
       unsigned headerBytesSeen = curOffset() - blockStartPos;
       if (headerBytesSeen > fBlockSize) break;
@@ -923,7 +923,7 @@ void MatroskaFileParser::parseBlock() {
       unsigned constantFrameSize = frameBytesAvailable/fNumFramesInBlock;
 
       for (unsigned i = 0; i < fNumFramesInBlock; ++i) {
-	fFrameSizesWithinBlock[i] = constantFrameSize;
+    fFrameSizesWithinBlock[i] = constantFrameSize;
       }
       // If there are any bytes left over, assign them to the last frame:
       fFrameSizesWithinBlock[fNumFramesInBlock-1] += frameBytesAvailable%fNumFramesInBlock;
@@ -933,30 +933,30 @@ void MatroskaFileParser::parseBlock() {
       unsigned i;
 
       for (i = 0; i < fNumFramesInBlock-1; ++i) {
-	if (lacingType == EBMLLacing) {
-	  EBMLNumber frameSize;
-	  if (!parseEBMLNumber(frameSize)) break;
-	  unsigned fsv = (unsigned)frameSize.val();
+    if (lacingType == EBMLLacing) {
+      EBMLNumber frameSize;
+      if (!parseEBMLNumber(frameSize)) break;
+      unsigned fsv = (unsigned)frameSize.val();
 
-	  if (i == 0) {
-	    curFrameSize = fsv;
-	  } else {
-	    // The value we read is a signed value, that's added to the previous frame size, to get the current frame size:
-	    unsigned toSubtract = (fsv>0xFFFFFF)?0x07FFFFFF : (fsv>0xFFFF)?0x0FFFFF : (fsv>0xFF)?0x1FFF : 0x3F;
-	    int fsv_signed = fsv - toSubtract;
-	    curFrameSize += fsv_signed;
-	    if ((int)curFrameSize < 0) break;
-	  }
-	} else { // Xiph lacing
-	  curFrameSize = 0;
-	  u_int8_t c;
-	  do {
-	    c = get1Byte();
-	    curFrameSize += c;
-	  } while (c == 0xFF);
-	}
-	fFrameSizesWithinBlock[i] = curFrameSize;
-	frameSizesTotal += curFrameSize;
+      if (i == 0) {
+        curFrameSize = fsv;
+      } else {
+        // The value we read is a signed value, that's added to the previous frame size, to get the current frame size:
+        unsigned toSubtract = (fsv>0xFFFFFF)?0x07FFFFFF : (fsv>0xFFFF)?0x0FFFFF : (fsv>0xFF)?0x1FFF : 0x3F;
+        int fsv_signed = fsv - toSubtract;
+        curFrameSize += fsv_signed;
+        if ((int)curFrameSize < 0) break;
+      }
+    } else { // Xiph lacing
+      curFrameSize = 0;
+      u_int8_t c;
+      do {
+        c = get1Byte();
+        curFrameSize += c;
+      } while (c == 0xFF);
+    }
+    fFrameSizesWithinBlock[i] = curFrameSize;
+    frameSizesTotal += curFrameSize;
       }
       if (i != fNumFramesInBlock-1) break; // an error occurred within the "for" loop
 
@@ -1027,30 +1027,30 @@ Boolean MatroskaFileParser::deliverFrameWithinBlock() {
       // the 'private data'.  The second frame (the 'comment' header) comes is synthesized by
       // us here:
       if (demuxedTrack->fOpusTrackNumber == 0) {
-	specialFrameSource = track->codecPrivate;
-	frameSize = track->codecPrivateSize;
+    specialFrameSource = track->codecPrivate;
+    frameSize = track->codecPrivateSize;
       } else { // demuxedTrack->fOpusTrackNumber == 1
-	specialFrameSource = opusCommentHeader;
-	frameSize = sizeof opusCommentHeader;
+    specialFrameSource = opusCommentHeader;
+    frameSize = sizeof opusCommentHeader;
       }
       ++demuxedTrack->fOpusTrackNumber;
     } else {
       frameSize = fFrameSizesWithinBlock[fNextFrameNumberToDeliver];
       if (track->haveSubframes()) {
-	// The next "track->subframeSizeSize" bytes contain the length of a 'subframe':
-	if (fCurOffsetWithinFrame + track->subframeSizeSize > frameSize) break; // sanity check
-	unsigned subframeSize = 0;
-	for (unsigned i = 0; i < track->subframeSizeSize; ++i) {
-	  u_int8_t c;
-	  getCommonFrameBytes(track, &c, 1, 0);
-	  if (fCurFrameNumBytesToGet > 0) { // it'll be 1
-	    c = get1Byte();
-	    ++fCurOffsetWithinFrame;
-	  }
-	  subframeSize = subframeSize*256 + c;
-	}
-	if (subframeSize == 0 || fCurOffsetWithinFrame + subframeSize > frameSize) break; // sanity check
-	frameSize = subframeSize;
+    // The next "track->subframeSizeSize" bytes contain the length of a 'subframe':
+    if (fCurOffsetWithinFrame + track->subframeSizeSize > frameSize) break; // sanity check
+    unsigned subframeSize = 0;
+    for (unsigned i = 0; i < track->subframeSizeSize; ++i) {
+      u_int8_t c;
+      getCommonFrameBytes(track, &c, 1, 0);
+      if (fCurFrameNumBytesToGet > 0) { // it'll be 1
+        c = get1Byte();
+        ++fCurOffsetWithinFrame;
+      }
+      subframeSize = subframeSize*256 + c;
+    }
+    if (subframeSize == 0 || fCurOffsetWithinFrame + subframeSize > frameSize) break; // sanity check
+    frameSize = subframeSize;
       }
     }
 
@@ -1075,31 +1075,31 @@ Boolean MatroskaFileParser::deliverFrameWithinBlock() {
     } else { // normal case
       durationInMicroseconds = track->defaultDuration/1000;
       if (track->haveSubframes()) {
-	// If this is a 'subframe', use a duration of 0 instead (unless it's the last 'subframe'):
-	if (fCurOffsetWithinFrame + frameSize + track->subframeSizeSize < fFrameSizesWithinBlock[fNextFrameNumberToDeliver]) {
-	  // There's room for at least one more subframe after this, so give this subframe a duration of 0
-	  durationInMicroseconds = 0;
-	}
+    // If this is a 'subframe', use a duration of 0 instead (unless it's the last 'subframe'):
+    if (fCurOffsetWithinFrame + frameSize + track->subframeSizeSize < fFrameSizesWithinBlock[fNextFrameNumberToDeliver]) {
+      // There's room for at least one more subframe after this, so give this subframe a duration of 0
+      durationInMicroseconds = 0;
+    }
       }
     }
 
     if (track->defaultDuration == 0) {
       // Adjust the frame duration to keep the sum of frame durations aligned with presentation times.
       if (demuxedTrack->prevPresentationTime().tv_sec != 0) { // not the first time for this track
-	demuxedTrack->durationImbalance()
-	  += (presentationTime.tv_sec - demuxedTrack->prevPresentationTime().tv_sec)*1000000
-	  + (presentationTime.tv_usec - demuxedTrack->prevPresentationTime().tv_usec);
+    demuxedTrack->durationImbalance()
+      += (presentationTime.tv_sec - demuxedTrack->prevPresentationTime().tv_sec)*1000000
+      + (presentationTime.tv_usec - demuxedTrack->prevPresentationTime().tv_usec);
       }
       int adjustment = 0;
       if (demuxedTrack->durationImbalance() > 0) {
-	// The duration needs to be increased.
-	int const adjustmentThreshold = 100000; // don't increase the duration by more than this amount (in case there's a mistake)
-	adjustment = demuxedTrack->durationImbalance() > adjustmentThreshold
-	  ? adjustmentThreshold : demuxedTrack->durationImbalance();
+    // The duration needs to be increased.
+    int const adjustmentThreshold = 100000; // don't increase the duration by more than this amount (in case there's a mistake)
+    adjustment = demuxedTrack->durationImbalance() > adjustmentThreshold
+      ? adjustmentThreshold : demuxedTrack->durationImbalance();
       } else if (demuxedTrack->durationImbalance() < 0) {
-	// The duration needs to be decreased.
-	adjustment = (unsigned)(-demuxedTrack->durationImbalance()) < durationInMicroseconds
-	  ? demuxedTrack->durationImbalance() : -(int)durationInMicroseconds;
+    // The duration needs to be decreased.
+    adjustment = (unsigned)(-demuxedTrack->durationImbalance()) < durationInMicroseconds
+      ? demuxedTrack->durationImbalance() : -(int)durationInMicroseconds;
       }
       durationInMicroseconds += adjustment;
       demuxedTrack->durationImbalance() -= durationInMicroseconds; // for next time
@@ -1178,7 +1178,7 @@ void MatroskaFileParser::deliverFrameBytes() {
 #endif
 
     if (!track->haveSubframes()
-	|| fCurOffsetWithinFrame + track->subframeSizeSize >= fFrameSizesWithinBlock[fNextFrameNumberToDeliver]) {
+    || fCurOffsetWithinFrame + track->subframeSizeSize >= fFrameSizesWithinBlock[fNextFrameNumberToDeliver]) {
       // Either we don't have subframes, or there's no more room for another subframe => We're completely done with this frame now:
       ++fNextFrameNumberToDeliver;
       fCurOffsetWithinFrame = 0;
@@ -1212,9 +1212,9 @@ void MatroskaFileParser
       numHeaderStrippedBytesToGet = numBytesToGet;
       numBytesToGet = 0;
       if (numBytesToGet + numBytesToSkip <= numRemainingHeaderStrippedBytes) {
-	numBytesToSkip = 0;
+    numBytesToSkip = 0;
       } else {
-	numBytesToSkip = numBytesToGet + numBytesToSkip - numRemainingHeaderStrippedBytes;
+    numBytesToSkip = numBytesToGet + numBytesToSkip - numRemainingHeaderStrippedBytes;
       }
     } else {
       numHeaderStrippedBytesToGet = numRemainingHeaderStrippedBytes;
@@ -1244,8 +1244,8 @@ Boolean MatroskaFileParser::parseEBMLNumber(EBMLNumber& num) {
 
       // If we're looking for an id, skip any leading bytes that don't contain a '1' in the first 4 bits:
       if (i == 0/*we're a leading byte*/ && !num.stripLeading1/*we're looking for an id*/ && (num.data[i]&0xF0) == 0) {
-	setParseState(); // ensures that we make forward progress if the parsing gets interrupted
-	continue;
+    setParseState(); // ensures that we make forward progress if the parsing gets interrupted
+    continue;
       }
       break;
     }
@@ -1393,14 +1393,14 @@ void MatroskaFileParser::skipRemainingHeaderBytes(Boolean isContinuation) {
 #ifdef DEBUG
     if (isContinuation || numBytesToSkipNow < fNumHeaderBytesToSkip) {
       fprintf(stderr, "\t\t(skipped %u bytes; %llu bytes remaining)\n",
-	      numBytesToSkipNow, fNumHeaderBytesToSkip - numBytesToSkipNow);
+          numBytesToSkipNow, fNumHeaderBytesToSkip - numBytesToSkipNow);
     }
 #endif
     fCurOffsetInFile += numBytesToSkipNow;
     fNumHeaderBytesToSkip -= numBytesToSkipNow;
   }
 }
-      
+
 void MatroskaFileParser::setParseState() {
   fSavedCurOffsetInFile = fCurOffsetInFile;
   fSavedCurOffsetWithinFrame = fCurOffsetWithinFrame;

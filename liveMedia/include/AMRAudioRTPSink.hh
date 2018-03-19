@@ -28,18 +28,18 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class AMRAudioRTPSink: public AudioRTPSink {
 public:
   static AMRAudioRTPSink* createNew(UsageEnvironment& env,
-				    Groupsock* RTPgs,
-				    unsigned char rtpPayloadFormat,
-				    Boolean sourceIsWideband = False,
-				    unsigned numChannelsInSource = 1);
+                    Groupsock* RTPgs,
+                    unsigned char rtpPayloadFormat,
+                    Boolean sourceIsWideband = False,
+                    unsigned numChannelsInSource = 1);
 
   Boolean sourceIsWideband() const { return fSourceIsWideband; }
 
 protected:
   AMRAudioRTPSink(UsageEnvironment& env, Groupsock* RTPgs,
-		  unsigned char rtpPayloadFormat,
-		  Boolean sourceIsWideband, unsigned numChannelsInSource);
-	// called only by createNew()
+          unsigned char rtpPayloadFormat,
+          Boolean sourceIsWideband, unsigned numChannelsInSource);
+    // called only by createNew()
 
   virtual ~AMRAudioRTPSink();
 
@@ -52,7 +52,7 @@ private: // redefined virtual functions:
                                       unsigned numRemainingBytes);
   virtual Boolean
   frameCanAppearAfterPacketStart(unsigned char const* frameStart,
-				 unsigned numBytesInFrame) const;
+                 unsigned numBytesInFrame) const;
 
   virtual unsigned specialHeaderSize() const;
   virtual char const* auxSDPLine();

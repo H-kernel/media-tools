@@ -22,7 +22,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #include <GroupsockHelper.hh>
 
 BasicUDPSource* BasicUDPSource::createNew(UsageEnvironment& env,
-					Groupsock* inputGS) {
+                    Groupsock* inputGS) {
   return new BasicUDPSource(env, inputGS);
 }
 
@@ -46,7 +46,7 @@ void BasicUDPSource::doGetNextFrame() {
   if (!fHaveStartedReading) {
     // Await incoming packets:
     envir().taskScheduler().turnOnBackgroundReadHandling(fInputGS->socketNum(),
-	 (TaskScheduler::BackgroundHandlerProc*)&incomingPacketHandler, this);
+     (TaskScheduler::BackgroundHandlerProc*)&incomingPacketHandler, this);
     fHaveStartedReading = True;
   }
 }

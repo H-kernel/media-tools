@@ -22,9 +22,9 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 MPEGVideoStreamParser
 ::MPEGVideoStreamParser(MPEGVideoStreamFramer* usingSource,
-			FramedSource* inputSource)
+            FramedSource* inputSource)
   : StreamParser(inputSource, FramedSource::handleClosure, usingSource,
-		 &MPEGVideoStreamFramer::continueReadProcessing, usingSource),
+         &MPEGVideoStreamFramer::continueReadProcessing, usingSource),
   fUsingSource(usingSource) {
 }
 
@@ -38,7 +38,7 @@ void MPEGVideoStreamParser::restoreSavedParserState() {
 }
 
 void MPEGVideoStreamParser::registerReadInterest(unsigned char* to,
-						 unsigned maxSize) {
+                         unsigned maxSize) {
   fStartOfFrame = fTo = fSavedTo = to;
   fLimit = to + maxSize;
   fNumTruncatedBytes = fSavedNumTruncatedBytes = 0;

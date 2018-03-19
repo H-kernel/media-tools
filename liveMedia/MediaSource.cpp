@@ -23,7 +23,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 ////////// MediaSource //////////
 
 MediaSource::MediaSource(UsageEnvironment& env)
-	: Medium(env) {
+    : Medium(env) {
 }
 
 MediaSource::~MediaSource() {
@@ -66,8 +66,8 @@ Boolean MediaSource::isAMRAudioSource() const {
 }
 
 Boolean MediaSource::lookupByName(UsageEnvironment& env,
-				  char const* sourceName,
-				  MediaSource*& resultSource) {
+                  char const* sourceName,
+                  MediaSource*& resultSource) {
   resultSource = NULL; // unless we succeed
 
   Medium* medium;

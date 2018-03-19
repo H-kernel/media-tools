@@ -68,7 +68,7 @@ struct evhttp *evhttp_start(const char *address, unsigned short port);
  * @deprecated It does not allow an event base to be specified
  */
 struct evhttp_connection *evhttp_connection_new(
-	const char *address, unsigned short port);
+    const char *address, unsigned short port);
 
 /**
  * Associates an event base with the connection - can only be called

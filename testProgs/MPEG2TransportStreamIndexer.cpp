@@ -48,7 +48,7 @@ int main(int argc, char const** argv) {
   int len = strlen(inputFileName);
   if (len < 4 || strcmp(&inputFileName[len-3], ".ts") != 0) {
     *env << "ERROR: input file name \"" << inputFileName
-	 << "\" does not end with \".ts\"\n";
+     << "\" does not end with \".ts\"\n";
     usage();
   }
 

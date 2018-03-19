@@ -35,7 +35,7 @@ public:
 
 protected:
   AMRAudioSource(UsageEnvironment& env, Boolean isWideband, unsigned numChannels);
-	// virtual base class
+    // virtual base class
   virtual ~AMRAudioSource();
 
 private:

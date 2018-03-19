@@ -28,15 +28,15 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class MP3ADURTPSink: public AudioRTPSink {
 public:
   static MP3ADURTPSink* createNew(UsageEnvironment& env, Groupsock* RTPgs,
-				  unsigned char RTPPayloadType);
+                  unsigned char RTPPayloadType);
 
 protected:
   virtual ~MP3ADURTPSink();
 
 private:
   MP3ADURTPSink(UsageEnvironment& env, Groupsock* RTPgs,
-		unsigned char RTPPayloadType);
-	// called only by createNew()
+        unsigned char RTPPayloadType);
+    // called only by createNew()
 
 
 private:

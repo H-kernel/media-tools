@@ -61,8 +61,8 @@ void play() {
   WAVAudioFileSource* wavSource = WAVAudioFileSource::createNew(*env, inputFileName);
   if (wavSource == NULL) {
     *env << "Unable to open file \"" << inputFileName
-	 << "\" as a WAV audio file source: "
-	 << env->getResultMsg() << "\n";
+     << "\" as a WAV audio file source: "
+     << env->getResultMsg() << "\n";
     exit(1);
   }
 
@@ -95,36 +95,36 @@ void play() {
       // Add a filter that converts from raw 16-bit PCM audio (in little-endian order) to 8-bit u-law audio:
       sessionState.source = uLawFromPCMAudioSource::createNew(*env, wavSource, 1/*little-endian*/);
       if (sessionState.source == NULL) {
-	*env << "Unable to create a u-law filter from the PCM audio source: " << env->getResultMsg() << "\n";
-	exit(1);
+    *env << "Unable to create a u-law filter from the PCM audio source: " << env->getResultMsg() << "\n";
+    exit(1);
       }
       bitsPerSecond /= 2;
       *env << "Converting to 8-bit u-law audio for streaming => " << bitsPerSecond << " bits-per-second\n";
       mimeType = "PCMU";
       if (samplingFrequency == 8000 && numChannels == 1) {
-	payloadFormatCode = 0; // a static RTP payload type
+    payloadFormatCode = 0; // a static RTP payload type
       }
 #else
-      // Add a filter that converts from little-endian to network (big-endian) order: 
+      // Add a filter that converts from little-endian to network (big-endian) order:
       sessionState.source = EndianSwap16::createNew(*env, wavSource);
       if (sessionState.source == NULL) {
-	*env << "Unable to create a little->bit-endian order filter from the PCM audio source: " << env->getResultMsg() << "\n";
-	exit(1);
+    *env << "Unable to create a little->bit-endian order filter from the PCM audio source: " << env->getResultMsg() << "\n";
+    exit(1);
       }
       *env << "Converting to network byte order for streaming\n";
       mimeType = "L16";
       if (samplingFrequency == 44100 && numChannels == 2) {
-	payloadFormatCode = 10; // a static RTP payload type
+    payloadFormatCode = 10; // a static RTP payload type
       } else if (samplingFrequency == 44100 && numChannels == 1) {
-	payloadFormatCode = 11; // a static RTP payload type
+    payloadFormatCode = 11; // a static RTP payload type
       }
 #endif
     } else if (bitsPerSample == 20 || bitsPerSample == 24) {
-      // Add a filter that converts from little-endian to network (big-endian) order: 
+      // Add a filter that converts from little-endian to network (big-endian) order:
       sessionState.source = EndianSwap24::createNew(*env, wavSource);
       if (sessionState.source == NULL) {
-	*env << "Unable to create a little->bit-endian order filter from the PCM audio source: " << env->getResultMsg() << "\n";
-	exit(1);
+    *env << "Unable to create a little->bit-endian order filter from the PCM audio source: " << env->getResultMsg() << "\n";
+    exit(1);
       }
       *env << "Converting to network byte order for streaming\n";
       mimeType = bitsPerSample == 20 ? "L20" : "L24";
@@ -135,28 +135,28 @@ void play() {
   } else if (audioFormat == WA_PCMU) {
     mimeType = "PCMU";
     if (samplingFrequency == 8000 && numChannels == 1) {
-      payloadFormatCode = 0; // a static RTP payload type                                                                          
+      payloadFormatCode = 0; // a static RTP payload type
     }
   } else if (audioFormat == WA_PCMA) {
     mimeType = "PCMA";
     if (samplingFrequency == 8000 && numChannels == 1) {
-      payloadFormatCode = 8; // a static RTP payload type                                                                          
-    } 
+      payloadFormatCode = 8; // a static RTP payload type
+    }
   } else if (audioFormat == WA_IMA_ADPCM) {
     mimeType = "DVI4";
-    // Use a static payload type, if one is defined:                                                                               
+    // Use a static payload type, if one is defined:
     if (numChannels == 1) {
       if (samplingFrequency == 8000) {
-	payloadFormatCode = 5; // a static RTP payload type                                                                        
+    payloadFormatCode = 5; // a static RTP payload type
       } else if (samplingFrequency == 16000) {
-	payloadFormatCode = 6; // a static RTP payload type                                                                        
+    payloadFormatCode = 6; // a static RTP payload type
       } else if (samplingFrequency == 11025) {
-	payloadFormatCode = 16; // a static RTP payload type                                                                       
+    payloadFormatCode = 16; // a static RTP payload type
       } else if (samplingFrequency == 22050) {
-	payloadFormatCode = 17; // a static RTP payload type                                                                       
+    payloadFormatCode = 17; // a static RTP payload type
       }
     }
-  } else { //unknown format                                                                                                        
+  } else { //unknown format
     *env << "Unknown audio format code \"" << audioFormat << "\" in WAV file header\n";
     exit(1);
   }
@@ -185,8 +185,8 @@ void play() {
   // Create an appropriate audio RTP sink (using "SimpleRTPSink") from the RTP 'groupsock':
   sessionState.sink
     = SimpleRTPSink::createNew(*env, sessionState.rtpGroupsock,
-			       payloadFormatCode, samplingFrequency,
-			       "audio", mimeType, numChannels);
+                   payloadFormatCode, samplingFrequency,
+                   "audio", mimeType, numChannels);
 
   // Create (and start) a 'RTCP instance' for this RTP sink:
   const unsigned estimatedSessionBandwidth = (bitsPerSecond + 500)/1000; // in kbps; for RTCP b/w share
@@ -196,9 +196,9 @@ void play() {
   CNAME[maxCNAMElen] = '\0'; // just in case
   sessionState.rtcpInstance
     = RTCPInstance::createNew(*env, sessionState.rtcpGroupsock,
-			      estimatedSessionBandwidth, CNAME,
-			      sessionState.sink, NULL /* we're a server */,
-			      True /* we're a SSM source*/);
+                  estimatedSessionBandwidth, CNAME,
+                  sessionState.sink, NULL /* we're a server */,
+                  True /* we're a SSM source*/);
   // Note: This starts RTCP running automatically
 
   // Create and start a RTSP server to serve this stream:
@@ -209,7 +209,7 @@ void play() {
   }
   ServerMediaSession* sms
     = ServerMediaSession::createNew(*env, "testStream", inputFileName,
-	   "Session streamed by \"testWAVAudiotreamer\"", True/*SSM*/);
+       "Session streamed by \"testWAVAudiotreamer\"", True/*SSM*/);
   sms->addSubsession(PassiveServerMediaSubsession::createNew(*sessionState.sink, sessionState.rtcpInstance));
   sessionState.rtspServer->addServerMediaSession(sms);
 

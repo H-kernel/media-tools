@@ -39,7 +39,7 @@ public:
 
 protected:
   MP3FileSource(UsageEnvironment& env, FILE* fid);
-	// called only by createNew()
+    // called only by createNew()
 
   virtual ~MP3FileSource();
 

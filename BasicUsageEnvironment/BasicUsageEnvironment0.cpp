@@ -58,7 +58,7 @@ void BasicUsageEnvironment0::setResultMsg(MsgString msg1, MsgString msg2) {
 }
 
 void BasicUsageEnvironment0::setResultMsg(MsgString msg1, MsgString msg2,
-				       MsgString msg3) {
+                       MsgString msg3) {
   setResultMsg(msg1, msg2);
   appendToResultMsg(msg3);
 }

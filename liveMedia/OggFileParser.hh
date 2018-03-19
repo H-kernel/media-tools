@@ -50,8 +50,8 @@ public:
 class OggFileParser: public StreamParser {
 public:
   OggFileParser(OggFile& ourFile, FramedSource* inputSource,
-		FramedSource::onCloseFunc* onEndFunc, void* onEndClientData,
-		OggDemux* ourDemux = NULL);
+        FramedSource::onCloseFunc* onEndFunc, void* onEndClientData,
+        OggDemux* ourDemux = NULL);
   virtual ~OggFileParser();
 
   // StreamParser 'client continue' function:

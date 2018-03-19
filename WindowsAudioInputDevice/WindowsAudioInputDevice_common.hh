@@ -34,9 +34,9 @@ public:
 
 protected:
   WindowsAudioInputDevice_common(UsageEnvironment& env, int inputPortNumber,
-	unsigned char bitsPerSample, unsigned char numChannels,
-	unsigned samplingFrequency, unsigned granularityInMS);
-	// virtual base class
+    unsigned char bitsPerSample, unsigned char numChannels,
+    unsigned samplingFrequency, unsigned granularityInMS);
+    // virtual base class
 
   virtual ~WindowsAudioInputDevice_common();
 

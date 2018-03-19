@@ -113,9 +113,9 @@ unsigned H263plusVideoStreamParser::parse(u_int64_t & currentDuration)
          // Parse the returned frame header (if any)
          if (!ParseShortHeader(fTo, &fNextInfo)) {
 #ifdef DEBUG
-	   fprintf(stderr,"H263plusVideoStreamParser: Fatal error\n");
+       fprintf(stderr,"H263plusVideoStreamParser: Fatal error\n");
 #endif
-	 }
+     }
 
          trDifference = GetTRDifference(fNextInfo.tr, fCurrentInfo.tr);
 
@@ -130,7 +130,7 @@ unsigned H263plusVideoStreamParser::parse(u_int64_t & currentDuration)
          //GetMaxBitrate(&fMaxBitrateCtx, frameSize, prevTrDifference);
          //prevTrDifference = trDifference;
 
-	 setParseState(); // Needed for the parsing process in StreamParser
+     setParseState(); // Needed for the parsing process in StreamParser
       }
    } catch (int /*e*/) {
 #ifdef DEBUG
@@ -207,7 +207,7 @@ int H263plusVideoStreamParser::parseH263Frame( )
    getBytes(bufferIndex, ADDITIONAL_BYTES_NEEDED);
    memcpy(fNextHeader, bufferIndex - H263_STARTCODE_SIZE_BYTES, H263_REQUIRE_HEADER_SIZE_BYTES);
 
-	int sz = bufferIndex - fTo - H263_STARTCODE_SIZE_BYTES;
+    int sz = bufferIndex - fTo - H263_STARTCODE_SIZE_BYTES;
 
    if (sz == 5) // first frame
       memcpy(fTo, fTo+H263_REQUIRE_HEADER_SIZE_BYTES, H263_REQUIRE_HEADER_SIZE_BYTES);
@@ -308,7 +308,7 @@ void H263plusVideoStreamParser::GetMaxBitrate( MaxBitrate_CTX *ctx,
       // Check if we have a new maximum bitrate
       if (ctx->windowBitrate > ctx->maxBitrate) {
          ctx->maxBitrate = ctx->windowBitrate;
-	  }
+      }
       // Advance the table index
       // Wrapping around the bitrateTable size
       ctx->tableIndex = (ctx->tableIndex + 1) %
@@ -353,14 +353,14 @@ bool H263plusVideoStreamParser::GetWidthAndHeight( u_int8_t  fmt,
       u_int16_t width;
       u_int16_t height;
    } const dimensionsTable[8] = {
-	   { 0,    0 },      // 000 - 0 - forbidden, generates an error
-	   { 128,  96 },     // 001 - 1 - Sub QCIF
-	   { 176,  144 },    // 010 - 2 - QCIF
-	   { 352,  288 },    // 011 - 3 - CIF
-	   { 704,  576 },    // 100 - 4 - 4CIF
-	   { 1409, 1152 },   // 101 - 5 - 16CIF
-	   { 0,    0 },      // 110 - 6 - reserved, generates an error
-	   { 0,    0 }       // 111 - 7 - extended, not supported by profile 0
+       { 0,    0 },      // 000 - 0 - forbidden, generates an error
+       { 128,  96 },     // 001 - 1 - Sub QCIF
+       { 176,  144 },    // 010 - 2 - QCIF
+       { 352,  288 },    // 011 - 3 - CIF
+       { 704,  576 },    // 100 - 4 - 4CIF
+       { 1409, 1152 },   // 101 - 5 - 16CIF
+       { 0,    0 },      // 110 - 6 - reserved, generates an error
+       { 0,    0 }       // 111 - 7 - extended, not supported by profile 0
    };
 
    if (fmt > 7)

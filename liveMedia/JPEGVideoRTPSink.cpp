@@ -40,17 +40,17 @@ Boolean JPEGVideoRTPSink::sourceIsCompatibleWithUs(MediaSource& source) {
 
 Boolean JPEGVideoRTPSink
 ::frameCanAppearAfterPacketStart(unsigned char const* /*frameStart*/,
-				 unsigned /*numBytesInFrame*/) const {
+                 unsigned /*numBytesInFrame*/) const {
   // A packet can contain only one frame
   return False;
 }
 
 void JPEGVideoRTPSink
 ::doSpecialFrameHandling(unsigned fragmentationOffset,
-			 unsigned char* /*frameStart*/,
-			 unsigned /*numBytesInFrame*/,
-			 struct timeval framePresentationTime,
-			 unsigned numRemainingBytes) {
+             unsigned char* /*frameStart*/,
+             unsigned /*numBytesInFrame*/,
+             struct timeval framePresentationTime,
+             unsigned numRemainingBytes) {
   // Our source is known to be a JPEGVideoSource
   JPEGVideoSource* source = (JPEGVideoSource*)fSource;
   if (source == NULL) return; // sanity check
@@ -99,12 +99,12 @@ void JPEGVideoRTPSink
     quantizationHeader[3] = length&0xFF;
     if (quantizationTables != NULL) { // sanity check
       for (u_int16_t i = 0; i < length; ++i) {
-	quantizationHeader[4+i] = quantizationTables[i];
+    quantizationHeader[4+i] = quantizationTables[i];
       }
     }
 
     setSpecialHeaderBytes(quantizationHeader, quantizationHeaderSize,
-			  sizeof mainJPEGHeader + restartMarkerHeaderSize/* start position */);
+              sizeof mainJPEGHeader + restartMarkerHeaderSize/* start position */);
     delete[] quantizationHeader;
   }
 

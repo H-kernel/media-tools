@@ -28,16 +28,16 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 MP3AudioFileServerMediaSubsession* MP3AudioFileServerMediaSubsession
 ::createNew(UsageEnvironment& env, char const* fileName, Boolean reuseFirstSource,
-	    Boolean generateADUs, Interleaving* interleaving) {
+        Boolean generateADUs, Interleaving* interleaving) {
   return new MP3AudioFileServerMediaSubsession(env, fileName, reuseFirstSource,
-					       generateADUs, interleaving);
+                           generateADUs, interleaving);
 }
 
 MP3AudioFileServerMediaSubsession
 ::MP3AudioFileServerMediaSubsession(UsageEnvironment& env,
-				    char const* fileName, Boolean reuseFirstSource,
-				    Boolean generateADUs,
-				    Interleaving* interleaving)
+                    char const* fileName, Boolean reuseFirstSource,
+                    Boolean generateADUs,
+                    Interleaving* interleaving)
   : FileServerMediaSubsession(env, fileName, reuseFirstSource),
     fGenerateADUs(generateADUs), fInterleaving(interleaving), fFileDuration(0.0) {
 }
@@ -67,10 +67,10 @@ FramedSource* MP3AudioFileServerMediaSubsession
       if (streamSource == NULL) break;
 
       if (fInterleaving != NULL) {
-	// Add another filter that interleaves the ADUs before packetizing:
-	streamSource = MP3ADUinterleaver::createNew(envir(), *fInterleaving,
-						    streamSource);
-	if (streamSource == NULL) break;
+    // Add another filter that interleaves the ADUs before packetizing:
+    streamSource = MP3ADUinterleaver::createNew(envir(), *fInterleaving,
+                            streamSource);
+    if (streamSource == NULL) break;
       }
     } else if (fFileDuration > 0.0) {
       // Because this is a seekable file, insert a pair of filters: one that
@@ -89,7 +89,7 @@ FramedSource* MP3AudioFileServerMediaSubsession
 }
 
 void MP3AudioFileServerMediaSubsession::getBaseStreams(FramedSource* frontStream,
-						       FramedSource*& sourceMP3Stream, ADUFromMP3Source*& aduStream/*if any*/) {
+                               FramedSource*& sourceMP3Stream, ADUFromMP3Source*& aduStream/*if any*/) {
   if (fGenerateADUs) {
     // There's an ADU stream.
     if (fInterleaving != NULL) {
@@ -151,11 +151,11 @@ FramedSource* MP3AudioFileServerMediaSubsession
 
 RTPSink* MP3AudioFileServerMediaSubsession
 ::createNewRTPSink(Groupsock* rtpGroupsock,
-		   unsigned char rtpPayloadTypeIfDynamic,
-		   FramedSource* /*inputSource*/) {
+           unsigned char rtpPayloadTypeIfDynamic,
+           FramedSource* /*inputSource*/) {
   if (fGenerateADUs) {
     return MP3ADURTPSink::createNew(envir(), rtpGroupsock,
-				    rtpPayloadTypeIfDynamic);
+                    rtpPayloadTypeIfDynamic);
   } else {
     return MPEG1or2AudioRTPSink::createNew(envir(), rtpGroupsock);
   }

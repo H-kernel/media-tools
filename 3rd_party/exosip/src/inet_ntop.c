@@ -1,17 +1,17 @@
 /*
   eXosip - This is the eXtended osip library.
   Copyright (C) 2001-2015 Aymeric MOIZARD amoizard@antisip.com
-  
+
   eXosip is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
-  
+
   eXosip is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
-  
+
   You should have received a copy of the GNU General Public License
   along with this program; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -76,11 +76,11 @@ typedef unsigned long in_addr_t;
 
 /* !added by amd */
 
-#define	IN6ADDRSZ	16
-#define	INT16SZ		 2
+#define    IN6ADDRSZ    16
+#define    INT16SZ         2
 
-#ifndef	AF_INET6
-#define	AF_INET6	AF_MAX+1        /* just to let this compile */
+#ifndef    AF_INET6
+#define    AF_INET6    AF_MAX+1        /* just to let this compile */
 #endif
 
 /*
@@ -93,11 +93,11 @@ static const char *_inet_ntop6 (const u_char * src, char *dst, size_t size);
 
 /* char *
  * inet_ntop(af, src, dst, size)
- *	convert a network format address to presentation format.
+ *    convert a network format address to presentation format.
  * return:
- *	pointer to presentation format address (`dst'), or NULL (see errno).
+ *    pointer to presentation format address (`dst'), or NULL (see errno).
  * author:
- *	Paul Vixie, 1996.
+ *    Paul Vixie, 1996.
  */
 const char *
 _inet_ntop (af, src, dst, size)
@@ -122,14 +122,14 @@ _inet_ntop (af, src, dst, size)
 
 /* const char *
  * inet_ntop4(src, dst, size)
- *	format an IPv4 address, more or less like inet_ntoa()
+ *    format an IPv4 address, more or less like inet_ntoa()
  * return:
- *	`dst' (as a const)
+ *    `dst' (as a const)
  * notes:
- *	(1) uses no statics
- *	(2) takes a u_char* not an in_addr as input
+ *    (1) uses no statics
+ *    (2) takes a u_char* not an in_addr as input
  * author:
- *	Paul Vixie, 1996.
+ *    Paul Vixie, 1996.
  */
 static const char *
 _inet_ntop4 (src, dst, size)
@@ -153,9 +153,9 @@ _inet_ntop4 (src, dst, size)
 
 /* const char *
  * inet_ntop6(src, dst, size)
- *	convert IPv6 binary address into presentation (printable) format
+ *    convert IPv6 binary address into presentation (printable) format
  * author:
- *	Paul Vixie, 1996.
+ *    Paul Vixie, 1996.
  */
 static const char *
 _inet_ntop6 (src, dst, size)

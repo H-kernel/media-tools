@@ -31,7 +31,7 @@ public:
 
 protected:
   JPEGVideoRTPSink(UsageEnvironment& env, Groupsock* RTPgs);
-	// called only by createNew()
+    // called only by createNew()
 
   virtual ~JPEGVideoRTPSink();
 
@@ -45,7 +45,7 @@ private: // redefined virtual functions:
                                       unsigned numRemainingBytes);
   virtual
   Boolean frameCanAppearAfterPacketStart(unsigned char const* frameStart,
-					 unsigned numBytesInFrame) const;
+                     unsigned numBytesInFrame) const;
   virtual unsigned specialHeaderSize() const;
 };
 

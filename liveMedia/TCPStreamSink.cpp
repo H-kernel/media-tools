@@ -56,7 +56,7 @@ void TCPStreamSink::processBuffer() {
       // The output socket is no longer writable.  Set a handler to be called when it becomes writable again.
       fOutputSocketIsWritable = False;
       if (envir().getErrno() != EPIPE) { // on this error, the socket might still be writable, but no longer usable
-	envir().taskScheduler().setBackgroundHandling(fOutputSocketNum, SOCKET_WRITABLE, socketWritableHandler, this);
+    envir().taskScheduler().setBackgroundHandling(fOutputSocketNum, SOCKET_WRITABLE, socketWritableHandler, this);
       }
     }
     if (numBytesWritten > 0) {
@@ -64,7 +64,7 @@ void TCPStreamSink::processBuffer() {
       fUnwrittenBytesStart += numBytesWritten;
       if (fUnwrittenBytesStart > fUnwrittenBytesEnd) fUnwrittenBytesStart = fUnwrittenBytesEnd; // sanity check
       if (fUnwrittenBytesStart == fUnwrittenBytesEnd && (!fInputSourceIsOpen || !fSource->isCurrentlyAwaitingData())) {
-	fUnwrittenBytesStart = fUnwrittenBytesEnd = 0; // reset the buffer to empty
+    fUnwrittenBytesStart = fUnwrittenBytesEnd = 0; // reset the buffer to empty
       }
     }
   }
@@ -91,7 +91,7 @@ void TCPStreamSink::socketWritableHandler1() {
 }
 
 void TCPStreamSink::afterGettingFrame(void* clientData, unsigned frameSize, unsigned numTruncatedBytes,
-				struct timeval /*presentationTime*/, unsigned /*durationInMicroseconds*/) {
+                struct timeval /*presentationTime*/, unsigned /*durationInMicroseconds*/) {
   TCPStreamSink* sink = (TCPStreamSink*)clientData;
   sink->afterGettingFrame(frameSize, numTruncatedBytes);
 }
@@ -99,8 +99,8 @@ void TCPStreamSink::afterGettingFrame(void* clientData, unsigned frameSize, unsi
 void TCPStreamSink::afterGettingFrame(unsigned frameSize, unsigned numTruncatedBytes) {
   if (numTruncatedBytes > 0) {
     envir() << "TCPStreamSink::afterGettingFrame(): The input frame data was too large for our buffer.  "
-	    << numTruncatedBytes
-	    << " bytes of trailing data was dropped!  Correct this by increasing the definition of \"TCP_STREAM_SINK_BUFFER_SIZE\" in \"include/TCPStreamSink.hh\".\n";
+        << numTruncatedBytes
+        << " bytes of trailing data was dropped!  Correct this by increasing the definition of \"TCP_STREAM_SINK_BUFFER_SIZE\" in \"include/TCPStreamSink.hh\".\n";
   }
   fUnwrittenBytesEnd += frameSize;
   processBuffer();

@@ -35,7 +35,7 @@ class MediaTranscodingTable: public Medium {
 public:
   virtual FramedFilter*
   lookupTranscoder(MediaSubsession& /*inputCodecDescription*/, // in
-		   char*& outputCodecName/* out; must be delete[]d later */) {
+           char*& outputCodecName/* out; must be delete[]d later */) {
     // Default implementation: Return NULL (indicating: no transcoding).
     // You would reimplement this virtual function in a subclass to return a new 'transcoding'
     // "FramedFilter" (subclass) object for each ("mediumName","codecName") that you wish to

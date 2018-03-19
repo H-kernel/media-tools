@@ -28,8 +28,8 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class ADUFromMP3Source: public FramedFilter {
 public:
   static ADUFromMP3Source* createNew(UsageEnvironment& env,
-				     FramedSource* inputSource,
-				     Boolean includeADUdescriptors = True);
+                     FramedSource* inputSource,
+                     Boolean includeADUdescriptors = True);
 
   void resetInput();
       // This is called whenever there's a discontinuity in the input MP3 source
@@ -41,8 +41,8 @@ public:
 
 protected:
   ADUFromMP3Source(UsageEnvironment& env,
-		   FramedSource* inputSource,
-		   Boolean includeADUdescriptors);
+           FramedSource* inputSource,
+           Boolean includeADUdescriptors);
       // called only by createNew()
   virtual ~ADUFromMP3Source();
 
@@ -66,13 +66,13 @@ private:
 class MP3FromADUSource: public FramedFilter {
 public:
   static MP3FromADUSource* createNew(UsageEnvironment& env,
-				     FramedSource* inputSource,
+                     FramedSource* inputSource,
                                      Boolean includeADUdescriptors = True);
 
 protected:
   MP3FromADUSource(UsageEnvironment& env,
-		   FramedSource* inputSource,
-		   Boolean includeADUdescriptors);
+           FramedSource* inputSource,
+           Boolean includeADUdescriptors);
       // called only by createNew()
   virtual ~MP3FromADUSource();
 

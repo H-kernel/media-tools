@@ -29,11 +29,11 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 void GenericMediaServer::addServerMediaSession(ServerMediaSession* serverMediaSession) {
   if (serverMediaSession == NULL) return;
-  
+
   char const* sessionName = serverMediaSession->streamName();
   if (sessionName == NULL) sessionName = "";
   removeServerMediaSession(sessionName); // in case an existing "ServerMediaSession" with this name already exists
-  
+
   fServerMediaSessions->Add(sessionName, (void*)serverMediaSession);
 }
 
@@ -45,7 +45,7 @@ ServerMediaSession* GenericMediaServer
 
 void GenericMediaServer::removeServerMediaSession(ServerMediaSession* serverMediaSession) {
   if (serverMediaSession == NULL) return;
-  
+
   fServerMediaSessions->Remove(serverMediaSession->streamName());
   if (serverMediaSession->referenceCount() == 0) {
     Medium::close(serverMediaSession);
@@ -60,7 +60,7 @@ void GenericMediaServer::removeServerMediaSession(char const* streamName) {
 
 void GenericMediaServer::closeAllClientSessionsForServerMediaSession(ServerMediaSession* serverMediaSession) {
   if (serverMediaSession == NULL) return;
-  
+
   HashTable::Iterator* iter = HashTable::Iterator::create(*fClientSessions);
   GenericMediaServer::ClientSession* clientSession;
   char const* key; // dummy
@@ -78,7 +78,7 @@ void GenericMediaServer::closeAllClientSessionsForServerMediaSession(char const*
 
 void GenericMediaServer::deleteServerMediaSession(ServerMediaSession* serverMediaSession) {
   if (serverMediaSession == NULL) return;
-  
+
   closeAllClientSessionsForServerMediaSession(serverMediaSession);
   removeServerMediaSession(serverMediaSession);
 }
@@ -89,14 +89,14 @@ void GenericMediaServer::deleteServerMediaSession(char const* streamName) {
 
 GenericMediaServer
 ::GenericMediaServer(UsageEnvironment& env, int ourSocket, Port ourPort,
-		     unsigned reclamationSeconds)
+             unsigned reclamationSeconds)
   : Medium(env),
     fServerSocket(ourSocket), fServerPort(ourPort), fReclamationSeconds(reclamationSeconds),
     fServerMediaSessions(HashTable::create(STRING_HASH_KEYS)),
     fClientConnections(HashTable::create(ONE_WORD_HASH_KEYS)),
     fClientSessions(HashTable::create(STRING_HASH_KEYS)) {
   ignoreSigPipeOnSocket(fServerSocket); // so that clients on the same host that are killed don't also kill us
-  
+
   // Arrange to handle connections from others:
   env.taskScheduler().turnOnBackgroundReadHandling(fServerSocket, incomingConnectionHandler, this);
 }
@@ -120,14 +120,14 @@ void GenericMediaServer::cleanup() {
     delete clientSession;
   }
   delete fClientSessions;
-  
+
   // Close all client connection objects:
   GenericMediaServer::ClientConnection* connection;
   while ((connection = (GenericMediaServer::ClientConnection*)fClientConnections->getFirst()) != NULL) {
     delete connection;
   }
   delete fClientConnections;
-  
+
   // Delete all server media sessions
   ServerMediaSession* serverMediaSession;
   while ((serverMediaSession = (ServerMediaSession*)fServerMediaSessions->getFirst()) != NULL) {
@@ -140,7 +140,7 @@ void GenericMediaServer::cleanup() {
 
 int GenericMediaServer::setUpOurSocket(UsageEnvironment& env, Port& ourPort) {
   int ourSocket = -1;
-  
+
   do {
     // The following statement is enabled by default.
     // Don't disable it (by defining ALLOW_SERVER_PORT_REUSE) unless you know what you're doing.
@@ -148,27 +148,27 @@ int GenericMediaServer::setUpOurSocket(UsageEnvironment& env, Port& ourPort) {
     // ALLOW_RTSP_SERVER_PORT_REUSE is for backwards-compatibility #####
     NoReuse dummy(env); // Don't use this socket if there's already a local server using it
 #endif
-    
+
     ourSocket = setupStreamSocket(env, ourPort);
     if (ourSocket < 0) break;
-    
+
     // Make sure we have a big send buffer:
     if (!increaseSendBufferTo(env, ourSocket, 50*1024)) break;
-    
+
     // Allow multiple simultaneous connections:
     if (listen(ourSocket, LISTEN_BACKLOG_SIZE) < 0) {
       env.setResultErrMsg("listen() failed: ");
       break;
     }
-    
+
     if (ourPort.num() == 0) {
       // bind() will have chosen a port for us; return it also:
       if (!getSourcePort(env, ourSocket, ourPort)) break;
     }
-    
+
     return ourSocket;
   } while (0);
-  
+
   if (ourSocket != -1) ::closeSocket(ourSocket);
   return -1;
 }
@@ -195,11 +195,11 @@ void GenericMediaServer::incomingConnectionHandlerOnSocket(int serverSocket) {
   ignoreSigPipeOnSocket(clientSocket); // so that clients on the same host that are killed don't also kill us
   makeSocketNonBlocking(clientSocket);
   increaseSendBufferTo(envir(), clientSocket, 50*1024);
-  
+
 #ifdef DEBUG
   envir() << "accept()ed connection from " << AddressString(clientAddr).val() << "\n";
 #endif
-  
+
   // Create a new object for handling this connection:
   (void)createNewClientConnection(clientSocket, clientAddr);
 }
@@ -212,7 +212,7 @@ GenericMediaServer::ClientConnection
   : fOurServer(ourServer), fOurSocket(clientSocket), fClientAddr(clientAddr) {
   // Add ourself to our 'client connections' table:
   fOurServer.fClientConnections->Add((char const*)this, this);
-  
+
   // Arrange to handle incoming requests:
   resetRequestBuffer();
   envir().taskScheduler()
@@ -222,7 +222,7 @@ GenericMediaServer::ClientConnection
 GenericMediaServer::ClientConnection::~ClientConnection() {
   // Remove ourself from the server's 'client connections' hash table before we go:
   fOurServer.fClientConnections->Remove((char const*)this);
-  
+
   closeSockets();
 }
 
@@ -241,7 +241,7 @@ void GenericMediaServer::ClientConnection::incomingRequestHandler(void* instance
 
 void GenericMediaServer::ClientConnection::incomingRequestHandler() {
   struct sockaddr_in dummy; // 'from' address, meaningless in this case
-  
+
   int bytesRead = readSocket(envir(), fOurSocket, &fRequestBuffer[fRequestBytesAlreadySeen], fRequestBufferBytesLeft, dummy);
   handleRequestBytes(bytesRead);
 }
@@ -269,11 +269,11 @@ GenericMediaServer::ClientSession::~ClientSession() {
   char sessionIdStr[8+1];
   sprintf(sessionIdStr, "%08X", fOurSessionId);
   fOurServer.fClientSessions->Remove(sessionIdStr);
-  
+
   if (fOurServerMediaSession != NULL) {
     fOurServerMediaSession->decrementReferenceCount();
     if (fOurServerMediaSession->referenceCount() == 0
-	&& fOurServerMediaSession->deleteWhenUnreferenced()) {
+    && fOurServerMediaSession->deleteWhenUnreferenced()) {
       fOurServer.removeServerMediaSession(fOurServerMediaSession);
       fOurServerMediaSession = NULL;
     }
@@ -285,14 +285,14 @@ void GenericMediaServer::ClientSession::noteLiveness() {
   char const* streamName
     = (fOurServerMediaSession == NULL) ? "???" : fOurServerMediaSession->streamName();
   fprintf(stderr, "Client session (id \"%08X\", stream name \"%s\"): Liveness indication\n",
-	  fOurSessionId, streamName);
+      fOurSessionId, streamName);
 #endif
   if (fOurServerMediaSession != NULL) fOurServerMediaSession->noteLiveness();
 
   if (fOurServer.fReclamationSeconds > 0) {
     envir().taskScheduler().rescheduleDelayedTask(fLivenessCheckTask,
-						  fOurServer.fReclamationSeconds*1000000,
-						  (TaskFunc*)livenessTimeoutTask, this);
+                          fOurServer.fReclamationSeconds*1000000,
+                          (TaskFunc*)livenessTimeoutTask, this);
   }
 }
 
@@ -306,7 +306,7 @@ void GenericMediaServer::ClientSession::livenessTimeoutTask(ClientSession* clien
   char const* streamName
     = (clientSession->fOurServerMediaSession == NULL) ? "???" : clientSession->fOurServerMediaSession->streamName();
   fprintf(stderr, "Client session (id \"%08X\", stream name \"%s\") has timed out (due to inactivity)\n",
-	  clientSession->fOurSessionId, streamName);
+      clientSession->fOurSessionId, streamName);
 #endif
   delete clientSession;
 }
@@ -347,7 +347,7 @@ GenericMediaServer::lookupClientSession(char const* sessionIdStr) {
 GenericMediaServer::ServerMediaSessionIterator
 ::ServerMediaSessionIterator(GenericMediaServer& server)
   : fOurIterator((server.fServerMediaSessions == NULL)
-		 ? NULL : HashTable::Iterator::create(*server.fServerMediaSessions)) {
+         ? NULL : HashTable::Iterator::create(*server.fServerMediaSessions)) {
 }
 
 GenericMediaServer::ServerMediaSessionIterator::~ServerMediaSessionIterator() {
@@ -365,7 +365,7 @@ ServerMediaSession* GenericMediaServer::ServerMediaSessionIterator::next() {
 ////////// UserAuthenticationDatabase implementation //////////
 
 UserAuthenticationDatabase::UserAuthenticationDatabase(char const* realm,
-						       Boolean passwordsAreMD5)
+                               Boolean passwordsAreMD5)
   : fTable(HashTable::create(STRING_HASH_KEYS)),
     fRealm(strDup(realm == NULL ? "LIVE555 Streaming Media" : realm)),
     fPasswordsAreMD5(passwordsAreMD5) {
@@ -373,7 +373,7 @@ UserAuthenticationDatabase::UserAuthenticationDatabase(char const* realm,
 
 UserAuthenticationDatabase::~UserAuthenticationDatabase() {
   delete[] fRealm;
-  
+
   // Delete the allocated 'password' strings that we stored in the table, and then the table itself:
   char* password;
   while ((password = (char*)fTable->RemoveNext()) != NULL) {
@@ -383,7 +383,7 @@ UserAuthenticationDatabase::~UserAuthenticationDatabase() {
 }
 
 void UserAuthenticationDatabase::addUserRecord(char const* username,
-					       char const* password) {
+                           char const* password) {
   fTable->Add(username, (void*)(strDup(password)));
 }
 

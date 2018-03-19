@@ -30,9 +30,9 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class InputESSourceRecord {
 public:
   InputESSourceRecord(MPEG2TransportStreamFromESSource& parent,
-		      FramedSource* inputSource,
-		      u_int8_t streamId, int mpegVersion,
-		      InputESSourceRecord* next, int16_t PID = -1);
+              FramedSource* inputSource,
+              u_int8_t streamId, int mpegVersion,
+              InputESSourceRecord* next, int16_t PID = -1);
   virtual ~InputESSourceRecord();
 
   InputESSourceRecord* next() const { return fNext; }
@@ -120,10 +120,10 @@ void MPEG2TransportStreamFromESSource
   // Begin by resetting the old buffer:
   if (oldBuffer != NULL) {
     for (sourceRec = fInputSources; sourceRec != NULL;
-	 sourceRec = sourceRec->next()) {
+     sourceRec = sourceRec->next()) {
       if (sourceRec->buffer() == oldBuffer) {
-	sourceRec->reset();
-	break;
+    sourceRec->reset();
+    break;
       }
     }
     fAwaitingBackgroundDelivery = False;
@@ -132,7 +132,7 @@ void MPEG2TransportStreamFromESSource
   if (isCurrentlyAwaitingData()) {
     // Try to deliver one filled-in buffer to the client:
     for (sourceRec = fInputSources; sourceRec != NULL;
-	 sourceRec = sourceRec->next()) {
+     sourceRec = sourceRec->next()) {
       if (sourceRec->deliverBufferToClient()) return;
     }
     fAwaitingBackgroundDelivery = True;
@@ -147,10 +147,10 @@ void MPEG2TransportStreamFromESSource
 
 void MPEG2TransportStreamFromESSource
 ::addNewInputSource(FramedSource* inputSource,
-		    u_int8_t streamId, int mpegVersion, int16_t PID) {
+            u_int8_t streamId, int mpegVersion, int16_t PID) {
   if (inputSource == NULL) return;
   fInputSources = new InputESSourceRecord(*this, inputSource, streamId,
-					  mpegVersion, fInputSources, PID);
+                      mpegVersion, fInputSources, PID);
 }
 
 
@@ -158,9 +158,9 @@ void MPEG2TransportStreamFromESSource
 
 InputESSourceRecord
 ::InputESSourceRecord(MPEG2TransportStreamFromESSource& parent,
-		      FramedSource* inputSource,
-		      u_int8_t streamId, int mpegVersion,
-		      InputESSourceRecord* next, int16_t PID)
+              FramedSource* inputSource,
+              u_int8_t streamId, int mpegVersion,
+              InputESSourceRecord* next, int16_t PID)
   : fNext(next), fParent(parent), fInputSource(inputSource),
     fStreamId(streamId), fMPEGVersion(mpegVersion), fPID(PID) {
   fInputBuffer = new unsigned char[INPUT_BUFFER_SIZE];
@@ -220,32 +220,32 @@ Boolean InputESSourceRecord::deliverBufferToClient() {
 
   // Do the delivery:
   fParent.handleNewBuffer(fInputBuffer, fInputBufferBytesAvailable,
-			 fMPEGVersion, fSCR, fPID);
+             fMPEGVersion, fSCR, fPID);
 
   return True;
 }
 
 void InputESSourceRecord
 ::afterGettingFrame(void* clientData, unsigned frameSize,
-		    unsigned numTruncatedBytes,
-		    struct timeval presentationTime,
-		    unsigned /*durationInMicroseconds*/) {
+            unsigned numTruncatedBytes,
+            struct timeval presentationTime,
+            unsigned /*durationInMicroseconds*/) {
   InputESSourceRecord* source = (InputESSourceRecord*)clientData;
   source->afterGettingFrame1(frameSize, numTruncatedBytes, presentationTime);
 }
 void InputESSourceRecord
 ::afterGettingFrame1(unsigned frameSize, unsigned numTruncatedBytes,
-		     struct timeval presentationTime) {
+             struct timeval presentationTime) {
   if (numTruncatedBytes > 0) {
     fParent.envir() << "MPEG2TransportStreamFromESSource: input buffer too small; increase \"MPEG2TransportStreamFromESSource::maxInputESFrameSize\" by at least "
-		    << numTruncatedBytes << " bytes!\n";
+            << numTruncatedBytes << " bytes!\n";
   }
 
   if (fInputBufferBytesAvailable == SIMPLE_PES_HEADER_SIZE) {
     // Use this presentationTime for our SCR:
     fSCR.highBit
       = ((presentationTime.tv_sec*45000 + (presentationTime.tv_usec*9)/200)&
-	 0x80000000) != 0;
+     0x80000000) != 0;
     fSCR.remainingBits
       = presentationTime.tv_sec*90000 + (presentationTime.tv_usec*9)/100;
     fSCR.extension = (presentationTime.tv_usec*9)%100;

@@ -41,20 +41,20 @@ typedef u_int32_t netAddressBits;
 class NetAddress {
 public:
   NetAddress(u_int8_t const* data,
-	     unsigned length = 4 /* default: 32 bits */);
+         unsigned length = 4 /* default: 32 bits */);
   NetAddress(unsigned length = 4); // sets address data to all-zeros
   NetAddress(NetAddress const& orig);
   NetAddress& operator=(NetAddress const& rightSide);
   virtual ~NetAddress();
-  
+
   unsigned length() const { return fLength; }
   u_int8_t const* data() const // always in network byte order
   { return fData; }
-  
+
 private:
   void assign(u_int8_t const* data, unsigned length);
   void clean();
-  
+
   unsigned fLength;
   u_int8_t* fData;
 };
@@ -65,11 +65,11 @@ public:
   NetAddressList(NetAddressList const& orig);
   NetAddressList& operator=(NetAddressList const& rightSide);
   virtual ~NetAddressList();
-  
+
   unsigned numAddresses() const { return fNumAddresses; }
-  
+
   NetAddress const* firstAddress() const;
-  
+
   // Used to iterate through the addresses in a list:
   class Iterator {
   public:
@@ -79,11 +79,11 @@ public:
     NetAddressList const& fAddressList;
     unsigned fNextIndex;
   };
-  
+
 private:
   void assign(netAddressBits numAddresses, NetAddress** addressArray);
   void clean();
-  
+
   friend class Iterator;
   unsigned fNumAddresses;
   NetAddress** fAddressArray;
@@ -94,9 +94,9 @@ typedef u_int16_t portNumBits;
 class Port {
 public:
   Port(portNumBits num /* in host byte order */);
-  
+
   portNumBits num() const { return fPortNum; } // in network byte order
-  
+
 private:
   portNumBits fPortNum; // stored in network byte order
 #ifdef IRIX
@@ -112,7 +112,7 @@ class AddressPortLookupTable {
 public:
   AddressPortLookupTable();
   virtual ~AddressPortLookupTable();
-  
+
   void* Add(netAddressBits address1, netAddressBits address2, Port port, void* value);
       // Returns the old value if different, otherwise 0
   Boolean Remove(netAddressBits address1, netAddressBits address2, Port port);
@@ -125,13 +125,13 @@ public:
   public:
     Iterator(AddressPortLookupTable& table);
     virtual ~Iterator();
-    
+
     void* next(); // NULL iff none
-    
+
   private:
     HashTable::Iterator* fIter;
   };
-  
+
 private:
   friend class Iterator;
   HashTable* fTable;

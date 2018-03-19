@@ -36,15 +36,15 @@ public:
 protected:
   // Constructor called only by createNew(), or by subclass constructors
   H263plusVideoStreamFramer(UsageEnvironment& env,
-			                FramedSource* inputSource,
-			                Boolean createParser = True);
+                            FramedSource* inputSource,
+                            Boolean createParser = True);
   virtual ~H263plusVideoStreamFramer();
 
 
 public:
   static void continueReadProcessing(void* clientData,
-				     unsigned char* ptr, unsigned size,
-				     struct timeval presentationTime);
+                     unsigned char* ptr, unsigned size,
+                     struct timeval presentationTime);
   void continueReadProcessing();
 
 private:

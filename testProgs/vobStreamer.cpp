@@ -56,8 +56,8 @@ Groupsock* rtcpGroupsockVideo;
 
 void usage() {
   *env << "usage: " << programName << " [-i] [-a|-v] "
-	  "[-p <RTSP-server-port-number>] "
-	  "<VOB-file>...<VOB-file>\n";
+      "[-p <RTSP-server-port-number>] "
+      "<VOB-file>...<VOB-file>\n";
   exit(1);
 }
 
@@ -98,7 +98,7 @@ int main(int argc, char const** argv) {
       }
       if (portArg <= 0 || portArg >= 65536) {
         *env << "bad port number: " << portArg
-	     << " (must be in the range (0,65536))\n";
+         << " (must be in the range (0,65536))\n";
         usage();
       }
       rtspServerPortNum = (unsigned short)portArg;
@@ -163,9 +163,9 @@ int main(int argc, char const** argv) {
     const unsigned estimatedSessionBandwidthAudio
       = 160; // in kbps; for RTCP b/w share
     audioRTCP = RTCPInstance::createNew(*env, rtcpGroupsockAudio,
-					estimatedSessionBandwidthAudio, CNAME,
-					audioSink, NULL /* we're a server */,
-					True /* we're a SSM source */);
+                    estimatedSessionBandwidthAudio, CNAME,
+                    audioSink, NULL /* we're a server */,
+                    True /* we're a SSM source */);
     // Note: This starts RTCP running automatically
   }
 
@@ -184,9 +184,9 @@ int main(int argc, char const** argv) {
     const unsigned estimatedSessionBandwidthVideo
       = 4500; // in kbps; for RTCP b/w share
     videoRTCP = RTCPInstance::createNew(*env, rtcpGroupsockVideo,
-					estimatedSessionBandwidthVideo, CNAME,
-					videoSink, NULL /* we're a server */,
-					True /* we're a SSM source */);
+                    estimatedSessionBandwidthVideo, CNAME,
+                    videoSink, NULL /* we're a server */,
+                    True /* we're a SSM source */);
     // Note: This starts RTCP running automatically
   }
 
@@ -199,7 +199,7 @@ int main(int argc, char const** argv) {
     }
     ServerMediaSession* sms
       = ServerMediaSession::createNew(*env, "vobStream", *curInputFileName,
-	     "Session streamed by \"vobStreamer\"", True /*SSM*/);
+         "Session streamed by \"vobStreamer\"", True /*SSM*/);
     if (audioSink != NULL) sms->addSubsession(PassiveServerMediaSubsession::createNew(*audioSink, audioRTCP));
     if (videoSink != NULL) sms->addSubsession(PassiveServerMediaSubsession::createNew(*videoSink, videoRTCP));
     rtspServer->addServerMediaSession(sms);
@@ -263,7 +263,7 @@ void play() {
     = ByteStreamFileSource::createNew(*env, *curInputFileName);
   if (fileSource == NULL) {
     *env << "Unable to open file \"" << *curInputFileName
-	 << "\" as a byte-stream file source\n";
+     << "\" as a byte-stream file source\n";
     // Try the next file instead:
     ++curInputFileName;
     play();

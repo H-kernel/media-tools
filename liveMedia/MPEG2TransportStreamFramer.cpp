@@ -115,8 +115,8 @@ void MPEG2TransportStreamFramer::doGetNextFrame() {
   // Read directly from our input source into our client's buffer:
   fFrameSize = 0;
   fInputSource->getNextFrame(fTo, fMaxSize,
-			     afterGettingFrame, this,
-			     FramedSource::handleClosure, this);
+                 afterGettingFrame, this,
+                 FramedSource::handleClosure, this);
 }
 
 void MPEG2TransportStreamFramer::doStopGettingFrames() {
@@ -129,9 +129,9 @@ void MPEG2TransportStreamFramer::doStopGettingFrames() {
 
 void MPEG2TransportStreamFramer
 ::afterGettingFrame(void* clientData, unsigned frameSize,
-		    unsigned /*numTruncatedBytes*/,
-		    struct timeval presentationTime,
-		    unsigned /*durationInMicroseconds*/) {
+            unsigned /*numTruncatedBytes*/,
+            struct timeval presentationTime,
+            unsigned /*durationInMicroseconds*/) {
   MPEG2TransportStreamFramer* framer = (MPEG2TransportStreamFramer*)clientData;
   framer->afterGettingFrame1(frameSize, presentationTime);
 }
@@ -139,7 +139,7 @@ void MPEG2TransportStreamFramer
 #define TRANSPORT_SYNC_BYTE 0x47
 
 void MPEG2TransportStreamFramer::afterGettingFrame1(unsigned frameSize,
-						    struct timeval presentationTime) {
+                            struct timeval presentationTime) {
   fFrameSize += frameSize;
   unsigned const numTSPackets = fFrameSize/TRANSPORT_PACKET_SIZE;
   fNumTSPacketsToStream -= numTSPackets;
@@ -165,8 +165,8 @@ void MPEG2TransportStreamFramer::afterGettingFrame1(unsigned frameSize,
     memmove(fTo, &fTo[syncBytePosition], fFrameSize - syncBytePosition);
     fFrameSize -= syncBytePosition;
     fInputSource->getNextFrame(&fTo[fFrameSize], syncBytePosition,
-			       afterGettingFrame, this,
-			       FramedSource::handleClosure, this);
+                   afterGettingFrame, this,
+                   FramedSource::handleClosure, this);
     return;
   } // else normal case: the data begins with a sync byte
 
@@ -259,17 +259,17 @@ Boolean MPEG2TransportStreamFramer::updateTSPacketDurationEstimate(unsigned char
       fTSPacketDurationEstimate = durationPerPacket;
     } else if (discontinuity_indicator == 0 && durationPerPacket >= 0.0) {
       fTSPacketDurationEstimate
-	= durationPerPacket*NEW_DURATION_WEIGHT
-	+ fTSPacketDurationEstimate*(1-NEW_DURATION_WEIGHT);
+    = durationPerPacket*NEW_DURATION_WEIGHT
+    + fTSPacketDurationEstimate*(1-NEW_DURATION_WEIGHT);
 
       // Also adjust the duration estimate to try to ensure that the transmission
       // rate matches the playout rate:
       double transmitDuration = timeNow - pidStatus->firstRealTime;
       double playoutDuration = clock - pidStatus->firstClock;
       if (transmitDuration > playoutDuration) {
-	fTSPacketDurationEstimate *= TIME_ADJUSTMENT_FACTOR; // reduce estimate
+    fTSPacketDurationEstimate *= TIME_ADJUSTMENT_FACTOR; // reduce estimate
       } else if (transmitDuration + MAX_PLAYOUT_BUFFER_DURATION < playoutDuration) {
-	fTSPacketDurationEstimate /= TIME_ADJUSTMENT_FACTOR; // increase estimate
+    fTSPacketDurationEstimate /= TIME_ADJUSTMENT_FACTOR; // increase estimate
       }
     } else {
       // the PCR has a discontinuity from its previous value; don't use it now,

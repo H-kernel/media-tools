@@ -33,10 +33,10 @@ MPEG1or2AudioRTPSink::createNew(UsageEnvironment& env, Groupsock* RTPgs) {
 }
 
 void MPEG1or2AudioRTPSink::doSpecialFrameHandling(unsigned fragmentationOffset,
-					      unsigned char* frameStart,
-					      unsigned numBytesInFrame,
-					      struct timeval framePresentationTime,
-					      unsigned numRemainingBytes) {
+                          unsigned char* frameStart,
+                          unsigned numBytesInFrame,
+                          struct timeval framePresentationTime,
+                          unsigned numRemainingBytes) {
   // If this is the 1st frame in the 1st packet, set the RTP 'M' (marker)
   // bit (because this is considered the start of a talk spurt):
   if (isFirstPacket() && isFirstFrameInPacket()) {
@@ -52,9 +52,9 @@ void MPEG1or2AudioRTPSink::doSpecialFrameHandling(unsigned fragmentationOffset,
   // Important: Also call our base class's doSpecialFrameHandling(),
   // to set the packet's timestamp:
   MultiFramedRTPSink::doSpecialFrameHandling(fragmentationOffset,
-					     frameStart, numBytesInFrame,
-					     framePresentationTime,
-					     numRemainingBytes);
+                         frameStart, numBytesInFrame,
+                         framePresentationTime,
+                         numRemainingBytes);
 }
 
 unsigned MPEG1or2AudioRTPSink::specialHeaderSize() const {

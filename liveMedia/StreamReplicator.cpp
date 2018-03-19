@@ -85,7 +85,7 @@ void StreamReplicator::getNextFrame(StreamReplica* replica) {
 
     // Arrange to read the next frame into this replica's buffer:
     if (fInputSource != NULL) fInputSource->getNextFrame(fMasterReplica->fTo, fMasterReplica->fMaxSize,
-							 afterGettingFrame, this, onSourceClosure, this);
+                             afterGettingFrame, this, onSourceClosure, this);
   } else if (replica->fFrameIndex != fFrameIndex) {
     // This replica is already asking for the next frame (because it has already received the current frame).  Enqueue it:
     replica->fNext = fReplicasAwaitingNextFrame;
@@ -130,54 +130,54 @@ void StreamReplicator::deactivateStreamReplica(StreamReplica* replicaBeingDeacti
     // Check whether the read into the old master replica's buffer is still pending, or has completed:
     if (fInputSource != NULL) {
       if (fInputSource->isCurrentlyAwaitingData()) {
-	// We have a pending read into the old master replica's buffer.
-	// We need to stop it, and retry the read with a new master (if available)
-	fInputSource->stopGettingFrames();
+    // We have a pending read into the old master replica's buffer.
+    // We need to stop it, and retry the read with a new master (if available)
+    fInputSource->stopGettingFrames();
 
-	if (fMasterReplica != NULL) {
-	  fInputSource->getNextFrame(fMasterReplica->fTo, fMasterReplica->fMaxSize,
-				     afterGettingFrame, this, onSourceClosure, this);
-	}
+    if (fMasterReplica != NULL) {
+      fInputSource->getNextFrame(fMasterReplica->fTo, fMasterReplica->fMaxSize,
+                     afterGettingFrame, this, onSourceClosure, this);
+    }
       } else {
-	// The read into the old master replica's buffer has already completed.  Copy the data to the new master replica (if any):
-	if (fMasterReplica != NULL) {
-	  StreamReplica::copyReceivedFrame(fMasterReplica, replicaBeingDeactivated);
-	} else {
-	  // We don't have a new master replica, so we can't copy the received frame to any new replica that might ask for it.
-	  // Fortunately this should be a very rare occurrence.
-	}
+    // The read into the old master replica's buffer has already completed.  Copy the data to the new master replica (if any):
+    if (fMasterReplica != NULL) {
+      StreamReplica::copyReceivedFrame(fMasterReplica, replicaBeingDeactivated);
+    } else {
+      // We don't have a new master replica, so we can't copy the received frame to any new replica that might ask for it.
+      // Fortunately this should be a very rare occurrence.
+    }
       }
     }
   } else {
     // The replica that's being removed was not our 'master replica', but make sure it's not on either of our queues:
     if (fReplicasAwaitingCurrentFrame != NULL) {
       if (replicaBeingDeactivated == fReplicasAwaitingCurrentFrame) {
-	fReplicasAwaitingCurrentFrame = replicaBeingDeactivated->fNext;
-	replicaBeingDeactivated->fNext = NULL;
+    fReplicasAwaitingCurrentFrame = replicaBeingDeactivated->fNext;
+    replicaBeingDeactivated->fNext = NULL;
       }
       else {
-	for (StreamReplica* r1 = fReplicasAwaitingCurrentFrame; r1->fNext != NULL; r1 = r1->fNext) {
-	  if (r1->fNext == replicaBeingDeactivated) {
-	    r1->fNext = replicaBeingDeactivated->fNext;
-	    replicaBeingDeactivated->fNext = NULL;
-	    break;
-	  }
-	}
+    for (StreamReplica* r1 = fReplicasAwaitingCurrentFrame; r1->fNext != NULL; r1 = r1->fNext) {
+      if (r1->fNext == replicaBeingDeactivated) {
+        r1->fNext = replicaBeingDeactivated->fNext;
+        replicaBeingDeactivated->fNext = NULL;
+        break;
+      }
+    }
       }
     }
     if (fReplicasAwaitingNextFrame != NULL) {
       if (replicaBeingDeactivated == fReplicasAwaitingNextFrame) {
-	fReplicasAwaitingNextFrame = replicaBeingDeactivated->fNext;
-	replicaBeingDeactivated->fNext = NULL;
+    fReplicasAwaitingNextFrame = replicaBeingDeactivated->fNext;
+    replicaBeingDeactivated->fNext = NULL;
       }
       else {
-	for (StreamReplica* r2 = fReplicasAwaitingNextFrame; r2->fNext != NULL; r2 = r2->fNext) {
-	  if (r2->fNext == replicaBeingDeactivated) {
-	    r2->fNext = replicaBeingDeactivated->fNext;
-	    replicaBeingDeactivated->fNext = NULL;
-	    break;
-	  }
-	}
+    for (StreamReplica* r2 = fReplicasAwaitingNextFrame; r2->fNext != NULL; r2 = r2->fNext) {
+      if (r2->fNext == replicaBeingDeactivated) {
+        r2->fNext = replicaBeingDeactivated->fNext;
+        replicaBeingDeactivated->fNext = NULL;
+        break;
+      }
+    }
       }
     }
 
@@ -206,12 +206,12 @@ void StreamReplicator::removeStreamReplica(StreamReplica* replicaBeingRemoved) {
 }
 
 void StreamReplicator::afterGettingFrame(void* clientData, unsigned frameSize, unsigned numTruncatedBytes,
-					 struct timeval presentationTime, unsigned durationInMicroseconds) {
+                     struct timeval presentationTime, unsigned durationInMicroseconds) {
   ((StreamReplicator*)clientData)->afterGettingFrame(frameSize, numTruncatedBytes, presentationTime, durationInMicroseconds);
 }
 
 void StreamReplicator::afterGettingFrame(unsigned frameSize, unsigned numTruncatedBytes,
-					 struct timeval presentationTime, unsigned durationInMicroseconds) {
+                     struct timeval presentationTime, unsigned durationInMicroseconds) {
   // The frame was read into our master replica's buffer.  Update the master replica's state, but don't complete delivery to it
   // just yet.  We do that later, after we're sure that we've delivered it to all other replicas.
   fMasterReplica->fFrameSize = frameSize;
@@ -255,7 +255,7 @@ void StreamReplicator::deliverReceivedFrame() {
   while ((replica = fReplicasAwaitingCurrentFrame) != NULL) {
     fReplicasAwaitingCurrentFrame = replica->fNext;
     replica->fNext = NULL;
-    
+
     // Assert: fMasterReplica != NULL
     if (fMasterReplica == NULL) fprintf(stderr, "StreamReplicator::deliverReceivedFrame() Internal Error 1!\n"); // shouldn't happen
     StreamReplica::copyReceivedFrame(replica, fMasterReplica);
@@ -285,15 +285,15 @@ void StreamReplicator::deliverReceivedFrame() {
 
       // Arrange to read the next frame into this replica's buffer:
       if (fInputSource != NULL) fInputSource->getNextFrame(fMasterReplica->fTo, fMasterReplica->fMaxSize,
-							   afterGettingFrame, this, onSourceClosure, this);
-    }      
+                               afterGettingFrame, this, onSourceClosure, this);
+    }
 
     // Move any other replicas that had already requested the next frame to the 'requesting current frame' list:
     // Assert: fReplicasAwaitingCurrentFrame == NULL;
     if (!(fReplicasAwaitingCurrentFrame == NULL)) fprintf(stderr, "StreamReplicator::deliverReceivedFrame() Internal Error 3!\n"); // should not happen
     fReplicasAwaitingCurrentFrame = fReplicasAwaitingNextFrame;
     fReplicasAwaitingNextFrame = NULL;
-    
+
     // Complete delivery to the 'master' replica (thereby completing all deliveries for this frame):
     FramedSource::afterGetting(replica);
   }

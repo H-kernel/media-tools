@@ -27,7 +27,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #define TWO_BYTE_DESCR_FLAG 0x40
 
 unsigned ADUdescriptor::generateDescriptor(unsigned char*& toPtr,
-					   unsigned remainingFrameSize) {
+                       unsigned remainingFrameSize) {
   unsigned descriptorSize = ADUdescriptor::computeSize(remainingFrameSize);
   switch (descriptorSize) {
   case 1: {
@@ -44,7 +44,7 @@ unsigned ADUdescriptor::generateDescriptor(unsigned char*& toPtr,
 }
 
 void ADUdescriptor::generateTwoByteDescriptor(unsigned char*& toPtr,
-					      unsigned remainingFrameSize) {
+                          unsigned remainingFrameSize) {
   *toPtr++ = (TWO_BYTE_DESCR_FLAG|(unsigned char)(remainingFrameSize>>8));
   *toPtr++ = (unsigned char)(remainingFrameSize&0xFF);
 }

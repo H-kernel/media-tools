@@ -1,17 +1,17 @@
 /*
   The oSIP library implements the Session Initiation Protocol (SIP -rfc3261-)
   Copyright (C) 2001-2015 Aymeric MOIZARD amoizard@antisip.com
-  
+
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
-  
+
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-  
+
   You should have received a copy of the GNU Lesser General Public
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -441,7 +441,7 @@ osip_authorization_get_version (osip_authorization_t * authorization)
 
 void
 osip_authorization_set_version (osip_authorization_t * authorization,
-				char *version)
+                char *version)
 {
   authorization->version = (char *) version;
 }
@@ -454,7 +454,7 @@ osip_authorization_get_targetname (osip_authorization_t * authorization)
 
 void
 osip_authorization_set_targetname (osip_authorization_t * authorization,
-				   char *targetname)
+                   char *targetname)
 {
   authorization->targetname = (char *) targetname;
 }
@@ -480,7 +480,7 @@ osip_authorization_get_crand (osip_authorization_t * authorization)
 
 void
 osip_authorization_set_crand (osip_authorization_t * authorization,
-			      char *crand)
+                  char *crand)
 {
   authorization->crand = (char *) crand;
 }
@@ -493,7 +493,7 @@ osip_authorization_get_cnum (osip_authorization_t * authorization)
 
 void
 osip_authorization_set_cnum (osip_authorization_t * authorization,
-			     char *cnum)
+                 char *cnum)
 {
   authorization->cnum = (char *) cnum;
 }

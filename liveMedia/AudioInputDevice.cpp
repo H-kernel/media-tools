@@ -21,8 +21,8 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 AudioInputDevice
 ::AudioInputDevice(UsageEnvironment& env, unsigned char bitsPerSample,
-		   unsigned char numChannels,
-		   unsigned samplingFrequency, unsigned granularityInMS)
+           unsigned char numChannels,
+           unsigned samplingFrequency, unsigned granularityInMS)
   : FramedSource(env), fBitsPerSample(bitsPerSample),
     fNumChannels(numChannels), fSamplingFrequency(samplingFrequency),
     fGranularityInMS(granularityInMS) {
@@ -40,6 +40,6 @@ AudioPortNames::AudioPortNames()
 }
 
 AudioPortNames::~AudioPortNames() {
-	for (unsigned i = 0; i < numPorts; ++i) delete portName[i];
-	delete portName;
+    for (unsigned i = 0; i < numPorts; ++i) delete portName[i];
+    delete portName;
 }

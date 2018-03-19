@@ -35,7 +35,7 @@ public:
 
 protected:
   MPEG2TransportStreamFromPESSource(UsageEnvironment& env,
-				    MPEG1or2DemuxedElementaryStream* inputSource);
+                    MPEG1or2DemuxedElementaryStream* inputSource);
       // called only by createNew()
   virtual ~MPEG2TransportStreamFromPESSource();
 
@@ -46,13 +46,13 @@ private:
 
 private:
   static void afterGettingFrame(void* clientData, unsigned frameSize,
-				unsigned numTruncatedBytes,
-				struct timeval presentationTime,
-				unsigned durationInMicroseconds);
+                unsigned numTruncatedBytes,
+                struct timeval presentationTime,
+                unsigned durationInMicroseconds);
   void afterGettingFrame1(unsigned frameSize,
-			  unsigned numTruncatedBytes,
-			  struct timeval presentationTime,
-			  unsigned durationInMicroseconds);
+              unsigned numTruncatedBytes,
+              struct timeval presentationTime,
+              unsigned durationInMicroseconds);
 
 private:
   MPEG1or2DemuxedElementaryStream* fInputSource;

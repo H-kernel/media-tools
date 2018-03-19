@@ -66,8 +66,8 @@ void MPEG2TransportStreamMultiplexor::doGetNextFrame() {
       || fCurrentInputProgramMapVersion != fPreviousInputProgramMapVersion;
     if (fOutgoingPacketCounter % PMT_PERIOD == 0 || programMapHasChanged) {
       if (programMapHasChanged) { // reset values for next time:
-	fPIDState[fCurrentPID].counter = 1;
-	fPreviousInputProgramMapVersion = fCurrentInputProgramMapVersion;
+    fPIDState[fCurrentPID].counter = 1;
+    fPreviousInputProgramMapVersion = fCurrentInputProgramMapVersion;
       }
       deliverPMTPacket(programMapHasChanged);
       break;
@@ -75,7 +75,7 @@ void MPEG2TransportStreamMultiplexor::doGetNextFrame() {
 
     // Normal case: Deliver (or continue delivering) the recently-read data:
     deliverDataToClient(fCurrentPID, fInputBuffer, fInputBufferSize,
-			fInputBufferBytesUsed);
+            fInputBufferBytesUsed);
   } while (0);
 
   // NEED TO SET fPresentationTime, durationInMicroseconds #####
@@ -91,7 +91,7 @@ void MPEG2TransportStreamMultiplexor::doGetNextFrame() {
 
 void MPEG2TransportStreamMultiplexor
 ::handleNewBuffer(unsigned char* buffer, unsigned bufferSize,
-		  int mpegVersion, MPEG1or2Demux::SCR scr, int16_t PID) {
+          int mpegVersion, MPEG1or2Demux::SCR scr, int16_t PID) {
   if (bufferSize < 4) return;
   fInputBuffer = buffer;
   fInputBufferSize = bufferSize;
@@ -118,21 +118,21 @@ void MPEG2TransportStreamMultiplexor
       // Instead, set the stream's type to default values, based on whether
       // the stream is audio or video, and whether it's MPEG-1 or MPEG-2:
       if ((stream_id&0xF0) == 0xE0) { // video
-	streamType = mpegVersion == 1 ? 1 : mpegVersion == 2 ? 2 : mpegVersion == 4 ? 0x10 :
-	  mpegVersion == 5/*H.264*/ ? 0x1B : 0x24/*assume H.265*/;
+    streamType = mpegVersion == 1 ? 1 : mpegVersion == 2 ? 2 : mpegVersion == 4 ? 0x10 :
+      mpegVersion == 5/*H.264*/ ? 0x1B : 0x24/*assume H.265*/;
       } else if ((stream_id&0xE0) == 0xC0) { // audio
-	streamType = mpegVersion == 1 ? 3 : mpegVersion == 2 ? 4 : 0xF;
+    streamType = mpegVersion == 1 ? 3 : mpegVersion == 2 ? 4 : 0xF;
       } else if (stream_id == 0xBD) { // private_stream1 (usually AC-3)
-	streamType = 0x06; // for DVB; for ATSC, use 0x81
+    streamType = 0x06; // for DVB; for ATSC, use 0x81
       } else { // something else, e.g., AC-3 uses private_stream1 (0xBD)
-	streamType = 0x81; // private
+    streamType = 0x81; // private
       }
     }
 
     if (fPCR_PID == 0) { // set it to this stream, if it's appropriate:
       if ((!fHaveVideoStreams && (streamType == 3 || streamType == 4 || streamType == 0xF))/* audio stream */ ||
-	  (streamType == 1 || streamType == 2 || streamType == 0x10 || streamType == 0x1B || streamType == 0x24)/* video stream */) {
-	fPCR_PID = fCurrentPID; // use this stream's SCR for PCR
+      (streamType == 1 || streamType == 2 || streamType == 0x10 || streamType == 0x1B || streamType == 0x24)/* video stream */) {
+    fPCR_PID = fCurrentPID; // use this stream's SCR for PCR
       }
     }
     if (fCurrentPID == fPCR_PID) {
@@ -147,7 +147,7 @@ void MPEG2TransportStreamMultiplexor
 
 void MPEG2TransportStreamMultiplexor
 ::deliverDataToClient(u_int8_t pid, unsigned char* buffer, unsigned bufferSize,
-		      unsigned& startPositionInBuffer) {
+              unsigned& startPositionInBuffer) {
   // Construct a new Transport packet, and deliver it to the client:
   if (fMaxSize < TRANSPORT_PACKET_SIZE) {
     fFrameSize = 0; // the client hasn't given us enough space; deliver nothing
@@ -167,11 +167,11 @@ void MPEG2TransportStreamMultiplexor
       numHeaderBytes += 2; // for the "adaptation_field_length" and flags
       numPCRBytes = 6;
       if (numBytesAvailable >= TRANSPORT_PACKET_SIZE - numHeaderBytes - numPCRBytes) {
-	numDataBytes = TRANSPORT_PACKET_SIZE - numHeaderBytes - numPCRBytes;
+    numDataBytes = TRANSPORT_PACKET_SIZE - numHeaderBytes - numPCRBytes;
       } else {
-	numDataBytes = numBytesAvailable;
-	numPaddingBytes
-	  = TRANSPORT_PACKET_SIZE - numHeaderBytes - numPCRBytes - numDataBytes;
+    numDataBytes = numBytesAvailable;
+    numPaddingBytes
+      = TRANSPORT_PACKET_SIZE - numHeaderBytes - numPCRBytes - numDataBytes;
       }
     } else if (numBytesAvailable >= TRANSPORT_PACKET_SIZE - numHeaderBytes) {
       // This is the common case
@@ -183,8 +183,8 @@ void MPEG2TransportStreamMultiplexor
       // ASSERT: numBytesAvailable <= TRANSPORT_PACKET_SIZE - numHeaderBytes
       numDataBytes = numBytesAvailable;
       if (numDataBytes < TRANSPORT_PACKET_SIZE - numHeaderBytes) {
-	++numHeaderBytes; // for the adaptation field flags
-	numPaddingBytes = TRANSPORT_PACKET_SIZE - numHeaderBytes - numDataBytes;
+    ++numHeaderBytes; // for the adaptation field flags
+    numPaddingBytes = TRANSPORT_PACKET_SIZE - numHeaderBytes - numDataBytes;
       }
     }
     // ASSERT: numHeaderBytes+numPCRBytes+numPaddingBytes+numDataBytes
@@ -205,26 +205,26 @@ void MPEG2TransportStreamMultiplexor
     if (adaptation_field_control == 0x30) {
       // Add an adaptation field:
       u_int8_t adaptation_field_length
-	= (numHeaderBytes == 5) ? 0 : 1 + numPCRBytes + numPaddingBytes;
+    = (numHeaderBytes == 5) ? 0 : 1 + numPCRBytes + numPaddingBytes;
       *header++ = adaptation_field_length;
       if (numHeaderBytes > 5) {
-	u_int8_t flags = willAddPCR ? 0x10 : 0x00;
-	if (fIsFirstAdaptationField) {
-	  flags |= 0x80; // discontinuity_indicator
-	  fIsFirstAdaptationField = False;
-	}
-	*header++ = flags;
-	if (willAddPCR) {
-	  u_int32_t pcrHigh32Bits = (fPCR.highBit<<31) | (fPCR.remainingBits>>1);
-	  u_int8_t pcrLowBit = fPCR.remainingBits&1;
-	  u_int8_t extHighBit = (fPCR.extension&0x100)>>8;
-	  *header++ = pcrHigh32Bits>>24;
-	  *header++ = pcrHigh32Bits>>16;
-	  *header++ = pcrHigh32Bits>>8;
-	  *header++ = pcrHigh32Bits;
-	  *header++ = (pcrLowBit<<7)|0x7E|extHighBit;
-	  *header++ = (u_int8_t)fPCR.extension; // low 8 bits of extension
-	}
+    u_int8_t flags = willAddPCR ? 0x10 : 0x00;
+    if (fIsFirstAdaptationField) {
+      flags |= 0x80; // discontinuity_indicator
+      fIsFirstAdaptationField = False;
+    }
+    *header++ = flags;
+    if (willAddPCR) {
+      u_int32_t pcrHigh32Bits = (fPCR.highBit<<31) | (fPCR.remainingBits>>1);
+      u_int8_t pcrLowBit = fPCR.remainingBits&1;
+      u_int8_t extHighBit = (fPCR.extension&0x100)>>8;
+      *header++ = pcrHigh32Bits>>24;
+      *header++ = pcrHigh32Bits>>16;
+      *header++ = pcrHigh32Bits>>8;
+      *header++ = pcrHigh32Bits;
+      *header++ = (pcrLowBit<<7)|0x7E|extHighBit;
+      *header++ = (u_int8_t)fPCR.extension; // low 8 bits of extension
+    }
       }
     }
 

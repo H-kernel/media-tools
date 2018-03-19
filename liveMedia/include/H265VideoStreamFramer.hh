@@ -28,7 +28,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class H265VideoStreamFramer: public H264or5VideoStreamFramer {
 public:
   static H265VideoStreamFramer* createNew(UsageEnvironment& env, FramedSource* inputSource,
-					  Boolean includeStartCodeInOutput = False);
+                      Boolean includeStartCodeInOutput = False);
 
 protected:
   H265VideoStreamFramer(UsageEnvironment& env, FramedSource* inputSource, Boolean createParser, Boolean includeStartCodeInOutput);

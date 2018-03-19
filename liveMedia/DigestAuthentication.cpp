@@ -42,7 +42,7 @@ Authenticator& Authenticator::operator=(const Authenticator& rightSide) {
   if (&rightSide != this) {
     reset();
     assign(rightSide.realm(), rightSide.nonce(),
-	   rightSide.username(), rightSide.password(), rightSide.fPasswordIsMD5);
+       rightSide.username(), rightSide.password(), rightSide.fPasswordIsMD5);
   }
 
   return *this;
@@ -95,14 +95,14 @@ void Authenticator::setRealmAndRandomNonce(char const* realm) {
 }
 
 void Authenticator::setUsernameAndPassword(char const* username,
-					   char const* password,
-					   Boolean passwordIsMD5) {
+                       char const* password,
+                       Boolean passwordIsMD5) {
   resetUsernameAndPassword();
   assignUsernameAndPassword(username, password, passwordIsMD5);
 }
 
 char const* Authenticator::computeDigestResponse(char const* cmd,
-						 char const* url) const {
+                         char const* url) const {
   // The "response" field is computed as:
   //    md5(md5(<username>:<realm>:<password>):<nonce>:md5(<cmd>:<url>))
   // or, if "fPasswordIsMD5" is True:
@@ -167,7 +167,7 @@ void Authenticator::assignUsernameAndPassword(char const* username, char const* 
 }
 
 void Authenticator::assign(char const* realm, char const* nonce,
-			   char const* username, char const* password, Boolean passwordIsMD5) {
+               char const* username, char const* password, Boolean passwordIsMD5) {
   assignRealmAndNonce(realm, nonce);
   assignUsernameAndPassword(username, password, passwordIsMD5);
 }

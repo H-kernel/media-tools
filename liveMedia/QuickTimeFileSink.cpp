@@ -40,13 +40,13 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class ChunkDescriptor {
 public:
   ChunkDescriptor(int64_t offsetInFile, unsigned size,
-		  unsigned frameSize, unsigned frameDuration,
-		  struct timeval presentationTime);
+          unsigned frameSize, unsigned frameDuration,
+          struct timeval presentationTime);
 
   ChunkDescriptor* extendChunk(int64_t newOffsetInFile, unsigned newSize,
-			       unsigned newFrameSize,
-			       unsigned newFrameDuration,
-			       struct timeval newPresentationTime);
+                   unsigned newFrameSize,
+                   unsigned newFrameDuration,
+                   struct timeval newPresentationTime);
       // this may end up allocating a new chunk instead
 public:
   ChunkDescriptor* fNextChunk;
@@ -91,7 +91,7 @@ public:
 
 public:
   class SyncFrame *nextSyncFrame;
-  unsigned sfFrameNum;  
+  unsigned sfFrameNum;
 };
 
 // A 64-bit counter, used below:
@@ -115,14 +115,14 @@ public:
   void setFinalQTstate();
 
   void afterGettingFrame(unsigned packetDataSize,
-			 struct timeval presentationTime);
+             struct timeval presentationTime);
   void onSourceClosure();
 
   Boolean syncOK(struct timeval presentationTime);
       // returns true iff data is usable despite a sync check
 
   static void setHintTrack(SubsessionIOState* hintedTrack,
-			   SubsessionIOState* hintTrack);
+               SubsessionIOState* hintTrack);
   Boolean isHintTrack() const { return fTrackHintedByUs != NULL; }
   Boolean hasHintTrack() const { return fHintTrackForUs != NULL; }
 
@@ -186,13 +186,13 @@ public:
 private:
   void useFrame(SubsessionBuffer& buffer);
   void useFrameForHinting(unsigned frameSize,
-			  struct timeval presentationTime,
-			  unsigned startSampleNumber);
+              struct timeval presentationTime,
+              unsigned startSampleNumber);
 
   // used by the above two routines:
   unsigned useFrame1(unsigned sourceDataSize,
-		     struct timeval presentationTime,
-		     unsigned frameDuration, int64_t destFileOffset);
+             struct timeval presentationTime,
+             unsigned frameDuration, int64_t destFileOffset);
       // returns the number of samples in this data
 
 private:
@@ -217,16 +217,16 @@ private:
 ////////// QuickTimeFileSink implementation //////////
 
 QuickTimeFileSink::QuickTimeFileSink(UsageEnvironment& env,
-				     MediaSession& inputSession,
-				     char const* outputFileName,
-				     unsigned bufferSize,
-				     unsigned short movieWidth,
-				     unsigned short movieHeight,
-				     unsigned movieFPS,
-				     Boolean packetLossCompensate,
-				     Boolean syncStreams,
-				     Boolean generateHintTracks,
-				     Boolean generateMP4Format)
+                     MediaSession& inputSession,
+                     char const* outputFileName,
+                     unsigned bufferSize,
+                     unsigned short movieWidth,
+                     unsigned short movieHeight,
+                     unsigned movieFPS,
+                     Boolean packetLossCompensate,
+                     Boolean syncStreams,
+                     Boolean generateHintTracks,
+                     Boolean generateMP4Format)
   : Medium(env), fInputSession(inputSession),
     fBufferSize(bufferSize), fPacketLossCompensate(packetLossCompensate),
     fSyncStreams(syncStreams), fGenerateMP4Format(generateMP4Format),
@@ -275,11 +275,11 @@ QuickTimeFileSink::QuickTimeFileSink(UsageEnvironment& env,
     if (generateHintTracks) {
       // Also create a hint track for this track:
       SubsessionIOState* hintTrack
-	= new SubsessionIOState(*this, *subsession);
+    = new SubsessionIOState(*this, *subsession);
       SubsessionIOState::setHintTrack(ioState, hintTrack);
       if (!hintTrack->setQTstate()) {
-	delete hintTrack;
-	SubsessionIOState::setHintTrack(ioState, NULL);
+    delete hintTrack;
+    SubsessionIOState::setHintTrack(ioState, NULL);
       }
     }
 
@@ -334,19 +334,19 @@ QuickTimeFileSink::~QuickTimeFileSink() {
 
 QuickTimeFileSink*
 QuickTimeFileSink::createNew(UsageEnvironment& env,
-			     MediaSession& inputSession,
-			     char const* outputFileName,
-			     unsigned bufferSize,
-			     unsigned short movieWidth,
-			     unsigned short movieHeight,
-			     unsigned movieFPS,
-			     Boolean packetLossCompensate,
-			     Boolean syncStreams,
-			     Boolean generateHintTracks,
-			     Boolean generateMP4Format) {
-  QuickTimeFileSink* newSink = 
+                 MediaSession& inputSession,
+                 char const* outputFileName,
+                 unsigned bufferSize,
+                 unsigned short movieWidth,
+                 unsigned short movieHeight,
+                 unsigned movieFPS,
+                 Boolean packetLossCompensate,
+                 Boolean syncStreams,
+                 Boolean generateHintTracks,
+                 Boolean generateMP4Format) {
+  QuickTimeFileSink* newSink =
     new QuickTimeFileSink(env, inputSession, outputFileName, bufferSize, movieWidth, movieHeight, movieFPS,
-			  packetLossCompensate, syncStreams, generateHintTracks, generateMP4Format);
+              packetLossCompensate, syncStreams, generateHintTracks, generateMP4Format);
   if (newSink == NULL || newSink->fOutFid == NULL) {
     Medium::close(newSink);
     return NULL;
@@ -357,12 +357,12 @@ QuickTimeFileSink::createNew(UsageEnvironment& env,
 
 void QuickTimeFileSink
 ::noteRecordedFrame(MediaSubsession& /*inputSubsession*/,
-		    unsigned /*packetDataSize*/, struct timeval const& /*presentationTime*/) {
+            unsigned /*packetDataSize*/, struct timeval const& /*presentationTime*/) {
   // Default implementation: Do nothing
 }
 
 Boolean QuickTimeFileSink::startPlaying(afterPlayingFunc* afterFunc,
-					void* afterClientData) {
+                    void* afterClientData) {
   // Make sure we're not already being played:
   if (fAreCurrentlyBeingPlayed) {
     envir().setResultMsg("This sink has already been played");
@@ -396,8 +396,8 @@ Boolean QuickTimeFileSink::continuePlaying() {
     unsigned char* toPtr = ioState->fBuffer->dataEnd();
     unsigned toSize = ioState->fBuffer->bytesAvailable();
     subsessionSource->getNextFrame(toPtr, toSize,
-				   afterGettingFrame, ioState,
-				   onSourceClosure, ioState);
+                   afterGettingFrame, ioState,
+                   onSourceClosure, ioState);
   }
   if (!haveActiveSubsessions) {
     envir().setResultMsg("No subsessions are currently active");
@@ -409,9 +409,9 @@ Boolean QuickTimeFileSink::continuePlaying() {
 
 void QuickTimeFileSink
 ::afterGettingFrame(void* clientData, unsigned packetDataSize,
-		    unsigned numTruncatedBytes,
-		    struct timeval presentationTime,
-		    unsigned /*durationInMicroseconds*/) {
+            unsigned numTruncatedBytes,
+            struct timeval presentationTime,
+            unsigned /*durationInMicroseconds*/) {
   SubsessionIOState* ioState = (SubsessionIOState*)clientData;
   if (!ioState->syncOK(presentationTime)) {
     // Ignore this data:
@@ -462,20 +462,20 @@ void QuickTimeFileSink::onRTCPBye(void* clientData) {
 
   MediaSubsession& subsession = ioState->fOurSubsession;
   ioState->envir() << "Received RTCP \"BYE\" on \""
-		   << subsession.mediumName()
-		   << "/" << subsession.codecName()
-		   << "\" subsession (after "
-		   << secsDiff << " seconds)\n";
+           << subsession.mediumName()
+           << "/" << subsession.codecName()
+           << "\" subsession (after "
+           << secsDiff << " seconds)\n";
 
   // Handle the reception of a RTCP "BYE" as if the source had closed:
   ioState->onSourceClosure();
 }
 
 static Boolean timevalGE(struct timeval const& tv1,
-			 struct timeval const& tv2) {
+             struct timeval const& tv2) {
   return (unsigned)tv1.tv_sec > (unsigned)tv2.tv_sec
     || (tv1.tv_sec == tv2.tv_sec
-	&& (unsigned)tv1.tv_usec >= (unsigned)tv2.tv_usec);
+    && (unsigned)tv1.tv_usec >= (unsigned)tv2.tv_usec);
 }
 
 void QuickTimeFileSink::completeOutputFile() {
@@ -496,7 +496,7 @@ void QuickTimeFileSink::completeOutputFile() {
 
     ChunkDescriptor* const headChunk = ioState->fHeadChunk;
     if (headChunk != NULL
-	&& timevalGE(fFirstDataTime, headChunk->fPresentationTime)) {
+    && timevalGE(fFirstDataTime, headChunk->fPresentationTime)) {
       fFirstDataTime = headChunk->fPresentationTime;
     }
   }
@@ -533,10 +533,10 @@ void QuickTimeFileSink::completeOutputFile() {
 unsigned SubsessionIOState::fCurrentTrackNumber = 0;
 
 SubsessionIOState::SubsessionIOState(QuickTimeFileSink& sink,
-				     MediaSubsession& subsession)
+                     MediaSubsession& subsession)
   : fHintTrackForUs(NULL), fTrackHintedByUs(NULL),
     fOurSink(sink), fOurSubsession(subsession),
-    fLastPacketRTPSeqNum(0), fHaveBeenSynced(False), fQTTotNumSamples(0), 
+    fLastPacketRTPSeqNum(0), fHaveBeenSynced(False), fQTTotNumSamples(0),
     fHeadChunk(NULL), fTailChunk(NULL), fNumChunks(0),
     fHeadSyncFrame(NULL), fTailSyncFrame(NULL) {
   fTrackID = ++fCurrentTrackNumber;
@@ -600,40 +600,40 @@ Boolean SubsessionIOState::setQTstate() {
       fQTcomponentName = "Apple Sound Media Handler";
       fQTMediaInformationAtomCreator = &QuickTimeFileSink::addAtom_smhd;
       fQTMediaDataAtomCreator
-	= &QuickTimeFileSink::addAtom_soundMediaGeneral; // by default
+    = &QuickTimeFileSink::addAtom_soundMediaGeneral; // by default
       fQTSoundSampleVersion = 0; // by default
 
       // Make sure that our subsession's codec is one that we can handle:
       if (strcmp(fOurSubsession.codecName(), "X-QT") == 0 ||
-	  strcmp(fOurSubsession.codecName(), "X-QUICKTIME") == 0) {
-	fQTMediaDataAtomCreator = &QuickTimeFileSink::addAtom_genericMedia;
+      strcmp(fOurSubsession.codecName(), "X-QUICKTIME") == 0) {
+    fQTMediaDataAtomCreator = &QuickTimeFileSink::addAtom_genericMedia;
       } else if (strcmp(fOurSubsession.codecName(), "PCMU") == 0) {
-	fQTAudioDataType = "ulaw";
-	fQTBytesPerFrame = 1;
+    fQTAudioDataType = "ulaw";
+    fQTBytesPerFrame = 1;
       } else if (strcmp(fOurSubsession.codecName(), "GSM") == 0) {
-	fQTAudioDataType = "agsm";
-	fQTBytesPerFrame = 33;
-	fQTSamplesPerFrame = 160;
+    fQTAudioDataType = "agsm";
+    fQTBytesPerFrame = 33;
+    fQTSamplesPerFrame = 160;
       } else if (strcmp(fOurSubsession.codecName(), "PCMA") == 0) {
-	fQTAudioDataType = "alaw";
-	fQTBytesPerFrame = 1;
+    fQTAudioDataType = "alaw";
+    fQTBytesPerFrame = 1;
       } else if (strcmp(fOurSubsession.codecName(), "QCELP") == 0) {
-	fQTMediaDataAtomCreator = &QuickTimeFileSink::addAtom_Qclp;
-	fQTSamplesPerFrame = 160;
+    fQTMediaDataAtomCreator = &QuickTimeFileSink::addAtom_Qclp;
+    fQTSamplesPerFrame = 160;
       } else if (strcmp(fOurSubsession.codecName(), "MPEG4-GENERIC") == 0 ||
-		 strcmp(fOurSubsession.codecName(), "MP4A-LATM") == 0) {
-	fQTMediaDataAtomCreator = &QuickTimeFileSink::addAtom_mp4a;
-	fQTTimeUnitsPerSample = 1024; // QT considers each frame to be a 'sample'
-	// The time scale (frequency) comes from the 'config' information.
-	// It might be different from the RTP timestamp frequency (e.g., aacPlus).
-	unsigned frequencyFromConfig
-	  = samplingFrequencyFromAudioSpecificConfig(fOurSubsession.fmtp_config());
-	if (frequencyFromConfig != 0) fQTTimeScale = frequencyFromConfig;
+         strcmp(fOurSubsession.codecName(), "MP4A-LATM") == 0) {
+    fQTMediaDataAtomCreator = &QuickTimeFileSink::addAtom_mp4a;
+    fQTTimeUnitsPerSample = 1024; // QT considers each frame to be a 'sample'
+    // The time scale (frequency) comes from the 'config' information.
+    // It might be different from the RTP timestamp frequency (e.g., aacPlus).
+    unsigned frequencyFromConfig
+      = samplingFrequencyFromAudioSpecificConfig(fOurSubsession.fmtp_config());
+    if (frequencyFromConfig != 0) fQTTimeScale = frequencyFromConfig;
       } else {
-	envir() << noCodecWarning1 << "Audio" << noCodecWarning2
-		<< fOurSubsession.codecName() << noCodecWarning3;
-	fQTMediaDataAtomCreator = &QuickTimeFileSink::addAtom_dummy;
-	fQTEnableTrack = False; // disable this track in the movie
+    envir() << noCodecWarning1 << "Audio" << noCodecWarning2
+        << fOurSubsession.codecName() << noCodecWarning3;
+    fQTMediaDataAtomCreator = &QuickTimeFileSink::addAtom_dummy;
+    fQTEnableTrack = False; // disable this track in the movie
       }
     } else if (strcmp(fOurSubsession.mediumName(), "video") == 0) {
       fQTcomponentSubtype = fourChar('v','i','d','e');
@@ -642,37 +642,37 @@ Boolean SubsessionIOState::setQTstate() {
 
       // Make sure that our subsession's codec is one that we can handle:
       if (strcmp(fOurSubsession.codecName(), "X-QT") == 0 ||
-	  strcmp(fOurSubsession.codecName(), "X-QUICKTIME") == 0) {
-	fQTMediaDataAtomCreator = &QuickTimeFileSink::addAtom_genericMedia;
+      strcmp(fOurSubsession.codecName(), "X-QUICKTIME") == 0) {
+    fQTMediaDataAtomCreator = &QuickTimeFileSink::addAtom_genericMedia;
       } else if (strcmp(fOurSubsession.codecName(), "H263-1998") == 0 ||
-		 strcmp(fOurSubsession.codecName(), "H263-2000") == 0) {
-	fQTMediaDataAtomCreator = &QuickTimeFileSink::addAtom_h263;
-	fQTTimeScale = 600;
-	fQTTimeUnitsPerSample = fQTTimeScale/fOurSink.fMovieFPS;
+         strcmp(fOurSubsession.codecName(), "H263-2000") == 0) {
+    fQTMediaDataAtomCreator = &QuickTimeFileSink::addAtom_h263;
+    fQTTimeScale = 600;
+    fQTTimeUnitsPerSample = fQTTimeScale/fOurSink.fMovieFPS;
       } else if (strcmp(fOurSubsession.codecName(), "H264") == 0) {
-	fQTMediaDataAtomCreator = &QuickTimeFileSink::addAtom_avc1;
-	fQTTimeScale = 600;
-	fQTTimeUnitsPerSample = fQTTimeScale/fOurSink.fMovieFPS;
+    fQTMediaDataAtomCreator = &QuickTimeFileSink::addAtom_avc1;
+    fQTTimeScale = 600;
+    fQTTimeUnitsPerSample = fQTTimeScale/fOurSink.fMovieFPS;
       } else if (strcmp(fOurSubsession.codecName(), "MP4V-ES") == 0) {
-	fQTMediaDataAtomCreator = &QuickTimeFileSink::addAtom_mp4v;
-	fQTTimeScale = 600;
-	fQTTimeUnitsPerSample = fQTTimeScale/fOurSink.fMovieFPS;
+    fQTMediaDataAtomCreator = &QuickTimeFileSink::addAtom_mp4v;
+    fQTTimeScale = 600;
+    fQTTimeUnitsPerSample = fQTTimeScale/fOurSink.fMovieFPS;
       } else {
-	envir() << noCodecWarning1 << "Video" << noCodecWarning2
-		<< fOurSubsession.codecName() << noCodecWarning3;
-	fQTMediaDataAtomCreator = &QuickTimeFileSink::addAtom_dummy;
-	fQTEnableTrack = False; // disable this track in the movie
+    envir() << noCodecWarning1 << "Video" << noCodecWarning2
+        << fOurSubsession.codecName() << noCodecWarning3;
+    fQTMediaDataAtomCreator = &QuickTimeFileSink::addAtom_dummy;
+    fQTEnableTrack = False; // disable this track in the movie
       }
     } else {
       envir() << "Warning: We don't implement a QuickTime Media Handler for media type \""
-	      << fOurSubsession.mediumName() << "\"";
+          << fOurSubsession.mediumName() << "\"";
       break;
     }
 
 #ifdef QT_SUPPORT_PARTIALLY_ONLY
     envir() << "Warning: We don't have sufficient codec-specific information (e.g., sample sizes) to fully generate the \""
-	    << fOurSubsession.mediumName() << "/" << fOurSubsession.codecName()
-	    << "\" track, so we'll disable this track in the movie.  A separate, codec-specific editing pass will be needed before this track can be played\n";
+        << fOurSubsession.mediumName() << "/" << fOurSubsession.codecName()
+        << "\" track, so we'll disable this track in the movie.  A separate, codec-specific editing pass will be needed before this track can be played\n";
     fQTEnableTrack = False; // disable this track in the movie
 #endif
 
@@ -680,8 +680,8 @@ Boolean SubsessionIOState::setQTstate() {
   } while (0);
 
   envir() << ", so a track for the \"" << fOurSubsession.mediumName()
-	  << "/" << fOurSubsession.codecName()
-	  << "\" subsession will not be included in the output QuickTime file\n";
+      << "/" << fOurSubsession.codecName()
+      << "\" subsession will not be included in the output QuickTime file\n";
   return False;
 }
 
@@ -708,7 +708,7 @@ void SubsessionIOState::setFinalQTstate() {
 }
 
 void SubsessionIOState::afterGettingFrame(unsigned packetDataSize,
-					  struct timeval presentationTime) {
+                      struct timeval presentationTime) {
   // Begin by checking whether there was a gap in the RTP stream.
   // If so, try to compensate for this (if desired):
   if (fOurSubsession.rtpSource() != NULL) { // we have a RTP stream
@@ -717,8 +717,8 @@ void SubsessionIOState::afterGettingFrame(unsigned packetDataSize,
     if (fOurSink.fPacketLossCompensate && fPrevBuffer->bytesInUse() > 0) {
       short seqNumGap = rtpSeqNum - fLastPacketRTPSeqNum;
       for (short i = 1; i < seqNumGap; ++i) {
-	// Insert a copy of the previous frame, to compensate for the loss:
-	useFrame(*fPrevBuffer);
+    // Insert a copy of the previous frame, to compensate for the loss:
+    useFrame(*fPrevBuffer);
       }
     }
     fLastPacketRTPSeqNum = rtpSeqNum;
@@ -754,23 +754,23 @@ void SubsessionIOState::afterGettingFrame(unsigned packetDataSize,
       unsigned mediaType = fourChar(atom[4],atom[5],atom[6],atom[7]);
       switch (mediaType) {
       case fourChar('a','g','s','m'): {
-	fQTBytesPerFrame = 33;
-	fQTSamplesPerFrame = 160;
-	break;
+    fQTBytesPerFrame = 33;
+    fQTSamplesPerFrame = 160;
+    break;
       }
       case fourChar('Q','c','l','p'): {
-	fQTBytesPerFrame = 35;
-	fQTSamplesPerFrame = 160;
-	break;
+    fQTBytesPerFrame = 35;
+    fQTSamplesPerFrame = 160;
+    break;
       }
       case fourChar('H','c','l','p'): {
-	fQTBytesPerFrame = 17;
-	fQTSamplesPerFrame = 160;
-	break;
+    fQTBytesPerFrame = 17;
+    fQTSamplesPerFrame = 160;
+    break;
       }
       case fourChar('h','2','6','3'): {
-	fQTTimeUnitsPerSample = fQTTimeScale/fOurSink.fMovieFPS;
-	break;
+    fQTTimeUnitsPerSample = fQTTimeScale/fOurSink.fMovieFPS;
+    break;
       }
       }
     }
@@ -820,15 +820,15 @@ void SubsessionIOState::useFrame(SubsessionBuffer& buffer) {
     if (ppt.tv_sec != 0 || ppt.tv_usec != 0) {
       // There has been a previous frame.
       double duration = (presentationTime.tv_sec - ppt.tv_sec)
-	+ (presentationTime.tv_usec - ppt.tv_usec)/1000000.0;
+    + (presentationTime.tv_usec - ppt.tv_usec)/1000000.0;
       if (duration < 0.0) duration = 0.0;
       unsigned frameDuration
-	= (unsigned)((2*duration*fQTTimeScale+1)/2); // round
+    = (unsigned)((2*duration*fQTTimeScale+1)/2); // round
       unsigned frameSizeToUse = fPrevFrameState.frameSize;
       if (avcHack) frameSizeToUse += 4; // H.264/AVC gets the frame size prefix
 
       unsigned numSamples
-	= useFrame1(frameSizeToUse, ppt, frameDuration, fPrevFrameState.destFileOffset);
+    = useFrame1(frameSizeToUse, ppt, frameDuration, fPrevFrameState.destFileOffset);
       fQTTotNumSamples += numSamples;
       sampleNumberOfFrameStart = fQTTotNumSamples + 1;
     }
@@ -863,14 +863,14 @@ void SubsessionIOState::useFrame(SubsessionBuffer& buffer) {
     }
     if (fHaveBeenSynced) {
       fHintTrackForUs->useFrameForHinting(frameSize, presentationTime,
-					  sampleNumberOfFrameStart);
+                      sampleNumberOfFrameStart);
     }
   }
 }
 
 void SubsessionIOState::useFrameForHinting(unsigned frameSize,
-					   struct timeval presentationTime,
-					   unsigned startSampleNumber) {
+                       struct timeval presentationTime,
+                       unsigned startSampleNumber) {
   // At this point, we have a single, combined frame - not individual packets.
   // For the hint track, we need to split the frame back up into separate packets.
   // However, for some RTP sources, then we also need to reuse the special
@@ -906,9 +906,9 @@ void SubsessionIOState::useFrameForHinting(unsigned frameSize,
       // (as can happen with aacPlus), then we need to scale "hintSampleDuration"
       // accordingly:
       if (fTrackHintedByUs->fQTTimeScale != fOurSubsession.rtpTimestampFrequency()) {
-	unsigned const scalingFactor
-	  = fOurSubsession.rtpTimestampFrequency()/fTrackHintedByUs->fQTTimeScale ;
-	hintSampleDuration *= scalingFactor;
+    unsigned const scalingFactor
+      = fOurSubsession.rtpTimestampFrequency()/fTrackHintedByUs->fQTTimeScale ;
+    hintSampleDuration *= scalingFactor;
       }
     }
 
@@ -923,7 +923,7 @@ void SubsessionIOState::useFrameForHinting(unsigned frameSize,
       numPTEntries = fPrevFrameState.numSpecialHeaders;
       immediateDataPtr = fPrevFrameState.specialHeaderBytes;
       immediateDataBytesRemaining
-	= fPrevFrameState.specialHeaderBytesLength;
+    = fPrevFrameState.specialHeaderBytesLength;
     }
     unsigned hintSampleSize
       = fOurSink.addHalfWord(numPTEntries);// Entry count
@@ -937,37 +937,37 @@ void SubsessionIOState::useFrameForHinting(unsigned frameSize,
           // Note: This assumes that the input stream had no packets lost #####
       unsigned rtpHeader = fPrevFrameState.rtpHeader;
       if (i+1 < numPTEntries) {
-	// This is not the last RTP packet, so clear the marker bit:
-	rtpHeader &=~ (1<<23);
+    // This is not the last RTP packet, so clear the marker bit:
+    rtpHeader &=~ (1<<23);
       }
       unsigned dataFrameSize = (i+1 < numPTEntries)
-	? maxPacketSize : fPrevFrameState.frameSize - i*maxPacketSize; // normal case
+    ? maxPacketSize : fPrevFrameState.frameSize - i*maxPacketSize; // normal case
       unsigned sampleNumber = fPrevFrameState.startSampleNumber;
 
       unsigned char immediateDataLen = 0;
       if (haveSpecialHeaders) { // special case
-	++numDTEntries; // to include a Data Table entry for the special hdr
-	if (immediateDataBytesRemaining > 0) {
-	  if (hack263) {
-	    immediateDataLen = *immediateDataPtr++;
-	    --immediateDataBytesRemaining;
-	    if (immediateDataLen > immediateDataBytesRemaining) {
-	      // shouldn't happen (length byte was bad)
-	      immediateDataLen = immediateDataBytesRemaining;
-	    }
-	  } else {
-	    immediateDataLen = fPrevFrameState.specialHeaderBytesLength;
-	  }
-	}
-	dataFrameSize = fPrevFrameState.packetSizes[i] - immediateDataLen;
+    ++numDTEntries; // to include a Data Table entry for the special hdr
+    if (immediateDataBytesRemaining > 0) {
+      if (hack263) {
+        immediateDataLen = *immediateDataPtr++;
+        --immediateDataBytesRemaining;
+        if (immediateDataLen > immediateDataBytesRemaining) {
+          // shouldn't happen (length byte was bad)
+          immediateDataLen = immediateDataBytesRemaining;
+        }
+      } else {
+        immediateDataLen = fPrevFrameState.specialHeaderBytesLength;
+      }
+    }
+    dataFrameSize = fPrevFrameState.packetSizes[i] - immediateDataLen;
 
-	if (hack263) {
-	  Boolean PbitSet
-	    = immediateDataLen >= 1 && (immediateDataPtr[0]&0x4) != 0;
-	  if (PbitSet) {
-	    offsetWithinSample += 2; // to omit the two leading 0 bytes
-	  }
-	}
+    if (hack263) {
+      Boolean PbitSet
+        = immediateDataLen >= 1 && (immediateDataPtr[0]&0x4) != 0;
+      if (PbitSet) {
+        offsetWithinSample += 2; // to omit the two leading 0 bytes
+      }
+    }
       }
 
       // Output the Packet Table:
@@ -980,21 +980,21 @@ void SubsessionIOState::useFrameForHinting(unsigned frameSize,
 
       // Output the Data Table:
       if (haveSpecialHeaders) {
-	//   use the "Immediate Data" format (1):
-	hintSampleSize += fOurSink.addByte(1); // Source
-	unsigned char len = immediateDataLen > 14 ? 14 : immediateDataLen;
-	hintSampleSize += fOurSink.addByte(len); // Length
-	totalPacketSize += len; fHINF.dimm += len;
-	unsigned char j;
-	for (j = 0; j < len; ++j) {
-	  hintSampleSize += fOurSink.addByte(immediateDataPtr[j]); // Data
-	}
-	for (j = len; j < 14; ++j) {
-	  hintSampleSize += fOurSink.addByte(0); // Data (padding)
-	}
+    //   use the "Immediate Data" format (1):
+    hintSampleSize += fOurSink.addByte(1); // Source
+    unsigned char len = immediateDataLen > 14 ? 14 : immediateDataLen;
+    hintSampleSize += fOurSink.addByte(len); // Length
+    totalPacketSize += len; fHINF.dimm += len;
+    unsigned char j;
+    for (j = 0; j < len; ++j) {
+      hintSampleSize += fOurSink.addByte(immediateDataPtr[j]); // Data
+    }
+    for (j = len; j < 14; ++j) {
+      hintSampleSize += fOurSink.addByte(0); // Data (padding)
+    }
 
-	immediateDataPtr += immediateDataLen;
-	immediateDataBytesRemaining -= immediateDataLen;
+    immediateDataPtr += immediateDataLen;
+    immediateDataBytesRemaining -= immediateDataLen;
       }
       //   use the "Sample Data" format (2):
       hintSampleSize += fOurSink.addByte(2); // Source
@@ -1005,9 +1005,9 @@ void SubsessionIOState::useFrameForHinting(unsigned frameSize,
       hintSampleSize += fOurSink.addWord(offsetWithinSample); // Offset
       // Get "bytes|samples per compression block" from the hinted track:
       unsigned short const bytesPerCompressionBlock
-	= fTrackHintedByUs->fQTBytesPerFrame;
+    = fTrackHintedByUs->fQTBytesPerFrame;
       unsigned short const samplesPerCompressionBlock
-	= fTrackHintedByUs->fQTSamplesPerFrame;
+    = fTrackHintedByUs->fQTSamplesPerFrame;
       hintSampleSize += fOurSink.addHalfWord(bytesPerCompressionBlock);
       hintSampleSize += fOurSink.addHalfWord(samplesPerCompressionBlock);
 
@@ -1023,7 +1023,7 @@ void SubsessionIOState::useFrameForHinting(unsigned frameSize,
 
     // Make note of this completed hint sample frame:
     fQTTotNumSamples += useFrame1(hintSampleSize, ppt, hintSampleDuration,
-				  hintSampleDestFileOffset);
+                  hintSampleDestFileOffset);
   }
 
   // Remember this frame for next time:
@@ -1050,8 +1050,8 @@ void SubsessionIOState::useFrameForHinting(unsigned frameSize,
     unsigned const indexLength = fOurSubsession.attrVal_unsigned("indexlength");
     if (sizeLength + indexLength != 16) {
       envir() << "Warning: unexpected 'sizeLength' " << sizeLength
-	      << " and 'indexLength' " << indexLength
-	      << "seen when creating hint track\n";
+          << " and 'indexLength' " << indexLength
+          << "seen when creating hint track\n";
     }
     fPrevFrameState.numSpecialHeaders = 1;
     fPrevFrameState.specialHeaderBytesLength = 4;
@@ -1065,9 +1065,9 @@ void SubsessionIOState::useFrameForHinting(unsigned frameSize,
 }
 
 unsigned SubsessionIOState::useFrame1(unsigned sourceDataSize,
-				      struct timeval presentationTime,
-				      unsigned frameDuration,
-				      int64_t destFileOffset) {
+                      struct timeval presentationTime,
+                      unsigned frameDuration,
+                      int64_t destFileOffset) {
   // Figure out the actual frame size for this data:
   unsigned frameSize = fQTBytesPerFrame;
   if (frameSize == 0) {
@@ -1082,11 +1082,11 @@ unsigned SubsessionIOState::useFrame1(unsigned sourceDataSize,
   if (fTailChunk == NULL) {
     newTailChunk = fHeadChunk
       = new ChunkDescriptor(destFileOffset, sourceDataSize,
-			    frameSize, frameDuration, presentationTime);
+                frameSize, frameDuration, presentationTime);
   } else {
     newTailChunk = fTailChunk->extendChunk(destFileOffset, sourceDataSize,
-					   frameSize, frameDuration,
-					   presentationTime);
+                       frameSize, frameDuration,
+                       presentationTime);
   }
   if (newTailChunk != fTailChunk) {
    // This data created a new chunk, rather than extending the old one
@@ -1112,23 +1112,23 @@ Boolean SubsessionIOState::syncOK(struct timeval presentationTime) {
     if (!fHaveBeenSynced) {
       // We weren't synchronized before
       if (fOurSubsession.rtpSource()->hasBeenSynchronizedUsingRTCP()) {
-	// H264 ?
-	if (fQTMediaDataAtomCreator == &QuickTimeFileSink::addAtom_avc1) {
-	  // special case: audio + H264 video: wait until audio is in sync
-	  if ((s.fNumSubsessions == 2) && (s.fNumSyncedSubsessions < (s.fNumSubsessions - 1))) return False;
+    // H264 ?
+    if (fQTMediaDataAtomCreator == &QuickTimeFileSink::addAtom_avc1) {
+      // special case: audio + H264 video: wait until audio is in sync
+      if ((s.fNumSubsessions == 2) && (s.fNumSyncedSubsessions < (s.fNumSubsessions - 1))) return False;
 
-	  // if audio is in sync, wait for the next IDR frame to start
-	  unsigned char* const frameSource = fBuffer->dataStart();
-	  if (*frameSource != H264_IDR_FRAME) return False;
-	}
-	// But now we are
-	fHaveBeenSynced = True;
-	fSyncTime = presentationTime;
-	++s.fNumSyncedSubsessions;
+      // if audio is in sync, wait for the next IDR frame to start
+      unsigned char* const frameSource = fBuffer->dataStart();
+      if (*frameSource != H264_IDR_FRAME) return False;
+    }
+    // But now we are
+    fHaveBeenSynced = True;
+    fSyncTime = presentationTime;
+    ++s.fNumSyncedSubsessions;
 
-	if (timevalGE(fSyncTime, s.fNewestSyncTime)) {
-	  s.fNewestSyncTime = fSyncTime;
-	}
+    if (timevalGE(fSyncTime, s.fNewestSyncTime)) {
+      s.fNewestSyncTime = fSyncTime;
+    }
       }
     }
   }
@@ -1141,14 +1141,14 @@ Boolean SubsessionIOState::syncOK(struct timeval presentationTime) {
 }
 
 void SubsessionIOState::setHintTrack(SubsessionIOState* hintedTrack,
-				     SubsessionIOState* hintTrack) {
+                     SubsessionIOState* hintTrack) {
   if (hintedTrack != NULL) hintedTrack->fHintTrackForUs = hintTrack;
   if (hintTrack != NULL) hintTrack->fTrackHintedByUs = hintedTrack;
 }
 
 SyncFrame::SyncFrame(unsigned frameNum)
   : nextSyncFrame(NULL), sfFrameNum(frameNum) {
-}  
+}
 
 void Count64::operator+=(unsigned arg) {
   unsigned newLo = lo + arg;
@@ -1160,8 +1160,8 @@ void Count64::operator+=(unsigned arg) {
 
 ChunkDescriptor
 ::ChunkDescriptor(int64_t offsetInFile, unsigned size,
-		  unsigned frameSize, unsigned frameDuration,
-		  struct timeval presentationTime)
+          unsigned frameSize, unsigned frameDuration,
+          struct timeval presentationTime)
   : fNextChunk(NULL), fOffsetInFile(offsetInFile),
     fNumFrames(size/frameSize),
     fFrameSize(frameSize), fFrameDuration(frameDuration),
@@ -1170,8 +1170,8 @@ ChunkDescriptor
 
 ChunkDescriptor* ChunkDescriptor
 ::extendChunk(int64_t newOffsetInFile, unsigned newSize,
-	      unsigned newFrameSize, unsigned newFrameDuration,
-	      struct timeval newPresentationTime) {
+          unsigned newFrameSize, unsigned newFrameDuration,
+          struct timeval newPresentationTime) {
   // First, check whether the new space is just at the end of this
   // existing chunk:
   if (newOffsetInFile == fOffsetInFile + fNumFrames*fFrameSize) {
@@ -1186,8 +1186,8 @@ ChunkDescriptor* ChunkDescriptor
   // We'll allocate a new ChunkDescriptor, and link it to the end of us:
   ChunkDescriptor* newDescriptor
     = new ChunkDescriptor(newOffsetInFile, newSize,
-			  newFrameSize, newFrameDuration,
-			  newPresentationTime);
+              newFrameSize, newFrameDuration,
+              newPresentationTime);
 
   fNextChunk = newDescriptor;
 
@@ -1234,15 +1234,15 @@ unsigned QuickTimeFileSink::add4ByteString(char const* str) {
 }
 
 unsigned QuickTimeFileSink::addArbitraryString(char const* str,
-					       Boolean oneByteLength) {
+                           Boolean oneByteLength) {
   unsigned size = 0;
   if (oneByteLength) {
     // Begin with a byte containing the string length:
     unsigned strLength = strlen(str);
     if (strLength >= 256) {
       envir() << "QuickTimeFileSink::addArbitraryString(\""
-	      << str << "\") saw string longer than we know how to handle ("
-	      << strLength << "\n";
+          << str << "\") saw string longer than we know how to handle ("
+          << strLength << "\n";
     }
     size += addByte((unsigned char)strLength);
   }
@@ -1287,7 +1287,7 @@ void QuickTimeFileSink::setWord(int64_t filePosn, unsigned size) {
 
   // One of the SeekFile64()s failed, probable because we're not a seekable file
   envir() << "QuickTimeFileSink::setWord(): SeekFile64 failed (err "
-	  << envir().getErrno() << ")\n";
+      << envir().getErrno() << ")\n";
 }
 
 void QuickTimeFileSink::setWord64(int64_t filePosn, u_int64_t size) {
@@ -1301,7 +1301,7 @@ void QuickTimeFileSink::setWord64(int64_t filePosn, u_int64_t size) {
 
   // One of the SeekFile64()s failed, probable because we're not a seekable file
   envir() << "QuickTimeFileSink::setWord64(): SeekFile64 failed (err "
-	  << envir().getErrno() << ")\n";
+      << envir().getErrno() << ")\n";
 }
 
 // Methods for writing particular atoms.  Note the following macros:
@@ -1990,10 +1990,10 @@ addAtom(stts); // Time-to-Sample
       // This chunk will start a new table entry,
       // so write out the old one (if any):
       if (chunk != fCurrentIOState->fHeadChunk) {
-	++numEntries;
-	size += addWord(numSamplesSoFar); // Sample count
-	size += addWord(prevSampleDuration); // Sample duration
-	numSamplesSoFar = 0;
+    ++numEntries;
+    size += addWord(numSamplesSoFar); // Sample count
+    size += addWord(prevSampleDuration); // Sample duration
+    numSamplesSoFar = 0;
       }
     }
 
@@ -2030,7 +2030,7 @@ addAtom(stss); // Sync-Sample
 
     while (currentSyncFrame != NULL) {
       if (currentSyncFrame->sfFrameNum >= totNumFrames) break; // sanity check
-      
+
       ++numEntries;
       size += addWord(currentSyncFrame->sfFrameNum);
       currentSyncFrame = currentSyncFrame->nextSyncFrame;
@@ -2044,7 +2044,7 @@ addAtom(stss); // Sync-Sample
       numSamplesSoFar += numSamples;
       chunk = chunk->fNextChunk;
     }
-  
+
     // Then, write out the sample numbers that we deem correspond to 'sync samples':
     unsigned i;
     for (i = 0; i < numSamplesSoFar; i += 12) {
@@ -2053,7 +2053,7 @@ addAtom(stss); // Sync-Sample
       size += addWord(i+1);
       ++numEntries;
     }
-  
+
     // Then, write out the last entry (if we haven't already done so):
     if (i != (numSamplesSoFar - 1)) {
       size += addWord(numSamplesSoFar);
@@ -2129,9 +2129,9 @@ addAtom(stsz); // Sample Size
   unsigned sampleSize;
   if (haveSingleEntryTable) {
     if (fCurrentIOState->isHintTrack()
-	&& fCurrentIOState->fHeadChunk != NULL) {
+    && fCurrentIOState->fHeadChunk != NULL) {
       sampleSize = fCurrentIOState->fHeadChunk->fFrameSize
-	              / fCurrentIOState->fQTSamplesPerFrame;
+                  / fCurrentIOState->fQTSamplesPerFrame;
     } else {
       // The following doesn't seem right, but seems to do the right thing:
       sampleSize = fCurrentIOState->fQTTimeUnitsPerSample; //???
@@ -2149,11 +2149,11 @@ addAtom(stsz); // Sample Size
     ChunkDescriptor* chunk = fCurrentIOState->fHeadChunk;
     while (chunk != NULL) {
       unsigned numSamples
-	= chunk->fNumFrames*(fCurrentIOState->fQTSamplesPerFrame);
+    = chunk->fNumFrames*(fCurrentIOState->fQTSamplesPerFrame);
       unsigned sampleSize
-	= chunk->fFrameSize/(fCurrentIOState->fQTSamplesPerFrame);
+    = chunk->fFrameSize/(fCurrentIOState->fQTSamplesPerFrame);
       for (unsigned i = 0; i < numSamples; ++i) {
-	size += addWord(sampleSize);
+    size += addWord(sampleSize);
       }
 
       chunk = chunk->fNextChunk;
@@ -2183,7 +2183,7 @@ addAtomEnd;
 addAtom(name);
   char description[100];
   sprintf(description, "Hinted %s track",
-	  fCurrentIOState->fOurSubsession.mediumName());
+      fCurrentIOState->fOurSubsession.mediumName());
   size += addArbitraryString(description, False); // name of object
 addAtomEnd;
 
@@ -2220,8 +2220,8 @@ unsigned QuickTimeFileSink::addAtom_sdp() {
       i = afterTrackNumPosn;
       int j = i + strlen(&newSDPLines[i]);
       while (1) {
-	if ((newSDPLines[j] = sdpLines[i]) == '\0') break;
-	++i; ++j;
+    if ((newSDPLines[j] = sdpLines[i]) == '\0') break;
+    ++i; ++j;
       }
 
       foundSearchString = True;
@@ -2233,7 +2233,7 @@ unsigned QuickTimeFileSink::addAtom_sdp() {
     // Because we didn't find a "a=control:trackID=<trackId>" line,
     // add one of our own:
     sprintf(newSDPLines, "%s%s%d\r\n",
-	    sdpLines, searchStr, fCurrentIOState->fTrackID);
+        sdpLines, searchStr, fCurrentIOState->fTrackID);
   }
 
   size += addArbitraryString(newSDPLines, False);
@@ -2326,7 +2326,7 @@ addAtom(payt);
     unsigned rtpmapStringLength = strlen(ourSubsession.codecName()) + 20;
     char* rtpmapString = new char[rtpmapStringLength];
     sprintf(rtpmapString, "%s/%d",
-	    ourSubsession.codecName(), rtpSource->timestampFrequency());
+        ourSubsession.codecName(), rtpSource->timestampFrequency());
     size += addArbitraryString(rtpmapString);
     delete[] rtpmapString;
   }

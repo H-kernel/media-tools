@@ -79,7 +79,7 @@ static struct query* find_query_by_id(ares_channel channel, unsigned short id)
     {
        struct query *q = list_node->data;
        if (q->qid == qid)
-	  return q;
+      return q;
     }
   return NULL;
 }

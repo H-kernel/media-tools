@@ -64,7 +64,7 @@
  * Quick start guide:
  *   #include "evdns.h"
  *   void callback(int result, char type, int count, int ttl,
- *		 void *addresses, void *arg);
+ *         void *addresses, void *arg);
  *   evdns_resolv_conf_parse(DNS_OPTIONS_ALL, "/etc/resolv.conf");
  *   evdns_resolve("www.hostname.com", 0, callback, NULL);
  *
@@ -143,7 +143,7 @@ extern "C" {
 #include "util.h"
 
 /** Error codes 0-5 are as described in RFC 1035. */
-#define DNS_ERR_NONE 0                  
+#define DNS_ERR_NONE 0
 /** The name server was unable to interpret the query */
 #define DNS_ERR_FORMAT 1
 /** The name server was unable to process this query due to a problem with the
@@ -225,7 +225,7 @@ struct evdns_base * evdns_base_new(struct event_base *event_base, int initialize
 
   @param evdns_base the evdns base to free
   @param fail_requests if zero, active requests will be aborted; if non-zero,
-		active requests will return DNS_ERR_SHUTDOWN.
+        active requests will return DNS_ERR_SHUTDOWN.
   @see evdns_base_new()
  */
 void evdns_base_free(struct evdns_base *base, int fail_requests);
@@ -544,23 +544,23 @@ typedef void (*evdns_request_callback_fn_type)(struct evdns_server_request *, vo
 #define EVDNS_AUTHORITY_SECTION 1
 #define EVDNS_ADDITIONAL_SECTION 2
 
-#define EVDNS_TYPE_A	   1
-#define EVDNS_TYPE_NS	   2
+#define EVDNS_TYPE_A       1
+#define EVDNS_TYPE_NS       2
 #define EVDNS_TYPE_CNAME   5
-#define EVDNS_TYPE_SOA	   6
-#define EVDNS_TYPE_PTR	  12
-#define EVDNS_TYPE_MX	  15
-#define EVDNS_TYPE_TXT	  16
-#define EVDNS_TYPE_AAAA	  28
+#define EVDNS_TYPE_SOA       6
+#define EVDNS_TYPE_PTR      12
+#define EVDNS_TYPE_MX      15
+#define EVDNS_TYPE_TXT      16
+#define EVDNS_TYPE_AAAA      28
 
 #define EVDNS_QTYPE_AXFR 252
-#define EVDNS_QTYPE_ALL	 255
+#define EVDNS_QTYPE_ALL     255
 
 #define EVDNS_CLASS_INET   1
 
 /* flags that can be set in answers; as part of the err parameter */
-#define EVDNS_FLAGS_AA	0x400
-#define EVDNS_FLAGS_RD	0x080
+#define EVDNS_FLAGS_AA    0x400
+#define EVDNS_FLAGS_RD    0x080
 
 /** Create a new DNS server port.
 

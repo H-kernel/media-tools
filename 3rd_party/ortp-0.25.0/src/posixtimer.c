@@ -24,7 +24,7 @@
 #include "ortp/ortp.h"
 #include "rtptimer.h"
 
-#if	!defined(_WIN32) && !defined(_WIN32_WCE)
+#if    !defined(_WIN32) && !defined(_WIN32_WCE)
 
 #ifdef __linux__
 #include <sys/select.h>
@@ -36,13 +36,13 @@
 
 
 static struct timeval orig,cur;
-static uint32_t posix_timer_time=0;		/*in milisecond */
+static uint32_t posix_timer_time=0;        /*in milisecond */
 
 void posix_timer_init()
 {
-	posix_timer.state=RTP_TIMER_RUNNING;
-	ortp_gettimeofday(&orig,NULL);
-	posix_timer_time=0;
+    posix_timer.state=RTP_TIMER_RUNNING;
+    ortp_gettimeofday(&orig,NULL);
+    posix_timer_time=0;
 }
 
 
@@ -50,42 +50,42 @@ void posix_timer_init()
 
 void posix_timer_do()
 {
-	int diff,time;
-	struct timeval tv;
-	ortp_gettimeofday(&cur,NULL);
-	time=((cur.tv_usec-orig.tv_usec)/1000 ) + ((cur.tv_sec-orig.tv_sec)*1000 );
-	if ( (diff=time-posix_timer_time)>50){
-		ortp_warning("Must catchup %i miliseconds.",diff);
-	}
-	while((diff = posix_timer_time-time) > 0)
-	{
-		tv.tv_sec = diff/1000;
-		tv.tv_usec = (diff%1000)*1000;
-#if	defined(_WIN32) || defined(_WIN32_WCE)
+    int diff,time;
+    struct timeval tv;
+    ortp_gettimeofday(&cur,NULL);
+    time=((cur.tv_usec-orig.tv_usec)/1000 ) + ((cur.tv_sec-orig.tv_sec)*1000 );
+    if ( (diff=time-posix_timer_time)>50){
+        ortp_warning("Must catchup %i miliseconds.",diff);
+    }
+    while((diff = posix_timer_time-time) > 0)
+    {
+        tv.tv_sec = diff/1000;
+        tv.tv_usec = (diff%1000)*1000;
+#if    defined(_WIN32) || defined(_WIN32_WCE)
         /* this kind of select is not supported on windows */
-		Sleep(tv.tv_usec/1000 + tv.tv_sec * 1000);
+        Sleep(tv.tv_usec/1000 + tv.tv_sec * 1000);
 #else
-		select(0,NULL,NULL,NULL,&tv);
+        select(0,NULL,NULL,NULL,&tv);
 #endif
-		ortp_gettimeofday(&cur,NULL);
-		time=((cur.tv_usec-orig.tv_usec)/1000 ) + ((cur.tv_sec-orig.tv_sec)*1000 );
-	}
-	posix_timer_time+=POSIXTIMER_INTERVAL/1000;
-	
+        ortp_gettimeofday(&cur,NULL);
+        time=((cur.tv_usec-orig.tv_usec)/1000 ) + ((cur.tv_sec-orig.tv_sec)*1000 );
+    }
+    posix_timer_time+=POSIXTIMER_INTERVAL/1000;
+
 }
 
 void posix_timer_uninit()
 {
-	posix_timer.state=RTP_TIMER_STOPPED;
+    posix_timer.state=RTP_TIMER_STOPPED;
 }
 
-RtpTimer posix_timer={	0,
-						posix_timer_init,
-						posix_timer_do,
-						posix_timer_uninit,
-						{0,POSIXTIMER_INTERVAL}};
-							
-							
+RtpTimer posix_timer={    0,
+                        posix_timer_init,
+                        posix_timer_do,
+                        posix_timer_uninit,
+                        {0,POSIXTIMER_INTERVAL}};
+
+
 #else //_WIN32
 
 #ifdef ORTP_WINDOWS_DESKTOP
@@ -161,26 +161,26 @@ void win_timer_do(void)
 
 void win_timer_close(void)
 {
-	timeKillEvent(timerId); 
+    timeKillEvent(timerId);
 }
 
 RtpTimer toto;
 
-RtpTimer posix_timer={	0,
-						win_timer_init,
-						win_timer_do,
-						win_timer_close,
-						{0,TIME_INTERVAL * 1000}};
+RtpTimer posix_timer={    0,
+                        win_timer_init,
+                        win_timer_do,
+                        win_timer_close,
+                        {0,TIME_INTERVAL * 1000}};
 
 #elif defined(ORTP_WINDOWS_PHONE)
 
 #include "winrttimer.h"
 
-RtpTimer posix_timer={	0,
-						winrt_timer_init,
-						winrt_timer_do,
-						winrt_timer_close,
-						{0, TIME_INTERVAL * 1000}};
+RtpTimer posix_timer={    0,
+                        winrt_timer_init,
+                        winrt_timer_do,
+                        winrt_timer_close,
+                        {0, TIME_INTERVAL * 1000}};
 
 #endif
 

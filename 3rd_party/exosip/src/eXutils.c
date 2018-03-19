@@ -1,17 +1,17 @@
 /*
   eXosip - This is the eXtended osip library.
   Copyright (C) 2001-2015 Aymeric MOIZARD amoizard@antisip.com
-  
+
   eXosip is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
-  
+
   eXosip is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
-  
+
   You should have received a copy of the GNU General Public License
   along with this program; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -100,7 +100,7 @@
 
 int
 _eXosip_closesocket(SOCKET_TYPE sock) {
-#if	!defined(_WIN32) && !defined(_WIN32_WCE)
+#if    !defined(_WIN32) && !defined(_WIN32_WCE)
   return close (sock);
 #else
   return closesocket(sock);
@@ -564,7 +564,7 @@ _eXosip_guess_ip_for_destinationsock (struct eXosip_t *excontext, int family, in
   SOCKADDR_STORAGE local_addr;
 
   DWORD local_addr_len;
-  
+
   struct addrinfo *addrf = NULL;
 
   address[0] = '\0';
@@ -794,16 +794,16 @@ static int
   if (udp_local_bind!=NULL) {
     struct sockaddr_in remote;
     /* for udp, we use an independant socket with similar binding, because we can't connect the socket */
-    
+
     memset (&remote, 0, sizeof (struct sockaddr_in));
     remote.sin_family = AF_INET;
     remote.sin_addr.s_addr = inet_addr (destination);
     remote.sin_port = htons (11111);
-    
+
     memcpy (&iface_out, udp_local_bind, sizeof (iface_out));
     len = sizeof (iface_out);
     iface_out.sin_port = htons (0);
-    
+
     sock = socket (AF_INET, SOCK_DGRAM, proto);
     if (bind (sock, (struct sockaddr*)&iface_out, len)<0) {
       _eXosip_closesocket (sock);
@@ -818,7 +818,7 @@ static int
       _eXosip_closesocket (sock);
       return OSIP_NO_NETWORK;
     }
-    
+
     _eXosip_closesocket (sock);
     if (iface_out.sin_addr.s_addr == 0) { /* what is this case?? */
       return OSIP_NO_NETWORK;
@@ -826,7 +826,7 @@ static int
     osip_strncpy (address, inet_ntoa (iface_out.sin_addr), size - 1);
     return OSIP_SUCCESS;
   }
-  
+
   memset (&iface_out, 0, sizeof (iface_out));
   len = sizeof (iface_out);
   if (getsockname (sock, (struct sockaddr *) &iface_out, &len) == -1) {
@@ -863,25 +863,25 @@ _eXosip_default_gateway_ipv6sock (struct eXosip_t *excontext, int proto, struct 
     memcpy (&iface_out, udp_local_bind, sizeof (iface_out));
     len = sizeof (iface_out);
     iface_out.sin6_port = htons (0);
-    
+
     sock = socket (AF_INET6, SOCK_DGRAM, proto);
     if (bind(sock, (struct sockaddr*)&iface_out, len)<0) {
       _eXosip_closesocket (sock);
       return OSIP_NO_NETWORK;
     }
-    
+
     if (connect (sock, (struct sockaddr *) &remote, sizeof (struct sockaddr_in6)) == -1) {
       _eXosip_closesocket (sock);
       return OSIP_NO_NETWORK;
     }
-    
+
     len = sizeof (iface_out);
     if (getsockname (sock, (struct sockaddr *) &iface_out, &len) == -1) {
       _eXosip_closesocket (sock);
       return OSIP_NO_NETWORK;
     }
     _eXosip_closesocket (sock);
-    
+
     inet_ntop (AF_INET6, (const void *) &iface_out.sin6_addr, address, size - 1);
     return OSIP_SUCCESS;
   }
@@ -1179,7 +1179,7 @@ _eXosip_srv_lookup (struct eXosip_t *excontext, osip_message_t * sip, osip_naptr
        The URI placed in the Record-Route header field MUST resolve to
        the element inserting it (or a suitable stand-in) when the
        server location procedures of [4] are applied to it, so that
-       subsequent requests reach the same SIP element. 
+       subsequent requests reach the same SIP element.
 
        Note: When the above doesn't appear to be true, check at least cache. */
 
@@ -1690,7 +1690,7 @@ _store_srv (void *arg, int status, int timeouts, unsigned char *abuf, int alen, 
 
 #if 0
   int qr, aa, tc, rd, ra, opcode, rcode;        /* , id; */
-#endif  
+#endif
   unsigned int qdcount, ancount, nscount, arcount, i;
   const unsigned char *aptr;
 
@@ -2989,9 +2989,9 @@ _eXosip_dnsutils_release (osip_naptr_t * naptr_record)
 
 /* the biggest packet we'll send and receive */
 #if PACKETSZ > 1024
-#define	MAXPACKET PACKETSZ
+#define    MAXPACKET PACKETSZ
 #else
-#define	MAXPACKET 1024
+#define    MAXPACKET 1024
 #endif
 
 /* and what we send and receive */
@@ -3001,11 +3001,11 @@ typedef union {
 } querybuf;
 
 #ifndef T_SRV
-#define T_SRV		33
+#define T_SRV        33
 #endif
 
 #ifndef T_NAPTR
-#define T_NAPTR	35
+#define T_NAPTR    35
 #endif
 
 static int

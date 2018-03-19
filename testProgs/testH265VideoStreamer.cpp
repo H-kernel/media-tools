@@ -72,9 +72,9 @@ int main(int argc, char** argv) {
   CNAME[maxCNAMElen] = '\0'; // just in case
   RTCPInstance* rtcp
   = RTCPInstance::createNew(*env, &rtcpGroupsock,
-			    estimatedSessionBandwidth, CNAME,
-			    videoSink, NULL /* we're a server */,
-			    True /* we're a SSM source */);
+                estimatedSessionBandwidth, CNAME,
+                videoSink, NULL /* we're a server */,
+                True /* we're a SSM source */);
   // Note: This starts RTCP running automatically
 
   RTSPServer* rtspServer = RTSPServer::createNew(*env, 8554);
@@ -84,8 +84,8 @@ int main(int argc, char** argv) {
   }
   ServerMediaSession* sms
     = ServerMediaSession::createNew(*env, "testStream", inputFileName,
-		   "Session streamed by \"testH265VideoStreamer\"",
-					   True /*SSM*/);
+           "Session streamed by \"testH265VideoStreamer\"",
+                       True /*SSM*/);
   sms->addSubsession(PassiveServerMediaSubsession::createNew(*videoSink, rtcp));
   rtspServer->addServerMediaSession(sms);
 

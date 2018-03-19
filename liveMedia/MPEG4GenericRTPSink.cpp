@@ -24,13 +24,13 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 MPEG4GenericRTPSink
 ::MPEG4GenericRTPSink(UsageEnvironment& env, Groupsock* RTPgs,
-		      u_int8_t rtpPayloadFormat,
-		      u_int32_t rtpTimestampFrequency,
-		      char const* sdpMediaTypeString,
-		      char const* mpeg4Mode, char const* configString,
-		      unsigned numChannels)
+              u_int8_t rtpPayloadFormat,
+              u_int32_t rtpTimestampFrequency,
+              char const* sdpMediaTypeString,
+              char const* mpeg4Mode, char const* configString,
+              unsigned numChannels)
   : MultiFramedRTPSink(env, RTPgs, rtpPayloadFormat,
-		       rtpTimestampFrequency, "MPEG4-GENERIC", numChannels),
+               rtpTimestampFrequency, "MPEG4-GENERIC", numChannels),
   fSDPMediaTypeString(strDup(sdpMediaTypeString)),
   fMPEG4Mode(strDup(mpeg4Mode)), fConfigString(strDup(configString)) {
   // Check whether "mpeg4Mode" is one that we handle:
@@ -42,7 +42,7 @@ MPEG4GenericRTPSink
     char* m = new char[len];
 
     Locale l("POSIX");
-    for (size_t i = 0; i < len; ++i) m[i] = tolower(mpeg4Mode[i]); 
+    for (size_t i = 0; i < len; ++i) m[i] = tolower(mpeg4Mode[i]);
 
     if (strcmp(m, "aac-hbr") != 0) {
       env << "MPEG4GenericRTPSink error: Unknown \"mpeg4Mode\" parameter: \"" << mpeg4Mode << "\"\n";
@@ -63,10 +63,10 @@ MPEG4GenericRTPSink
     + strlen(fConfigString);
   char* fmtp = new char[fmtpFmtSize];
   sprintf(fmtp, fmtpFmt,
-	  rtpPayloadType(),
-	  strcmp(fSDPMediaTypeString, "video") == 0 ? 4 : 5,
-	  fMPEG4Mode,
-	  fConfigString);
+      rtpPayloadType(),
+      strcmp(fSDPMediaTypeString, "video") == 0 ? 4 : 5,
+      fMPEG4Mode,
+      fConfigString);
   fFmtpSDPLine = strDup(fmtp);
   delete[] fmtp;
 }
@@ -80,15 +80,15 @@ MPEG4GenericRTPSink::~MPEG4GenericRTPSink() {
 
 MPEG4GenericRTPSink*
 MPEG4GenericRTPSink::createNew(UsageEnvironment& env, Groupsock* RTPgs,
-			       u_int8_t rtpPayloadFormat,
-			       u_int32_t rtpTimestampFrequency,
-			       char const* sdpMediaTypeString,
-			       char const* mpeg4Mode,
-			       char const* configString, unsigned numChannels) {
+                   u_int8_t rtpPayloadFormat,
+                   u_int32_t rtpTimestampFrequency,
+                   char const* sdpMediaTypeString,
+                   char const* mpeg4Mode,
+                   char const* configString, unsigned numChannels) {
   return new MPEG4GenericRTPSink(env, RTPgs, rtpPayloadFormat,
-				 rtpTimestampFrequency,
-				 sdpMediaTypeString, mpeg4Mode,
-				 configString, numChannels);
+                 rtpTimestampFrequency,
+                 sdpMediaTypeString, mpeg4Mode,
+                 configString, numChannels);
 }
 
 Boolean MPEG4GenericRTPSink
@@ -100,10 +100,10 @@ Boolean MPEG4GenericRTPSink
 
 void MPEG4GenericRTPSink
 ::doSpecialFrameHandling(unsigned fragmentationOffset,
-			 unsigned char* frameStart,
-			 unsigned numBytesInFrame,
-			 struct timeval framePresentationTime,
-			 unsigned numRemainingBytes) {
+             unsigned char* frameStart,
+             unsigned numBytesInFrame,
+             struct timeval framePresentationTime,
+             unsigned numRemainingBytes) {
   // Set the "AU Header Section".  This is 4 bytes: 2 bytes for the
   // initial "AU-headers-length" field, and 2 bytes for the first
   // (and only) "AU Header":
@@ -124,9 +124,9 @@ void MPEG4GenericRTPSink
   // Important: Also call our base class's doSpecialFrameHandling(),
   // to set the packet's timestamp:
   MultiFramedRTPSink::doSpecialFrameHandling(fragmentationOffset,
-					     frameStart, numBytesInFrame,
-					     framePresentationTime,
-					     numRemainingBytes);
+                         frameStart, numBytesInFrame,
+                         framePresentationTime,
+                         numRemainingBytes);
 }
 
 unsigned MPEG4GenericRTPSink::specialHeaderSize() const {

@@ -34,13 +34,13 @@ class MP3AudioMatroskaFileServerMediaSubsession: public MP3AudioFileServerMediaS
 public:
   static MP3AudioMatroskaFileServerMediaSubsession*
   createNew(MatroskaFileServerDemux& demux, MatroskaTrack* track,
-	    Boolean generateADUs = False, Interleaving* interleaving = NULL);
+        Boolean generateADUs = False, Interleaving* interleaving = NULL);
       // Note: "interleaving" is used only if "generateADUs" is True,
       // (and a value of NULL means 'no interleaving')
 
 private:
   MP3AudioMatroskaFileServerMediaSubsession(MatroskaFileServerDemux& demux, MatroskaTrack* track,
-					    Boolean generateADUs, Interleaving* interleaving);
+                        Boolean generateADUs, Interleaving* interleaving);
       // called only by createNew();
   virtual ~MP3AudioMatroskaFileServerMediaSubsession();
 

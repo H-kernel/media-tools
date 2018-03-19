@@ -22,16 +22,16 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 VP9VideoRTPSource*
 VP9VideoRTPSource::createNew(UsageEnvironment& env, Groupsock* RTPgs,
-			      unsigned char rtpPayloadFormat,
-			      unsigned rtpTimestampFrequency) {
+                  unsigned char rtpPayloadFormat,
+                  unsigned rtpTimestampFrequency) {
   return new VP9VideoRTPSource(env, RTPgs, rtpPayloadFormat,
-			       rtpTimestampFrequency);
+                   rtpTimestampFrequency);
 }
 
 VP9VideoRTPSource
 ::VP9VideoRTPSource(UsageEnvironment& env, Groupsock* RTPgs,
-		     unsigned char rtpPayloadFormat,
-		     unsigned rtpTimestampFrequency)
+             unsigned char rtpPayloadFormat,
+             unsigned rtpTimestampFrequency)
   : MultiFramedRTPSource(env, RTPgs, rtpPayloadFormat, rtpTimestampFrequency) {
 }
 
@@ -75,9 +75,9 @@ Boolean VP9VideoRTPSource
       incrHeader;
       unsigned R = (*headerStart)&0x03;
       while (R-- > 0) {
-	incrHeader;
-	Boolean const X = ((*headerStart)&0x10) != 0;
-	if (X) incrHeader;
+    incrHeader;
+    Boolean const X = ((*headerStart)&0x10) != 0;
+    if (X) incrHeader;
       }
     }
   }
@@ -89,9 +89,9 @@ Boolean VP9VideoRTPSource
       incrHeader;
       unsigned R = (*headerStart)&0x03;
       while (R-- > 0) {
-	incrHeader;
-	Boolean const X = ((*headerStart)&0x10) != 0;
-	if (X) incrHeader;
+    incrHeader;
+    Boolean const X = ((*headerStart)&0x10) != 0;
+    if (X) incrHeader;
       }
     }
   }
@@ -99,7 +99,7 @@ Boolean VP9VideoRTPSource
   if (U) { // Scalability Structure Update (SU) present
     return False; // This structure isn't yet defined in the VP9 payload format I-D
   }
-  
+
   return True;
 }
 

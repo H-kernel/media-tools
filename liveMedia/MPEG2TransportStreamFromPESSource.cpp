@@ -29,7 +29,7 @@ MPEG2TransportStreamFromPESSource* MPEG2TransportStreamFromPESSource
 
 MPEG2TransportStreamFromPESSource
 ::MPEG2TransportStreamFromPESSource(UsageEnvironment& env,
-				    MPEG1or2DemuxedElementaryStream* inputSource)
+                    MPEG1or2DemuxedElementaryStream* inputSource)
   : MPEG2TransportStreamMultiplexor(env),
     fInputSource(inputSource) {
   fInputBuffer = new unsigned char[MAX_PES_PACKET_SIZE];
@@ -47,28 +47,28 @@ void MPEG2TransportStreamFromPESSource::doStopGettingFrames() {
 void MPEG2TransportStreamFromPESSource
 ::awaitNewBuffer(unsigned char* /*oldBuffer*/) {
   fInputSource->getNextFrame(fInputBuffer, MAX_PES_PACKET_SIZE,
-			     afterGettingFrame, this,
-			     FramedSource::handleClosure, this);
+                 afterGettingFrame, this,
+                 FramedSource::handleClosure, this);
 }
 
 void MPEG2TransportStreamFromPESSource
 ::afterGettingFrame(void* clientData, unsigned frameSize,
-		    unsigned numTruncatedBytes,
-		    struct timeval presentationTime,
-		    unsigned durationInMicroseconds) {
+            unsigned numTruncatedBytes,
+            struct timeval presentationTime,
+            unsigned durationInMicroseconds) {
   MPEG2TransportStreamFromPESSource* source
     = (MPEG2TransportStreamFromPESSource*)clientData;
   source->afterGettingFrame1(frameSize, numTruncatedBytes,
-			    presentationTime, durationInMicroseconds);
+                presentationTime, durationInMicroseconds);
 }
 
 void MPEG2TransportStreamFromPESSource
 ::afterGettingFrame1(unsigned frameSize,
-		     unsigned /*numTruncatedBytes*/,
-		     struct timeval /*presentationTime*/,
-		     unsigned /*durationInMicroseconds*/) {
+             unsigned /*numTruncatedBytes*/,
+             struct timeval /*presentationTime*/,
+             unsigned /*durationInMicroseconds*/) {
   if (frameSize < 4) return;
 
   handleNewBuffer(fInputBuffer, frameSize,
-		  fInputSource->mpegVersion(), fInputSource->lastSeenSCR());
+          fInputSource->mpegVersion(), fInputSource->lastSeenSCR());
 }

@@ -37,143 +37,143 @@ extern "C"{
 /* RTCP common header */
 
 typedef enum {
-	RTCP_SR = 200,
-	RTCP_RR = 201,
-	RTCP_SDES = 202,
-	RTCP_BYE = 203,
-	RTCP_APP = 204,
-	RTCP_RTPFB = 205,
-	RTCP_PSFB = 206,
-	RTCP_XR = 207
+    RTCP_SR = 200,
+    RTCP_RR = 201,
+    RTCP_SDES = 202,
+    RTCP_BYE = 203,
+    RTCP_APP = 204,
+    RTCP_RTPFB = 205,
+    RTCP_PSFB = 206,
+    RTCP_XR = 207
 } rtcp_type_t;
 
 
 typedef struct rtcp_common_header
 {
 #ifdef ORTP_BIGENDIAN
-	uint16_t version:2;
-	uint16_t padbit:1;
-	uint16_t rc:5;
-	uint16_t packet_type:8;
+    uint16_t version:2;
+    uint16_t padbit:1;
+    uint16_t rc:5;
+    uint16_t packet_type:8;
 #else
-	uint16_t rc:5;
-	uint16_t padbit:1;
-	uint16_t version:2;
-	uint16_t packet_type:8;
+    uint16_t rc:5;
+    uint16_t padbit:1;
+    uint16_t version:2;
+    uint16_t packet_type:8;
 #endif
-	uint16_t length:16;
+    uint16_t length:16;
 } rtcp_common_header_t;
 
 #define rtcp_common_header_set_version(ch,v) (ch)->version=v
 #define rtcp_common_header_set_padbit(ch,p) (ch)->padbit=p
 #define rtcp_common_header_set_rc(ch,rc) (ch)->rc=rc
 #define rtcp_common_header_set_packet_type(ch,pt) (ch)->packet_type=pt
-#define rtcp_common_header_set_length(ch,l)	(ch)->length=htons(l)
+#define rtcp_common_header_set_length(ch,l)    (ch)->length=htons(l)
 
 #define rtcp_common_header_get_version(ch) ((ch)->version)
 #define rtcp_common_header_get_padbit(ch) ((ch)->padbit)
 #define rtcp_common_header_get_rc(ch) ((ch)->rc)
 #define rtcp_common_header_get_packet_type(ch) ((ch)->packet_type)
-#define rtcp_common_header_get_length(ch)	ntohs((ch)->length)
+#define rtcp_common_header_get_length(ch)    ntohs((ch)->length)
 
 
 /* SR or RR  packets */
 
 typedef struct sender_info
 {
-	uint32_t ntp_timestamp_msw;
-	uint32_t ntp_timestamp_lsw;
-	uint32_t rtp_timestamp;
-	uint32_t senders_packet_count;
-	uint32_t senders_octet_count;
+    uint32_t ntp_timestamp_msw;
+    uint32_t ntp_timestamp_lsw;
+    uint32_t rtp_timestamp;
+    uint32_t senders_packet_count;
+    uint32_t senders_octet_count;
 } sender_info_t;
 
 uint64_t sender_info_get_ntp_timestamp(const sender_info_t *si);
-#define sender_info_get_rtp_timestamp(si)	((si)->rtp_timestamp)
+#define sender_info_get_rtp_timestamp(si)    ((si)->rtp_timestamp)
 #define sender_info_get_packet_count(si) \
-	ntohl((si)->senders_packet_count)
+    ntohl((si)->senders_packet_count)
 #define sender_info_get_octet_count(si) \
-	ntohl((si)->senders_octet_count)
+    ntohl((si)->senders_octet_count)
 
 
 typedef struct report_block
 {
-	uint32_t ssrc;
-	uint32_t fl_cnpl;/*fraction lost + cumulative number of packet lost*/
-	uint32_t ext_high_seq_num_rec; /*extended highest sequence number received */
-	uint32_t interarrival_jitter;
-	uint32_t lsr; /*last SR */
-	uint32_t delay_snc_last_sr; /*delay since last sr*/
+    uint32_t ssrc;
+    uint32_t fl_cnpl;/*fraction lost + cumulative number of packet lost*/
+    uint32_t ext_high_seq_num_rec; /*extended highest sequence number received */
+    uint32_t interarrival_jitter;
+    uint32_t lsr; /*last SR */
+    uint32_t delay_snc_last_sr; /*delay since last sr*/
 } report_block_t;
 
 static ORTP_INLINE uint32_t report_block_get_ssrc(const report_block_t * rb) {
-	return ntohl(rb->ssrc);
+    return ntohl(rb->ssrc);
 }
 static ORTP_INLINE uint32_t report_block_get_high_ext_seq(const report_block_t * rb) {
-	return ntohl(rb->ext_high_seq_num_rec);
+    return ntohl(rb->ext_high_seq_num_rec);
 }
 static ORTP_INLINE uint32_t report_block_get_interarrival_jitter(const report_block_t * rb) {
-	return ntohl(rb->interarrival_jitter);
+    return ntohl(rb->interarrival_jitter);
 }
 
 static ORTP_INLINE uint32_t report_block_get_last_SR_time(const report_block_t * rb) {
-	return ntohl(rb->lsr);
+    return ntohl(rb->lsr);
 }
 static ORTP_INLINE uint32_t report_block_get_last_SR_delay(const report_block_t * rb) {
-	return ntohl(rb->delay_snc_last_sr);
+    return ntohl(rb->delay_snc_last_sr);
 }
 static ORTP_INLINE uint32_t report_block_get_fraction_lost(const report_block_t * rb) {
-	return (ntohl(rb->fl_cnpl)>>24);
+    return (ntohl(rb->fl_cnpl)>>24);
 }
 static ORTP_INLINE int32_t report_block_get_cum_packet_lost(const report_block_t * rb){
-	int cum_loss = ntohl(rb->fl_cnpl);
-	if (((cum_loss>>23)&1)==0)
-		return 0x00FFFFFF & cum_loss;
-	else
-		return 0xFF000000 | (cum_loss-0xFFFFFF-1);
+    int cum_loss = ntohl(rb->fl_cnpl);
+    if (((cum_loss>>23)&1)==0)
+        return 0x00FFFFFF & cum_loss;
+    else
+        return 0xFF000000 | (cum_loss-0xFFFFFF-1);
 }
 
 static ORTP_INLINE void report_block_set_fraction_lost(report_block_t * rb, int fl){
-	rb->fl_cnpl = htonl( (ntohl(rb->fl_cnpl) & 0xFFFFFF) | (fl&0xFF)<<24);
+    rb->fl_cnpl = htonl( (ntohl(rb->fl_cnpl) & 0xFFFFFF) | (fl&0xFF)<<24);
 }
 
 static ORTP_INLINE void report_block_set_cum_packet_lost(report_block_t * rb, int64_t cpl) {
-	uint32_t clamp = (uint32_t)((1<<24) + ((cpl>=0) ? (cpl>0x7FFFFF?0x7FFFFF:cpl) : (-cpl>0x800000?-0x800000:cpl)));
+    uint32_t clamp = (uint32_t)((1<<24) + ((cpl>=0) ? (cpl>0x7FFFFF?0x7FFFFF:cpl) : (-cpl>0x800000?-0x800000:cpl)));
 
-	rb->fl_cnpl=htonl(
-			(ntohl(rb->fl_cnpl) & 0xFF000000) |
-			(cpl >= 0 ? clamp&0x7FFFFF : clamp|0x800000)
-		);
+    rb->fl_cnpl=htonl(
+            (ntohl(rb->fl_cnpl) & 0xFF000000) |
+            (cpl >= 0 ? clamp&0x7FFFFF : clamp|0x800000)
+        );
 }
 
 /* SDES packets */
 
 typedef enum {
-	RTCP_SDES_END = 0,
-	RTCP_SDES_CNAME = 1,
-	RTCP_SDES_NAME = 2,
-	RTCP_SDES_EMAIL = 3,
-	RTCP_SDES_PHONE = 4,
-	RTCP_SDES_LOC = 5,
-	RTCP_SDES_TOOL = 6,
-	RTCP_SDES_NOTE = 7,
-	RTCP_SDES_PRIV = 8,
-	RTCP_SDES_MAX = 9
+    RTCP_SDES_END = 0,
+    RTCP_SDES_CNAME = 1,
+    RTCP_SDES_NAME = 2,
+    RTCP_SDES_EMAIL = 3,
+    RTCP_SDES_PHONE = 4,
+    RTCP_SDES_LOC = 5,
+    RTCP_SDES_TOOL = 6,
+    RTCP_SDES_NOTE = 7,
+    RTCP_SDES_PRIV = 8,
+    RTCP_SDES_MAX = 9
 } rtcp_sdes_type_t;
 
 typedef struct sdes_chunk
 {
-	uint32_t csrc;
+    uint32_t csrc;
 } sdes_chunk_t;
 
 
-#define sdes_chunk_get_csrc(c)	ntohl((c)->csrc)
+#define sdes_chunk_get_csrc(c)    ntohl((c)->csrc)
 
 typedef struct sdes_item
 {
-	uint8_t item_type;
-	uint8_t len;
-	char content[1];
+    uint8_t item_type;
+    uint8_t len;
+    char content[1];
 } sdes_item_t;
 
 #define RTCP_SDES_MAX_STRING_SIZE 255
@@ -185,14 +185,14 @@ typedef struct sdes_item
 
 typedef struct rtcp_bye_reason
 {
-	uint8_t len;
-	char content[1];
+    uint8_t len;
+    char content[1];
 } rtcp_bye_reason_t;
 
 typedef struct rtcp_bye
 {
-	rtcp_common_header_t ch;
-	uint32_t ssrc[1];  /* the bye may contain several ssrc/csrc */
+    rtcp_common_header_t ch;
+    uint32_t ssrc[1];  /* the bye may contain several ssrc/csrc */
 } rtcp_bye_t;
 #define RTCP_BYE_HEADER_SIZE sizeof(rtcp_bye_t)
 #define RTCP_BYE_REASON_MAX_STRING_SIZE 255
@@ -209,110 +209,110 @@ typedef struct rtcp_bye
 #define RTCP_XR_VOIP_METRICS_CONFIG_JBA_UNK 0
 
 typedef enum {
-	RTCP_XR_LOSS_RLE = 1,
-	RTCP_XR_DUPLICATE_RLE = 2,
-	RTCP_XR_PACKET_RECEIPT_TIMES = 3,
-	RTCP_XR_RCVR_RTT = 4,
-	RTCP_XR_DLRR = 5,
-	RTCP_XR_STAT_SUMMARY = 6,
-	RTCP_XR_VOIP_METRICS = 7
+    RTCP_XR_LOSS_RLE = 1,
+    RTCP_XR_DUPLICATE_RLE = 2,
+    RTCP_XR_PACKET_RECEIPT_TIMES = 3,
+    RTCP_XR_RCVR_RTT = 4,
+    RTCP_XR_DLRR = 5,
+    RTCP_XR_STAT_SUMMARY = 6,
+    RTCP_XR_VOIP_METRICS = 7
 } rtcp_xr_block_type_t;
 
 typedef struct rtcp_xr_header {
-	rtcp_common_header_t ch;
-	uint32_t ssrc;
+    rtcp_common_header_t ch;
+    uint32_t ssrc;
 } rtcp_xr_header_t;
 
 typedef struct rtcp_xr_generic_block_header {
-	uint8_t bt;
-	uint8_t flags;
-	uint16_t length;
+    uint8_t bt;
+    uint8_t flags;
+    uint16_t length;
 } rtcp_xr_generic_block_header_t;
 
 typedef struct rtcp_xr_rcvr_rtt_report_block {
-	rtcp_xr_generic_block_header_t bh;
-	uint32_t ntp_timestamp_msw;
-	uint32_t ntp_timestamp_lsw;
+    rtcp_xr_generic_block_header_t bh;
+    uint32_t ntp_timestamp_msw;
+    uint32_t ntp_timestamp_lsw;
 } rtcp_xr_rcvr_rtt_report_block_t;
 
 typedef struct rtcp_xr_dlrr_report_subblock {
-	uint32_t ssrc;
-	uint32_t lrr;
-	uint32_t dlrr;
+    uint32_t ssrc;
+    uint32_t lrr;
+    uint32_t dlrr;
 } rtcp_xr_dlrr_report_subblock_t;
 
 typedef struct rtcp_xr_dlrr_report_block {
-	rtcp_xr_generic_block_header_t bh;
-	rtcp_xr_dlrr_report_subblock_t content[1];
+    rtcp_xr_generic_block_header_t bh;
+    rtcp_xr_dlrr_report_subblock_t content[1];
 } rtcp_xr_dlrr_report_block_t;
 
 typedef struct rtcp_xr_stat_summary_report_block {
-	rtcp_xr_generic_block_header_t bh;
-	uint32_t ssrc;
-	uint16_t begin_seq;
-	uint16_t end_seq;
-	uint32_t lost_packets;
-	uint32_t dup_packets;
-	uint32_t min_jitter;
-	uint32_t max_jitter;
-	uint32_t mean_jitter;
-	uint32_t dev_jitter;
-	uint8_t min_ttl_or_hl;
-	uint8_t max_ttl_or_hl;
-	uint8_t mean_ttl_or_hl;
-	uint8_t dev_ttl_or_hl;
+    rtcp_xr_generic_block_header_t bh;
+    uint32_t ssrc;
+    uint16_t begin_seq;
+    uint16_t end_seq;
+    uint32_t lost_packets;
+    uint32_t dup_packets;
+    uint32_t min_jitter;
+    uint32_t max_jitter;
+    uint32_t mean_jitter;
+    uint32_t dev_jitter;
+    uint8_t min_ttl_or_hl;
+    uint8_t max_ttl_or_hl;
+    uint8_t mean_ttl_or_hl;
+    uint8_t dev_ttl_or_hl;
 } rtcp_xr_stat_summary_report_block_t;
 
 typedef struct rtcp_xr_voip_metrics_report_block {
-	rtcp_xr_generic_block_header_t bh;
-	uint32_t ssrc;
-	uint8_t loss_rate;
-	uint8_t discard_rate;
-	uint8_t burst_density;
-	uint8_t gap_density;
-	uint16_t burst_duration;
-	uint16_t gap_duration;
-	uint16_t round_trip_delay;
-	uint16_t end_system_delay;
-	uint8_t signal_level;
-	uint8_t noise_level;
-	uint8_t rerl;
-	uint8_t gmin;
-	uint8_t r_factor;
-	uint8_t ext_r_factor;
-	uint8_t mos_lq;
-	uint8_t mos_cq;
-	uint8_t rx_config;
-	uint8_t reserved2;
-	uint16_t jb_nominal;
-	uint16_t jb_maximum;
-	uint16_t jb_abs_max;
+    rtcp_xr_generic_block_header_t bh;
+    uint32_t ssrc;
+    uint8_t loss_rate;
+    uint8_t discard_rate;
+    uint8_t burst_density;
+    uint8_t gap_density;
+    uint16_t burst_duration;
+    uint16_t gap_duration;
+    uint16_t round_trip_delay;
+    uint16_t end_system_delay;
+    uint8_t signal_level;
+    uint8_t noise_level;
+    uint8_t rerl;
+    uint8_t gmin;
+    uint8_t r_factor;
+    uint8_t ext_r_factor;
+    uint8_t mos_lq;
+    uint8_t mos_cq;
+    uint8_t rx_config;
+    uint8_t reserved2;
+    uint16_t jb_nominal;
+    uint16_t jb_maximum;
+    uint16_t jb_abs_max;
 } rtcp_xr_voip_metrics_report_block_t;
 
 #define MIN_RTCP_XR_PACKET_SIZE (sizeof(rtcp_xr_header_t) + 4)
 
 typedef enum {
-	RTCP_RTPFB_NACK = 1,
-	RTCP_RTPFB_TMMBR = 3,
-	RTCP_RTPFB_TMMBN = 4
+    RTCP_RTPFB_NACK = 1,
+    RTCP_RTPFB_TMMBR = 3,
+    RTCP_RTPFB_TMMBN = 4
 } rtcp_rtpfb_type_t;
 
 typedef enum {
-	RTCP_PSFB_PLI = 1,
-	RTCP_PSFB_SLI = 2,
-	RTCP_PSFB_RPSI = 3,
-	RTCP_PSFB_FIR = 4,
-	RTCP_PSFB_AFB = 15
+    RTCP_PSFB_PLI = 1,
+    RTCP_PSFB_SLI = 2,
+    RTCP_PSFB_RPSI = 3,
+    RTCP_PSFB_FIR = 4,
+    RTCP_PSFB_AFB = 15
 } rtcp_psfb_type_t;
 
 typedef struct rtcp_fb_header {
-	uint32_t packet_sender_ssrc;
-	uint32_t media_source_ssrc;
+    uint32_t packet_sender_ssrc;
+    uint32_t media_source_ssrc;
 } rtcp_fb_header_t;
 
 typedef struct rtcp_fb_generic_nack_fci {
-	uint16_t pid;
-	uint16_t blp;
+    uint16_t pid;
+    uint16_t blp;
 } rtcp_fb_generic_nack_fci_t;
 
 #define rtcp_fb_generic_nack_fci_get_pid(nack) ntohs((nack)->pid)
@@ -321,55 +321,55 @@ typedef struct rtcp_fb_generic_nack_fci {
 #define rtcp_fb_generic_nack_fci_set_blp(nack, value) ((nack)->blp) = htons(value)
 
 typedef struct rtcp_fb_tmmbr_fci {
-	uint32_t ssrc;
-	uint32_t value;
+    uint32_t ssrc;
+    uint32_t value;
 } rtcp_fb_tmmbr_fci_t;
 
 #define rtcp_fb_tmmbr_fci_get_ssrc(tmmbr) ntohl((tmmbr)->ssrc)
 #define rtcp_fb_tmmbr_fci_get_mxtbr_exp(tmmbr) \
-	((uint8_t)((ntohl((tmmbr)->value) >> 26) & 0x0000003F))
+    ((uint8_t)((ntohl((tmmbr)->value) >> 26) & 0x0000003F))
 #define rtcp_fb_tmmbr_fci_set_mxtbr_exp(tmmbr, mxtbr_exp) \
-	((tmmbr)->value) = htonl((ntohl((tmmbr)->value) & 0x03FFFFFF) | (((mxtbr_exp) & 0x0000003F) << 26))
+    ((tmmbr)->value) = htonl((ntohl((tmmbr)->value) & 0x03FFFFFF) | (((mxtbr_exp) & 0x0000003F) << 26))
 #define rtcp_fb_tmmbr_fci_get_mxtbr_mantissa(tmmbr) \
-	((uint32_t)((ntohl((tmmbr)->value) >> 9) & 0x0001FFFF))
+    ((uint32_t)((ntohl((tmmbr)->value) >> 9) & 0x0001FFFF))
 #define rtcp_fb_tmmbr_fci_set_mxtbr_mantissa(tmmbr, mxtbr_mantissa) \
-	((tmmbr)->value) = htonl((ntohl((tmmbr)->value) & 0xFC0001FF) | (((mxtbr_mantissa) & 0x0001FFFF) << 9))
+    ((tmmbr)->value) = htonl((ntohl((tmmbr)->value) & 0xFC0001FF) | (((mxtbr_mantissa) & 0x0001FFFF) << 9))
 #define rtcp_fb_tmmbr_fci_get_measured_overhead(tmmbr) \
-	((uint16_t)(ntohl((tmmbr)->value) & 0x000001FF))
+    ((uint16_t)(ntohl((tmmbr)->value) & 0x000001FF))
 #define rtcp_fb_tmmbr_fci_set_measured_overhead(tmmbr, measured_overhead) \
-	((tmmbr)->value) = htonl((ntohl((tmmbr)->value) & 0xFFFFFE00) | ((measured_overhead) & 0x000001FF))
+    ((tmmbr)->value) = htonl((ntohl((tmmbr)->value) & 0xFFFFFE00) | ((measured_overhead) & 0x000001FF))
 
 typedef struct rtcp_fb_fir_fci {
-	uint32_t ssrc;
-	uint8_t seq_nr;
-	uint8_t pad1;
-	uint16_t pad2;
+    uint32_t ssrc;
+    uint8_t seq_nr;
+    uint8_t pad1;
+    uint16_t pad2;
 } rtcp_fb_fir_fci_t;
 
 #define rtcp_fb_fir_fci_get_ssrc(fci) ntohl((fci)->ssrc)
 #define rtcp_fb_fir_fci_get_seq_nr(fci) (fci)->seq_nr
 
 typedef struct rtcp_fb_sli_fci {
-	uint32_t value;
+    uint32_t value;
 } rtcp_fb_sli_fci_t;
 
 #define rtcp_fb_sli_fci_get_first(fci) \
-	((uint16_t)((ntohl((fci)->value) >> 19) & 0x00001FFF))
+    ((uint16_t)((ntohl((fci)->value) >> 19) & 0x00001FFF))
 #define rtcp_fb_sli_fci_set_first(fci, first) \
-	((fci)->value) = htonl((ntohl((fci)->value) & 0x0007FFFF) | (((first) & 0x00001FFF) << 19))
+    ((fci)->value) = htonl((ntohl((fci)->value) & 0x0007FFFF) | (((first) & 0x00001FFF) << 19))
 #define rtcp_fb_sli_fci_get_number(fci) \
-	((uint16_t)((ntohl((fci)->value) >> 6) & 0x00001FFF))
+    ((uint16_t)((ntohl((fci)->value) >> 6) & 0x00001FFF))
 #define rtcp_fb_sli_fci_set_number(fci, number) \
-	((fci)->value) = htonl((ntohl((fci)->value) & 0xFFF8003F) | (((number) & 0x00001FFF) << 6))
+    ((fci)->value) = htonl((ntohl((fci)->value) & 0xFFF8003F) | (((number) & 0x00001FFF) << 6))
 #define rtcp_fb_sli_fci_get_picture_id(fci) \
-	((uint8_t)(ntohl((fci)->value) & 0x0000003F))
+    ((uint8_t)(ntohl((fci)->value) & 0x0000003F))
 #define rtcp_fb_sli_fci_set_picture_id(fci, picture_id) \
-	((fci)->value) = htonl((ntohl((fci)->value) & 0xFFFFFFC0) | ((picture_id) & 0x0000003F))
+    ((fci)->value) = htonl((ntohl((fci)->value) & 0xFFFFFFC0) | ((picture_id) & 0x0000003F))
 
 typedef struct rtcp_fb_rpsi_fci {
-	uint8_t pb;
-	uint8_t payload_type;
-	uint16_t bit_string[1];
+    uint8_t pb;
+    uint8_t payload_type;
+    uint16_t bit_string[1];
 } rtcp_fb_rpsi_fci_t;
 
 #define rtcp_fb_rpsi_fci_get_payload_type(fci) (fci)->payload_type
@@ -381,22 +381,22 @@ typedef struct rtcp_fb_rpsi_fci {
 
 
 typedef struct rtcp_sr{
-	rtcp_common_header_t ch;
-	uint32_t ssrc;
-	sender_info_t si;
-	report_block_t rb[1];
+    rtcp_common_header_t ch;
+    uint32_t ssrc;
+    sender_info_t si;
+    report_block_t rb[1];
 } rtcp_sr_t;
 
 typedef struct rtcp_rr{
-	rtcp_common_header_t ch;
-	uint32_t ssrc;
-	report_block_t rb[1];
+    rtcp_common_header_t ch;
+    uint32_t ssrc;
+    report_block_t rb[1];
 } rtcp_rr_t;
 
 typedef struct rtcp_app{
-	rtcp_common_header_t ch;
-	uint32_t ssrc;
-	char name[4];
+    rtcp_common_header_t ch;
+    uint32_t ssrc;
+    char name[4];
 } rtcp_app_t;
 
 struct _RtpSession;
@@ -513,22 +513,22 @@ ORTP_PUBLIC uint16_t rtcp_PSFB_rpsi_get_fci_bit_string_len(const mblk_t *m);
 
 
 typedef struct OrtpLossRateEstimator{
-	int min_packet_count_interval;
-	uint64_t min_time_ms_interval;
-	uint64_t last_estimate_time_ms;
-	int32_t last_cum_loss;
-	int32_t last_ext_seq;
-	float loss_rate;
-	/**
-	* Total number of outgoing duplicate packets on last
-	* #ortp_loss_rate_estimator_process_report_block iteration.
-	**/
-	int32_t last_dup_packet_sent_count;
-	/**
-	* Total number of outgoing unique packets on last
-	* #ortp_loss_rate_estimator_process_report_block iteration.
-	**/
-	int32_t last_packet_sent_count;
+    int min_packet_count_interval;
+    uint64_t min_time_ms_interval;
+    uint64_t last_estimate_time_ms;
+    int32_t last_cum_loss;
+    int32_t last_ext_seq;
+    float loss_rate;
+    /**
+    * Total number of outgoing duplicate packets on last
+    * #ortp_loss_rate_estimator_process_report_block iteration.
+    **/
+    int32_t last_dup_packet_sent_count;
+    /**
+    * Total number of outgoing unique packets on last
+    * #ortp_loss_rate_estimator_process_report_block iteration.
+    **/
+    int32_t last_packet_sent_count;
 }OrtpLossRateEstimator;
 
 
@@ -553,8 +553,8 @@ ORTP_PUBLIC void ortp_loss_rate_estimator_init(OrtpLossRateEstimator *obj, int m
  * @return TRUE if a new loss rate estimation is ready, FALSE otherwise.
  */
 ORTP_PUBLIC bool_t ortp_loss_rate_estimator_process_report_block(OrtpLossRateEstimator *obj,
-																 const struct _RtpStream *stream,
-																 const report_block_t *rb);
+                                                                 const struct _RtpStream *stream,
+                                                                 const report_block_t *rb);
 /**
  * Get the latest loss rate in percentage estimation computed.
  *

@@ -32,9 +32,9 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class RawQCELPRTPSource: public MultiFramedRTPSource {
 public:
   static RawQCELPRTPSource* createNew(UsageEnvironment& env,
-				      Groupsock* RTPgs,
-				      unsigned char rtpPayloadFormat,
-				      unsigned rtpTimestampFrequency);
+                      Groupsock* RTPgs,
+                      unsigned char rtpPayloadFormat,
+                      unsigned rtpTimestampFrequency);
 
   unsigned char interleaveL() const { return fInterleaveL; }
   unsigned char interleaveN() const { return fInterleaveN; }
@@ -42,8 +42,8 @@ public:
 
 private:
   RawQCELPRTPSource(UsageEnvironment& env, Groupsock* RTPgs,
-		    unsigned char rtpPayloadFormat,
-		    unsigned rtpTimestampFrequency);
+            unsigned char rtpPayloadFormat,
+            unsigned rtpTimestampFrequency);
       // called only by createNew()
 
   virtual ~RawQCELPRTPSource();
@@ -64,19 +64,19 @@ private:
 class QCELPDeinterleaver: public FramedFilter {
 public:
   static QCELPDeinterleaver* createNew(UsageEnvironment& env,
-				       RawQCELPRTPSource* inputSource);
+                       RawQCELPRTPSource* inputSource);
 
 private:
   QCELPDeinterleaver(UsageEnvironment& env,
-		     RawQCELPRTPSource* inputSource);
+             RawQCELPRTPSource* inputSource);
       // called only by "createNew()"
 
   virtual ~QCELPDeinterleaver();
 
   static void afterGettingFrame(void* clientData, unsigned frameSize,
-				unsigned numTruncatedBytes,
+                unsigned numTruncatedBytes,
                                 struct timeval presentationTime,
-				unsigned durationInMicroseconds);
+                unsigned durationInMicroseconds);
   void afterGettingFrame1(unsigned frameSize, struct timeval presentationTime);
 
 private:
@@ -94,14 +94,14 @@ private:
 
 FramedSource*
 QCELPAudioRTPSource::createNew(UsageEnvironment& env,
-			       Groupsock* RTPgs,
-			       RTPSource*& resultRTPSource,
-			       unsigned char rtpPayloadFormat,
-			       unsigned rtpTimestampFrequency) {
+                   Groupsock* RTPgs,
+                   RTPSource*& resultRTPSource,
+                   unsigned char rtpPayloadFormat,
+                   unsigned rtpTimestampFrequency) {
   RawQCELPRTPSource* rawRTPSource;
   resultRTPSource = rawRTPSource
     = RawQCELPRTPSource::createNew(env, RTPgs, rtpPayloadFormat,
-				   rtpTimestampFrequency);
+                   rtpTimestampFrequency);
   if (resultRTPSource == NULL) return NULL;
 
   QCELPDeinterleaver* deinterleaver
@@ -126,7 +126,7 @@ public:
 
 private: // redefined virtual functions
   virtual unsigned nextEnclosedFrameSize(unsigned char*& framePtr,
-					 unsigned dataSize);
+                     unsigned dataSize);
 private:
   RawQCELPRTPSource& fOurSource;
 };
@@ -141,18 +141,18 @@ private: // redefined virtual functions
 
 RawQCELPRTPSource*
 RawQCELPRTPSource::createNew(UsageEnvironment& env, Groupsock* RTPgs,
-			     unsigned char rtpPayloadFormat,
-			     unsigned rtpTimestampFrequency) {
+                 unsigned char rtpPayloadFormat,
+                 unsigned rtpTimestampFrequency) {
   return new RawQCELPRTPSource(env, RTPgs, rtpPayloadFormat,
-			       rtpTimestampFrequency);
+                   rtpTimestampFrequency);
 }
 
 RawQCELPRTPSource::RawQCELPRTPSource(UsageEnvironment& env,
-				     Groupsock* RTPgs,
-				     unsigned char rtpPayloadFormat,
-				     unsigned rtpTimestampFrequency)
+                     Groupsock* RTPgs,
+                     unsigned char rtpPayloadFormat,
+                     unsigned rtpTimestampFrequency)
   : MultiFramedRTPSource(env, RTPgs, rtpPayloadFormat,
-			 rtpTimestampFrequency,
+             rtpTimestampFrequency,
                          new QCELPBufferedPacketFactory),
   fInterleaveL(0), fInterleaveN(0), fFrameIndex(0),
   fNumSuccessiveSyncedPackets(0) {
@@ -163,7 +163,7 @@ RawQCELPRTPSource::~RawQCELPRTPSource() {
 
 Boolean RawQCELPRTPSource
 ::processSpecialHeader(BufferedPacket* packet,
-		       unsigned& resultSpecialHeaderSize) {
+               unsigned& resultSpecialHeaderSize) {
   unsigned char* headerStart = packet->data();
   unsigned packetSize = packet->dataSize();
 
@@ -266,14 +266,14 @@ public:
   virtual ~QCELPDeinterleavingBuffer();
 
   void deliverIncomingFrame(unsigned frameSize,
-			    unsigned char interleaveL,
-			    unsigned char interleaveN,
-			    unsigned char frameIndex,
-			    unsigned short packetSeqNum,
-			    struct timeval presentationTime);
+                unsigned char interleaveL,
+                unsigned char interleaveN,
+                unsigned char frameIndex,
+                unsigned short packetSeqNum,
+                struct timeval presentationTime);
   Boolean retrieveFrame(unsigned char* to, unsigned maxSize,
-			unsigned& resultFrameSize, unsigned& resultNumTruncatedBytes,
-			struct timeval& resultPresentationTime);
+            unsigned& resultFrameSize, unsigned& resultNumTruncatedBytes,
+            struct timeval& resultPresentationTime);
 
   unsigned char* inputBuffer() { return fInputBuffer; }
   unsigned inputBufferSize() const { return QCELP_MAX_FRAME_SIZE; }
@@ -306,12 +306,12 @@ private:
 
 QCELPDeinterleaver*
 QCELPDeinterleaver::createNew(UsageEnvironment& env,
-			      RawQCELPRTPSource* inputSource) {
+                  RawQCELPRTPSource* inputSource) {
   return new QCELPDeinterleaver(env, inputSource);
 }
 
 QCELPDeinterleaver::QCELPDeinterleaver(UsageEnvironment& env,
-				       RawQCELPRTPSource* inputSource)
+                       RawQCELPRTPSource* inputSource)
   : FramedFilter(env, inputSource),
     fNeedAFrame(False) {
   fDeinterleavingBuffer = new QCELPDeinterleavingBuffer();
@@ -326,8 +326,8 @@ static unsigned const uSecsPerFrame = 20000; // 20 ms
 void QCELPDeinterleaver::doGetNextFrame() {
   // First, try getting a frame from the deinterleaving buffer:
   if (fDeinterleavingBuffer->retrieveFrame(fTo, fMaxSize,
-					   fFrameSize, fNumTruncatedBytes,
-					   fPresentationTime)) {
+                       fFrameSize, fNumTruncatedBytes,
+                       fPresentationTime)) {
     // Success!
     fNeedAFrame = False;
 
@@ -344,9 +344,9 @@ void QCELPDeinterleaver::doGetNextFrame() {
   fNeedAFrame = True;
   if (!fInputSource->isCurrentlyAwaitingData()) {
     fInputSource->getNextFrame(fDeinterleavingBuffer->inputBuffer(),
-			       fDeinterleavingBuffer->inputBufferSize(),
-			       afterGettingFrame, this,
-			       FramedSource::handleClosure, this);
+                   fDeinterleavingBuffer->inputBufferSize(),
+                   afterGettingFrame, this,
+                   FramedSource::handleClosure, this);
   }
 }
 
@@ -357,9 +357,9 @@ void QCELPDeinterleaver::doStopGettingFrames() {
 
 void QCELPDeinterleaver
 ::afterGettingFrame(void* clientData, unsigned frameSize,
-		    unsigned /*numTruncatedBytes*/,
-		    struct timeval presentationTime,
-		    unsigned /*durationInMicroseconds*/) {
+            unsigned /*numTruncatedBytes*/,
+            struct timeval presentationTime,
+            unsigned /*durationInMicroseconds*/) {
   QCELPDeinterleaver* deinterleaver = (QCELPDeinterleaver*)clientData;
   deinterleaver->afterGettingFrame1(frameSize, presentationTime);
 }
@@ -371,9 +371,9 @@ void QCELPDeinterleaver
   // First, put the frame into our deinterleaving buffer:
   fDeinterleavingBuffer
     ->deliverIncomingFrame(frameSize, source->interleaveL(),
-			   source->interleaveN(), source->frameIndex(),
-			   source->curPacketRTPSeqNum(),
-			   presentationTime);
+               source->interleaveN(), source->frameIndex(),
+               source->curPacketRTPSeqNum(),
+               presentationTime);
 
   // Then, try delivering a frame to the client (if he wants one):
   if (fNeedAFrame) doGetNextFrame();
@@ -395,11 +395,11 @@ QCELPDeinterleavingBuffer::~QCELPDeinterleavingBuffer() {
 
 void QCELPDeinterleavingBuffer
 ::deliverIncomingFrame(unsigned frameSize,
-		       unsigned char interleaveL,
-		       unsigned char interleaveN,
-		       unsigned char frameIndex,
-		       unsigned short packetSeqNum,
-		       struct timeval presentationTime) {
+               unsigned char interleaveL,
+               unsigned char interleaveN,
+               unsigned char frameIndex,
+               unsigned short packetSeqNum,
+               struct timeval presentationTime) {
   // First perform a sanity check on the parameters:
   // (This is overkill, as the source should have already done this.)
   if (frameSize > QCELP_MAX_FRAME_SIZE
@@ -452,8 +452,8 @@ void QCELPDeinterleavingBuffer
 
 Boolean QCELPDeinterleavingBuffer
 ::retrieveFrame(unsigned char* to, unsigned maxSize,
-		unsigned& resultFrameSize, unsigned& resultNumTruncatedBytes,
-		struct timeval& resultPresentationTime) {
+        unsigned& resultFrameSize, unsigned& resultNumTruncatedBytes,
+        struct timeval& resultPresentationTime) {
   if (fNextOutgoingBin >= fOutgoingBinMax) return False; // none left
 
   FrameDescriptor& outBin = fFrames[fNextOutgoingBin][fIncomingBankId^1];

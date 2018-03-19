@@ -33,7 +33,7 @@ public:
 
 private: // redefined virtual functions
   virtual unsigned nextEnclosedFrameSize(unsigned char*& framePtr,
-					 unsigned dataSize);
+                     unsigned dataSize);
 private:
   QuickTimeGenericRTPSource& fOurSource;
 };
@@ -48,23 +48,23 @@ private: // redefined virtual functions
 
 QuickTimeGenericRTPSource*
 QuickTimeGenericRTPSource::createNew(UsageEnvironment& env,
-				     Groupsock* RTPgs,
-				     unsigned char rtpPayloadFormat,
-				     unsigned rtpTimestampFrequency,
-				     char const* mimeTypeString) {
+                     Groupsock* RTPgs,
+                     unsigned char rtpPayloadFormat,
+                     unsigned rtpTimestampFrequency,
+                     char const* mimeTypeString) {
   return new QuickTimeGenericRTPSource(env, RTPgs, rtpPayloadFormat,
-				       rtpTimestampFrequency,
-				       mimeTypeString);
+                       rtpTimestampFrequency,
+                       mimeTypeString);
 }
 
 QuickTimeGenericRTPSource
 ::QuickTimeGenericRTPSource(UsageEnvironment& env, Groupsock* RTPgs,
-			    unsigned char rtpPayloadFormat,
-			    unsigned rtpTimestampFrequency,
-			    char const* mimeTypeString)
+                unsigned char rtpPayloadFormat,
+                unsigned rtpTimestampFrequency,
+                char const* mimeTypeString)
   : MultiFramedRTPSource(env, RTPgs,
-			 rtpPayloadFormat, rtpTimestampFrequency,
-			 new QTGenericBufferedPacketFactory),
+             rtpPayloadFormat, rtpTimestampFrequency,
+             new QTGenericBufferedPacketFactory),
     fMIMEtypeString(strDup(mimeTypeString)) {
   qtState.PCK = 0;
   qtState.timescale = 0;
@@ -160,23 +160,23 @@ Boolean QuickTimeGenericRTPSource
       // Check for 'TLV's that we can use for our 'qtState'
       switch (tlvType) {
       case ('s'<<8|'d'): { // session description atom
-	// Sanity check: the first 4 bytes of this must equal "tlvLength":
-	unsigned atomLength  = (headerStart[0]<<24)|(headerStart[1]<<16)
-	  |(headerStart[2]<<8)|(headerStart[3]);
-	if (atomLength != (unsigned)tlvLength) break;
+    // Sanity check: the first 4 bytes of this must equal "tlvLength":
+    unsigned atomLength  = (headerStart[0]<<24)|(headerStart[1]<<16)
+      |(headerStart[2]<<8)|(headerStart[3]);
+    if (atomLength != (unsigned)tlvLength) break;
 
-	delete[] qtState.sdAtom; qtState.sdAtom = new char[tlvLength];
-	memmove(qtState.sdAtom, headerStart, tlvLength);
-	qtState.sdAtomSize = tlvLength;
-	break;
+    delete[] qtState.sdAtom; qtState.sdAtom = new char[tlvLength];
+    memmove(qtState.sdAtom, headerStart, tlvLength);
+    qtState.sdAtomSize = tlvLength;
+    break;
       }
       case ('t'<<8|'w'): { // track width
-	qtState.width = (headerStart[0]<<8)|headerStart[1];
-	break;
+    qtState.width = (headerStart[0]<<8)|headerStart[1];
+    break;
       }
       case ('t'<<8|'h'): { // track height
-	qtState.height = (headerStart[0]<<8)|headerStart[1];
-	break;
+    qtState.height = (headerStart[0]<<8)|headerStart[1];
+    break;
       }
       }
 

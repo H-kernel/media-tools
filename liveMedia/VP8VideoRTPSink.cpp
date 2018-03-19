@@ -35,17 +35,17 @@ VP8VideoRTPSink::createNew(UsageEnvironment& env, Groupsock* RTPgs, unsigned cha
 
 Boolean VP8VideoRTPSink
 ::frameCanAppearAfterPacketStart(unsigned char const* /*frameStart*/,
-				 unsigned /*numBytesInFrame*/) const {
+                 unsigned /*numBytesInFrame*/) const {
   // A packet can contain only one frame
   return False;
 }
 
 void VP8VideoRTPSink
 ::doSpecialFrameHandling(unsigned fragmentationOffset,
-			 unsigned char* /*frameStart*/,
-			 unsigned /*numBytesInFrame*/,
-			 struct timeval framePresentationTime,
-			 unsigned numRemainingBytes) {
+             unsigned char* /*frameStart*/,
+             unsigned /*numBytesInFrame*/,
+             struct timeval framePresentationTime,
+             unsigned numRemainingBytes) {
   // Set the "VP8 Payload Descriptor" (just the minimal required 1-byte version):
   u_int8_t vp8PayloadDescriptor = fragmentationOffset == 0 ? 0x10 : 0x00;
     // X = R = N = 0; PartID = 0; S = 1 iff this is the first (or only) fragment of the frame

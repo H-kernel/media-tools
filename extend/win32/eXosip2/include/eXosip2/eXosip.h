@@ -1,17 +1,17 @@
 /*
   eXosip - This is the eXtended osip library.
   Copyright (C) 2001-2015 Aymeric MOIZARD amoizard@antisip.com
-  
+
   eXosip is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
-  
+
   eXosip is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
-  
+
   You should have received a copy of the GNU General Public License
   along with this program; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -102,12 +102,12 @@ extern "C" {
  * request comes back with an authorization required response.
  *
  * @param excontext    eXosip_t instance.
- * @param username	username
- * @param userid	login (usually equals the username)
- * @param passwd	password
- * @param ha1		currently ignored
- * @param realm		realm within which credentials apply, or NULL
- *			to apply credentials to unrecognized realms
+ * @param username    username
+ * @param userid    login (usually equals the username)
+ * @param passwd    password
+ * @param ha1        currently ignored
+ * @param realm        realm within which credentials apply, or NULL
+ *            to apply credentials to unrecognized realms
  */
   int eXosip_add_authentication_info (struct eXosip_t *excontext, const char *username, const char *userid, const char *passwd, const char *ha1, const char *realm);
 
@@ -115,8 +115,8 @@ extern "C" {
  * Remove authentication credentials.
  *
  * @param excontext    eXosip_t instance.
- * @param username	username
- * @param realm		realm must be exact same arg as for eXosip_add_authentication_info
+ * @param username    username
+ * @param realm        realm must be exact same arg as for eXosip_add_authentication_info
  */
   int eXosip_remove_authentication_info (struct eXosip_t *excontext, const char *username, const char *realm);
 
@@ -136,7 +136,7 @@ extern "C" {
  *  Usefull & required when eXosip_automatic_action() can't do the automatic action:
  *  1/ if you receive a 401 or 407 for BYE (event EXOSIP_CALL_MESSAGE_REQUESTFAILURE).
  *  2/ if you receive 401 or 407 for any sip request outside of dialog (EXOSIP_MESSAGE_REQUESTFAILURE)
- * 
+ *
  * @param excontext    eXosip_t instance.
  * @param je           event to work on.
  */
@@ -150,7 +150,7 @@ extern "C" {
  *  Refresh REGISTER and SUBSCRIBE/REFER before the expiration delay.
  *  Retry with Contact header upon reception of 3xx request.
  *  Send automatic UPDATE for session-timer feature.
- * 
+ *
  * @param excontext    eXosip_t instance.
  */
   void eXosip_automatic_action (struct eXosip_t *excontext);
@@ -158,7 +158,7 @@ extern "C" {
 #ifndef MINISIZE
   /**
  * Automatic internal handling of dialog package.
- * 
+ *
  * @param excontext    eXosip_t instance.
  * @param evt          Incoming SUBSCRIBE for dialog package.
  */
@@ -168,7 +168,7 @@ extern "C" {
 /**
  * Generate random string:
  *
- * @param buf	        destination buffer for random string.
+ * @param buf            destination buffer for random string.
  * @param buf_size      size of destination buffer
  */
   int eXosip_generate_random (char *buf, int buf_size);
@@ -184,7 +184,7 @@ extern "C" {
 
 /**
  * Get remote SDP body for the latest INVITE of call.
- * 
+ *
  * @param excontext    eXosip_t instance.
  * @param did          dialog id of call.
  */
@@ -192,7 +192,7 @@ extern "C" {
 
 /**
  * Get local SDP body for the latest INVITE of call.
- * 
+ *
  * @param excontext    eXosip_t instance.
  * @param did          dialog id of call.
  */
@@ -200,7 +200,7 @@ extern "C" {
 
 /**
  * Get local SDP body for the previous latest INVITE of call.
- * 
+ *
  * @param excontext    eXosip_t instance.
  * @param did          dialog id of call.
  */
@@ -208,7 +208,7 @@ extern "C" {
 
 /**
  * Get remote SDP body for the latest INVITE of call.
- * 
+ *
  * @param excontext    eXosip_t instance.
  * @param tid          transction id of transaction.
  */
@@ -216,7 +216,7 @@ extern "C" {
 
 /**
  * Get local SDP body for the latest INVITE of call.
- * 
+ *
  * @param excontext    eXosip_t instance.
  * @param tid          transction id of transaction.
  */
@@ -224,42 +224,42 @@ extern "C" {
 
 /**
  * Get local SDP body for the given message.
- * 
+ *
  * @param message      message containing the SDP.
  */
   sdp_message_t *eXosip_get_sdp_info (osip_message_t * message);
 
 /**
  * Get audio connection information for call.
- * 
+ *
  * @param sdp     sdp information.
  */
   sdp_connection_t *eXosip_get_audio_connection (sdp_message_t * sdp);
 
 /**
  * Get audio media information for call.
- * 
+ *
  * @param sdp     sdp information.
  */
   sdp_media_t *eXosip_get_audio_media (sdp_message_t * sdp);
 
 /**
  * Get video connection information for call.
- * 
+ *
  * @param sdp     sdp information.
  */
   sdp_connection_t *eXosip_get_video_connection (sdp_message_t * sdp);
 
 /**
  * Get video media information for call.
- * 
+ *
  * @param sdp     sdp information.
  */
   sdp_media_t *eXosip_get_video_media (sdp_message_t * sdp);
 
 /**
  * Get media connection information for call.
- * 
+ *
  * @param sdp     sdp information.
  * @param media   media to search.
  */
@@ -267,7 +267,7 @@ extern "C" {
 
 /**
  * Get media information for call.
- * 
+ *
  * @param sdp     sdp information.
  * @param media   media to search.
  */
@@ -379,14 +379,14 @@ extern "C" {
 
 /**
  * Free ressource in an eXosip event.
- * 
+ *
  * @param je    event to work on.
  */
   void eXosip_event_free (eXosip_event_t * je);
 
 /**
  * Wait for an eXosip event.
- * 
+ *
  * @param excontext    eXosip_t instance.
  * @param tv_s      timeout value (seconds).
  * @param tv_ms     timeout value (mseconds).
@@ -410,7 +410,7 @@ extern "C" {
  * This socket receive some data yhen an event happens internally.
  * NOTE: you must call eXosip_event_wait until there is no more events
  * in the fifo.
- * 
+ *
  * @param excontext    eXosip_t instance.
  */
   int eXosip_event_geteventsocket (struct eXosip_t *excontext);

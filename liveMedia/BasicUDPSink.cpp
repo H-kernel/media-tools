@@ -22,12 +22,12 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #include <GroupsockHelper.hh>
 
 BasicUDPSink* BasicUDPSink::createNew(UsageEnvironment& env, Groupsock* gs,
-				      unsigned maxPayloadSize) {
+                      unsigned maxPayloadSize) {
   return new BasicUDPSink(env, gs, maxPayloadSize);
 }
 
 BasicUDPSink::BasicUDPSink(UsageEnvironment& env, Groupsock* gs,
-			   unsigned maxPayloadSize)
+               unsigned maxPayloadSize)
   : MediaSink(env),
     fGS(gs), fMaxPayloadSize(maxPayloadSize) {
   fOutputBuffer = new unsigned char[fMaxPayloadSize];
@@ -51,25 +51,25 @@ void BasicUDPSink::continuePlaying1() {
   nextTask() = NULL;
   if (fSource != NULL) {
     fSource->getNextFrame(fOutputBuffer, fMaxPayloadSize,
-			  afterGettingFrame, this,
-			  onSourceClosure, this);
+              afterGettingFrame, this,
+              onSourceClosure, this);
   }
 }
 
 void BasicUDPSink::afterGettingFrame(void* clientData, unsigned frameSize,
-				     unsigned numTruncatedBytes,
-				     struct timeval /*presentationTime*/,
-				     unsigned durationInMicroseconds) {
+                     unsigned numTruncatedBytes,
+                     struct timeval /*presentationTime*/,
+                     unsigned durationInMicroseconds) {
   BasicUDPSink* sink = (BasicUDPSink*)clientData;
   sink->afterGettingFrame1(frameSize, numTruncatedBytes, durationInMicroseconds);
 }
 
 void BasicUDPSink::afterGettingFrame1(unsigned frameSize, unsigned numTruncatedBytes,
-				      unsigned durationInMicroseconds) {
+                      unsigned durationInMicroseconds) {
   if (numTruncatedBytes > 0) {
     envir() << "BasicUDPSink::afterGettingFrame1(): The input frame data was too large for our spcified maximum payload size ("
-	    << fMaxPayloadSize << ").  "
-	    << numTruncatedBytes << " bytes of trailing data was dropped!\n";
+        << fMaxPayloadSize << ").  "
+        << numTruncatedBytes << " bytes of trailing data was dropped!\n";
   }
 
   // Send the packet:
@@ -91,7 +91,7 @@ void BasicUDPSink::afterGettingFrame1(unsigned frameSize, unsigned numTruncatedB
 
   // Delay this amount of time:
   nextTask() = envir().taskScheduler().scheduleDelayedTask(uSecondsToGo,
-							   (TaskFunc*)sendNext, this);
+                               (TaskFunc*)sendNext, this);
 }
 
 // The following is called after each delay between packet sends:

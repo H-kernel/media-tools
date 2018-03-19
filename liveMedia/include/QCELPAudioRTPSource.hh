@@ -28,10 +28,10 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class QCELPAudioRTPSource {
 public:
   static FramedSource* createNew(UsageEnvironment& env,
-				 Groupsock* RTPgs,
-				 RTPSource*& resultRTPSource,
-				 unsigned char rtpPayloadFormat = 12,
-				 unsigned rtpTimestampFrequency = 8000);
+                 Groupsock* RTPgs,
+                 RTPSource*& resultRTPSource,
+                 unsigned char rtpPayloadFormat = 12,
+                 unsigned rtpTimestampFrequency = 8000);
       // This returns a source to read from, but "resultRTPSource" will
       // point to RTP-related state.
 };

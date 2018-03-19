@@ -48,7 +48,7 @@ private:
 ////////// OggFile implementation //////////
 
 void OggFile::createNew(UsageEnvironment& env, char const* fileName,
-			onCreationFunc* onCreation, void* onCreationClientData) {
+            onCreationFunc* onCreation, void* onCreationClientData) {
   new OggFile(env, fileName, onCreation, onCreationClientData);
 }
 
@@ -98,21 +98,21 @@ RTPSink* OggFile
     // For Vorbis audio, we use the special "identification", "comment", and "setup" headers
     // that we read when we initially read the headers at the start of the file:
     result = VorbisAudioRTPSink::createNew(envir(), rtpGroupsock, rtpPayloadTypeIfDynamic,
-					   track->samplingFrequency, track->numChannels,
-					   track->vtoHdrs.header[0], track->vtoHdrs.headerSize[0],
-					   track->vtoHdrs.header[1], track->vtoHdrs.headerSize[1],
-					   track->vtoHdrs.header[2], track->vtoHdrs.headerSize[2]);
+                       track->samplingFrequency, track->numChannels,
+                       track->vtoHdrs.header[0], track->vtoHdrs.headerSize[0],
+                       track->vtoHdrs.header[1], track->vtoHdrs.headerSize[1],
+                       track->vtoHdrs.header[2], track->vtoHdrs.headerSize[2]);
   } else if (strcmp(track->mimeType, "audio/OPUS") == 0) {
     result = SimpleRTPSink
       ::createNew(envir(), rtpGroupsock, rtpPayloadTypeIfDynamic,
-		  48000, "audio", "OPUS", 2, False/*only 1 Opus 'packet' in each RTP packet*/);
+          48000, "audio", "OPUS", 2, False/*only 1 Opus 'packet' in each RTP packet*/);
   } else if (strcmp(track->mimeType, "video/THEORA") == 0) {
     // For Theora video, we use the special "identification", "comment", and "setup" headers
     // that we read when we initially read the headers at the start of the file:
     result = TheoraVideoRTPSink::createNew(envir(), rtpGroupsock, rtpPayloadTypeIfDynamic,
-					   track->vtoHdrs.header[0], track->vtoHdrs.headerSize[0],
-					   track->vtoHdrs.header[1], track->vtoHdrs.headerSize[1],
-					   track->vtoHdrs.header[2], track->vtoHdrs.headerSize[2]);
+                       track->vtoHdrs.header[0], track->vtoHdrs.headerSize[0],
+                       track->vtoHdrs.header[1], track->vtoHdrs.headerSize[1],
+                       track->vtoHdrs.header[2], track->vtoHdrs.headerSize[2]);
   }
 
   return result;
@@ -120,7 +120,7 @@ RTPSink* OggFile
 
 
 OggFile::OggFile(UsageEnvironment& env, char const* fileName,
-		 onCreationFunc* onCreation, void* onCreationClientData)
+         onCreationFunc* onCreation, void* onCreationClientData)
   : Medium(env),
     fFileName(strDup(fileName)),
     fOnCreation(onCreation), fOnCreationClientData(onCreationClientData) {

@@ -66,9 +66,9 @@ int main(int argc, char** argv) {
   CNAME[maxCNAMElen] = '\0'; // just in case
   RTCPInstance* rtcp
   = RTCPInstance::createNew(*env, &rtcpGroupsock,
-			    estimatedSessionBandwidth, CNAME,
-			    videoSink, NULL /* we're a server */,
-			    True /* we're a SSM source */);
+                estimatedSessionBandwidth, CNAME,
+                videoSink, NULL /* we're a server */,
+                True /* we're a SSM source */);
   // Note: This starts RTCP running automatically
 
   RTSPServer* rtspServer = RTSPServer::createNew(*env, 8554);
@@ -78,8 +78,8 @@ int main(int argc, char** argv) {
   }
   ServerMediaSession* sms
     = ServerMediaSession::createNew(*env, "testStream", inputFileName,
-		   "Session streamed by \"testDVVideoStreamer\"",
-					   True /*SSM*/);
+           "Session streamed by \"testDVVideoStreamer\"",
+                       True /*SSM*/);
   sms->addSubsession(PassiveServerMediaSubsession::createNew(*videoSink, rtcp));
   rtspServer->addServerMediaSession(sms);
 
@@ -113,7 +113,7 @@ void play() {
     = ByteStreamFileSource::createNew(*env, inputFileName);
   if (fileSource == NULL) {
     *env << "Unable to open file \"" << inputFileName
-	 << "\" as a byte-stream file source\n";
+     << "\" as a byte-stream file source\n";
     exit(1);
   }
 

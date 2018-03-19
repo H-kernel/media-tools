@@ -44,10 +44,10 @@ Boolean DVVideoRTPSink::sourceIsCompatibleWithUs(MediaSource& source) {
 }
 
 void DVVideoRTPSink::doSpecialFrameHandling(unsigned fragmentationOffset,
-					      unsigned char* /*frameStart*/,
-					      unsigned /*numBytesInFrame*/,
-					      struct timeval framePresentationTime,
-					      unsigned numRemainingBytes) {
+                          unsigned char* /*frameStart*/,
+                          unsigned /*numBytesInFrame*/,
+                          struct timeval framePresentationTime,
+                          unsigned numRemainingBytes) {
   if (numRemainingBytes == 0) {
     // This packet contains the last (or only) fragment of the frame.
     // Set the RTP 'M' ('marker') bit:
@@ -88,7 +88,7 @@ char const* DVVideoRTPSink::auxSDPLineFromFramer(DVVideoStreamFramer* framerSour
     + 3 // max payload format code length
     + strlen(profileName);
   delete[] fFmtpSDPLine; // if it already exists
-  fFmtpSDPLine = new char[fmtpSDPFmtSize];  
+  fFmtpSDPLine = new char[fmtpSDPFmtSize];
   sprintf(fFmtpSDPLine, fmtpSDPFmt, rtpPayloadType(), profileName);
 
   return fFmtpSDPLine;

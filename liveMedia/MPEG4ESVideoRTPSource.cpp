@@ -26,18 +26,18 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 MPEG4ESVideoRTPSource*
 MPEG4ESVideoRTPSource::createNew(UsageEnvironment& env, Groupsock* RTPgs,
-				   unsigned char rtpPayloadFormat,
-				   unsigned rtpTimestampFrequency) {
+                   unsigned char rtpPayloadFormat,
+                   unsigned rtpTimestampFrequency) {
   return new MPEG4ESVideoRTPSource(env, RTPgs, rtpPayloadFormat,
-				   rtpTimestampFrequency);
+                   rtpTimestampFrequency);
 }
 
 MPEG4ESVideoRTPSource
 ::MPEG4ESVideoRTPSource(UsageEnvironment& env, Groupsock* RTPgs,
-			unsigned char rtpPayloadFormat,
-			unsigned rtpTimestampFrequency)
+            unsigned char rtpPayloadFormat,
+            unsigned rtpTimestampFrequency)
   : MultiFramedRTPSource(env, RTPgs,
-			 rtpPayloadFormat, rtpTimestampFrequency) {
+             rtpPayloadFormat, rtpTimestampFrequency) {
 }
 
 MPEG4ESVideoRTPSource::~MPEG4ESVideoRTPSource() {
@@ -45,7 +45,7 @@ MPEG4ESVideoRTPSource::~MPEG4ESVideoRTPSource() {
 
 Boolean MPEG4ESVideoRTPSource
 ::processSpecialHeader(BufferedPacket* packet,
-		       unsigned& resultSpecialHeaderSize) {
+               unsigned& resultSpecialHeaderSize) {
   // The packet begins a frame iff its data begins with a system code
   // (i.e., 0x000001??)
   fCurrentPacketBeginsFrame

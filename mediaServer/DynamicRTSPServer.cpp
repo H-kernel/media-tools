@@ -24,8 +24,8 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 DynamicRTSPServer*
 DynamicRTSPServer::createNew(UsageEnvironment& env, Port ourPort,
-			     UserAuthenticationDatabase* authDatabase,
-			     unsigned reclamationTestSeconds) {
+                 UserAuthenticationDatabase* authDatabase,
+                 unsigned reclamationTestSeconds) {
   int ourSocket = setUpOurSocket(env, ourPort);
   if (ourSocket == -1) return NULL;
 
@@ -33,8 +33,8 @@ DynamicRTSPServer::createNew(UsageEnvironment& env, Port ourPort,
 }
 
 DynamicRTSPServer::DynamicRTSPServer(UsageEnvironment& env, int ourSocket,
-				     Port ourPort,
-				     UserAuthenticationDatabase* authDatabase, unsigned reclamationTestSeconds)
+                     Port ourPort,
+                     UserAuthenticationDatabase* authDatabase, unsigned reclamationTestSeconds)
   : RTSPServerSupportingHTTPStreaming(env, ourSocket, ourPort, authDatabase, reclamationTestSeconds) {
 }
 
@@ -42,7 +42,7 @@ DynamicRTSPServer::~DynamicRTSPServer() {
 }
 
 static ServerMediaSession* createNewSMS(UsageEnvironment& env,
-					char const* fileName, FILE* fid); // forward
+                    char const* fileName, FILE* fid); // forward
 
 ServerMediaSession* DynamicRTSPServer
 ::lookupServerMediaSession(char const* streamName, Boolean isFirstLookupInSession) {
@@ -64,15 +64,15 @@ ServerMediaSession* DynamicRTSPServer
 
     return NULL;
   } else {
-    if (smsExists && isFirstLookupInSession) { 
+    if (smsExists && isFirstLookupInSession) {
       // Remove the existing "ServerMediaSession" and create a new one, in case the underlying
       // file has changed in some way:
-      removeServerMediaSession(sms); 
+      removeServerMediaSession(sms);
       sms = NULL;
-    } 
+    }
 
     if (sms == NULL) {
-      sms = createNewSMS(envir(), streamName, fid); 
+      sms = createNewSMS(envir(), streamName, fid);
       addServerMediaSession(sms);
     }
 
@@ -112,7 +112,7 @@ sms = ServerMediaSession::createNew(env, fileName, fileName, descStr);\
 } while(0)
 
 static ServerMediaSession* createNewSMS(UsageEnvironment& env,
-					char const* fileName, FILE* /*fid*/) {
+                    char const* fileName, FILE* /*fid*/) {
   // Use the file name extension to determine the type of "ServerMediaSession":
   char const* extension = strrchr(fileName, '.');
   if (extension == NULL) return NULL;

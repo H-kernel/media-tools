@@ -28,29 +28,29 @@ typedef mblk_t OrtpEvent;
 typedef unsigned long OrtpEventType;
 
 typedef enum {
-	OrtpRTPSocket,
-	OrtpRTCPSocket
+    OrtpRTPSocket,
+    OrtpRTCPSocket
 } OrtpSocketType;
 
 struct _OrtpEventData{
-	mblk_t *packet;	/* most events are associated to a received packet */
-	struct sockaddr_storage source_addr;
-	socklen_t source_addrlen;
-	ortpTimeSpec ts;
-	union {
-		int telephone_event;
-		int payload_type;
-		bool_t dtls_stream_encrypted;
-		bool_t zrtp_stream_encrypted;
-		struct _ZrtpSas{
-			char sas[32]; // up to 31 + null characters
-			bool_t verified;
-		} zrtp_sas;
-		OrtpSocketType socket_type;
-		bool_t ice_processing_successful;
-		uint64_t tmmbr_mxtbr;
-		uint32_t received_rtt_character;
-	} info;
+    mblk_t *packet;    /* most events are associated to a received packet */
+    struct sockaddr_storage source_addr;
+    socklen_t source_addrlen;
+    ortpTimeSpec ts;
+    union {
+        int telephone_event;
+        int payload_type;
+        bool_t dtls_stream_encrypted;
+        bool_t zrtp_stream_encrypted;
+        struct _ZrtpSas{
+            char sas[32]; // up to 31 + null characters
+            bool_t verified;
+        } zrtp_sas;
+        OrtpSocketType socket_type;
+        bool_t ice_processing_successful;
+        uint64_t tmmbr_mxtbr;
+        uint32_t received_rtt_character;
+    } info;
 };
 
 typedef struct _OrtpEventData OrtpEventData;
@@ -64,29 +64,29 @@ extern "C"{
 ORTP_PUBLIC OrtpEvent * ortp_event_new(OrtpEventType tp);
 ORTP_PUBLIC OrtpEventType ortp_event_get_type(const OrtpEvent *ev);
 /* type is one of the following*/
-#define ORTP_EVENT_STUN_PACKET_RECEIVED		1
-#define ORTP_EVENT_PAYLOAD_TYPE_CHANGED 	2
-#define ORTP_EVENT_TELEPHONE_EVENT		3
-#define ORTP_EVENT_RTCP_PACKET_RECEIVED		4 /**<when a RTCP packet is received from far end */
-#define ORTP_EVENT_RTCP_PACKET_EMITTED		5 /**<fired when oRTP decides to send an automatic RTCP SR or RR */
-#define ORTP_EVENT_ZRTP_ENCRYPTION_CHANGED	6
-#define ORTP_EVENT_ZRTP_SAS_READY		7
-#define ORTP_EVENT_ICE_CHECK_LIST_PROCESSING_FINISHED	8
-#define ORTP_EVENT_ICE_SESSION_PROCESSING_FINISHED	9
-#define ORTP_EVENT_ICE_GATHERING_FINISHED		10
-#define ORTP_EVENT_ICE_LOSING_PAIRS_COMPLETED		11
-#define ORTP_EVENT_ICE_RESTART_NEEDED			12
-#define ORTP_EVENT_DTLS_ENCRYPTION_CHANGED		13
-#define ORTP_EVENT_TMMBR_RECEIVED		14
-#define ORTP_EVENT_RTT_CHARACTER_RECEIVED		15
+#define ORTP_EVENT_STUN_PACKET_RECEIVED        1
+#define ORTP_EVENT_PAYLOAD_TYPE_CHANGED     2
+#define ORTP_EVENT_TELEPHONE_EVENT        3
+#define ORTP_EVENT_RTCP_PACKET_RECEIVED        4 /**<when a RTCP packet is received from far end */
+#define ORTP_EVENT_RTCP_PACKET_EMITTED        5 /**<fired when oRTP decides to send an automatic RTCP SR or RR */
+#define ORTP_EVENT_ZRTP_ENCRYPTION_CHANGED    6
+#define ORTP_EVENT_ZRTP_SAS_READY        7
+#define ORTP_EVENT_ICE_CHECK_LIST_PROCESSING_FINISHED    8
+#define ORTP_EVENT_ICE_SESSION_PROCESSING_FINISHED    9
+#define ORTP_EVENT_ICE_GATHERING_FINISHED        10
+#define ORTP_EVENT_ICE_LOSING_PAIRS_COMPLETED        11
+#define ORTP_EVENT_ICE_RESTART_NEEDED            12
+#define ORTP_EVENT_DTLS_ENCRYPTION_CHANGED        13
+#define ORTP_EVENT_TMMBR_RECEIVED        14
+#define ORTP_EVENT_RTT_CHARACTER_RECEIVED        15
 
 ORTP_PUBLIC OrtpEventData * ortp_event_get_data(OrtpEvent *ev);
 ORTP_PUBLIC void ortp_event_destroy(OrtpEvent *ev);
 ORTP_PUBLIC OrtpEvent *ortp_event_dup(OrtpEvent *ev);
 
 typedef struct OrtpEvQueue{
-	queue_t q;
-	ortp_mutex_t mutex;
+    queue_t q;
+    ortp_mutex_t mutex;
 } OrtpEvQueue;
 
 ORTP_PUBLIC OrtpEvQueue * ortp_ev_queue_new(void);
@@ -105,16 +105,16 @@ struct _RtpSession;
  */
 typedef void (*OrtpEvDispatcherCb)(const OrtpEventData *evd, void *user_data);
 typedef struct OrtpEvDispatcherData{
-	OrtpEventType type;
-	rtcp_type_t subtype;
-	OrtpEvDispatcherCb on_found;
-	void* user_data;
+    OrtpEventType type;
+    rtcp_type_t subtype;
+    OrtpEvDispatcherCb on_found;
+    void* user_data;
 } OrtpEvDispatcherData;
 
 typedef struct OrtpEvDispatcher{
-	OrtpEvQueue *q;
-	struct _RtpSession* session;
-	OList *cbs;
+    OrtpEvQueue *q;
+    struct _RtpSession* session;
+    OList *cbs;
 } OrtpEvDispatcher;
 
 /**
@@ -156,18 +156,18 @@ ORTP_PUBLIC void ortp_ev_dispatcher_iterate(OrtpEvDispatcher *d);
  * @param user_data user data given as last argument of the callback. Can be NULL. MUST be freed by user.
  */
 ORTP_PUBLIC void ortp_ev_dispatcher_connect(OrtpEvDispatcher *d
-											, OrtpEventType type
-											, rtcp_type_t subtype
-											, OrtpEvDispatcherCb on_receive
-											, void *user_data);
+                                            , OrtpEventType type
+                                            , rtcp_type_t subtype
+                                            , OrtpEvDispatcherCb on_receive
+                                            , void *user_data);
 
 /**
  * Disconnects the given callback for the given type and subtype on the given dispatcher.
 */
 void ortp_ev_dispatcher_disconnect(OrtpEvDispatcher *d
-								, OrtpEventType type
-								, rtcp_type_t subtype
-								, OrtpEvDispatcherCb cb);
+                                , OrtpEventType type
+                                , rtcp_type_t subtype
+                                , OrtpEvDispatcherCb cb);
 
 #ifdef __cplusplus
 }

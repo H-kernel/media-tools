@@ -31,7 +31,7 @@ public:
 
 protected:
   MPEG1or2VideoRTPSink(UsageEnvironment& env, Groupsock* RTPgs);
-	// called only by createNew()
+    // called only by createNew()
 
   virtual ~MPEG1or2VideoRTPSink();
 
@@ -46,7 +46,7 @@ private: // redefined virtual functions:
   virtual Boolean allowFragmentationAfterStart() const;
   virtual
   Boolean frameCanAppearAfterPacketStart(unsigned char const* frameStart,
-					 unsigned numBytesInFrame) const;
+                     unsigned numBytesInFrame) const;
   virtual unsigned specialHeaderSize() const;
 
 private:

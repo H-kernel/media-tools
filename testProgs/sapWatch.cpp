@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
   unsigned packetSize;
   struct sockaddr_in fromAddress;
   while (inputGroupsock.handleRead(packet, maxPacketSize,
-				   packetSize, fromAddress)) {
+                   packetSize, fromAddress)) {
     printf("\n[packet from %s (%d bytes)]\n", AddressString(fromAddress).val(), packetSize);
 
     // Ignore the first 8 bytes (SAP header).

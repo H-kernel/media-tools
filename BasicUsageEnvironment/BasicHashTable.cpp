@@ -238,7 +238,7 @@ void BasicHashTable::rebuild() {
   for (TableEntry** oldChainPtr = oldBuckets; oldSize > 0;
        --oldSize, ++oldChainPtr) {
     for (TableEntry* hPtr = *oldChainPtr; hPtr != NULL;
-	 hPtr = *oldChainPtr) {
+     hPtr = *oldChainPtr) {
       *oldChainPtr = hPtr->fNext;
 
       unsigned index = hashIndexFromKey(hPtr->key);

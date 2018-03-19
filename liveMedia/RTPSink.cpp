@@ -24,7 +24,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 ////////// RTPSink //////////
 
 Boolean RTPSink::lookupByName(UsageEnvironment& env, char const* sinkName,
-				RTPSink*& resultSink) {
+                RTPSink*& resultSink) {
   resultSink = NULL; // unless we succeed
 
   MediaSink* sink;
@@ -44,10 +44,10 @@ Boolean RTPSink::isRTPSink() const {
 }
 
 RTPSink::RTPSink(UsageEnvironment& env,
-		 Groupsock* rtpGS, unsigned char rtpPayloadType,
-		 unsigned rtpTimestampFrequency,
-		 char const* rtpPayloadFormatName,
-		 unsigned numChannels)
+         Groupsock* rtpGS, unsigned char rtpPayloadType,
+         unsigned rtpTimestampFrequency,
+         char const* rtpPayloadFormatName,
+         unsigned numChannels)
   : MediaSink(env), fRTPInterface(this, rtpGS),
     fRTPPayloadType(rtpPayloadType),
     fPacketCount(0), fOctetCount(0), fTotalOctetCount(0),
@@ -90,7 +90,7 @@ u_int32_t RTPSink::convertToRTPTimestamp(struct timeval tv) {
   u_int32_t const rtpTimestamp = fTimestampBase + timestampIncrement;
 #ifdef DEBUG_TIMESTAMPS
   fprintf(stderr, "fTimestampBase: 0x%08x, tv: %lu.%06ld\n\t=> RTP timestamp: 0x%08x\n",
-	  fTimestampBase, tv.tv_sec, tv.tv_usec, rtpTimestamp);
+      fTimestampBase, tv.tv_sec, tv.tv_usec, rtpTimestamp);
   fflush(stderr);
 #endif
 
@@ -148,8 +148,8 @@ char* RTPSink::rtpmapLine() const {
       + 20 /* max int len */ + strlen(encodingParamsPart);
     char* rtpmapLine = new char[rtpmapFmtSize];
     sprintf(rtpmapLine, rtpmapFmt,
-	    rtpPayloadType(), rtpPayloadFormatName(),
-	    rtpTimestampFrequency(), encodingParamsPart);
+        rtpPayloadType(), rtpPayloadFormatName(),
+        rtpTimestampFrequency(), encodingParamsPart);
     delete[] encodingParamsPart;
 
     return rtpmapLine;
@@ -200,7 +200,7 @@ void RTPTransmissionStatsDB
   }
 
   stats->noteIncomingRR(lastFromAddress,
-			lossStats, lastPacketNumReceived, jitter,
+            lossStats, lastPacketNumReceived, jitter,
                         lastSRTime, diffSR_RRTime);
 }
 
@@ -260,9 +260,9 @@ RTPTransmissionStats::~RTPTransmissionStats() {}
 
 void RTPTransmissionStats
 ::noteIncomingRR(struct sockaddr_in const& lastFromAddress,
-		 unsigned lossStats, unsigned lastPacketNumReceived,
-		 unsigned jitter, unsigned lastSRTime,
-		 unsigned diffSR_RRTime) {
+         unsigned lossStats, unsigned lastPacketNumReceived,
+         unsigned jitter, unsigned lastSRTime,
+         unsigned diffSR_RRTime) {
   if (fFirstPacket) {
     fFirstPacket = False;
     fFirstPacketNumReported = lastPacketNumReceived;

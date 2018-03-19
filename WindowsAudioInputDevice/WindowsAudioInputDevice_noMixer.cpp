@@ -38,16 +38,16 @@ public:
 
 AudioInputDevice*
 AudioInputDevice::createNew(UsageEnvironment& env, int inputPortNumber,
-			    unsigned char bitsPerSample,
-			    unsigned char numChannels,
-			    unsigned samplingFrequency,
-			    unsigned granularityInMS) {
+                unsigned char bitsPerSample,
+                unsigned char numChannels,
+                unsigned samplingFrequency,
+                unsigned granularityInMS) {
   Boolean success;
   WindowsAudioInputDevice* newSource
     = new WindowsAudioInputDevice(env, inputPortNumber,
-				  bitsPerSample, numChannels,
-				  samplingFrequency, granularityInMS,
-				  success);
+                  bitsPerSample, numChannels,
+                  samplingFrequency, granularityInMS,
+                  success);
   if (!success) {delete newSource; newSource = NULL;}
 
   return newSource;
@@ -74,14 +74,14 @@ AudioPortNames* AudioInputDevice::getPortNames() {
 
 WindowsAudioInputDevice
 ::WindowsAudioInputDevice(UsageEnvironment& env, int inputPortNumber,
-			  unsigned char bitsPerSample,
-			  unsigned char numChannels,
-			  unsigned samplingFrequency,
-			  unsigned granularityInMS,
-			  Boolean& success)
+              unsigned char bitsPerSample,
+              unsigned char numChannels,
+              unsigned samplingFrequency,
+              unsigned granularityInMS,
+              Boolean& success)
   : WindowsAudioInputDevice_common(env, inputPortNumber,
-		bitsPerSample, numChannels, samplingFrequency, granularityInMS) {
-	success = initialSetInputPort(inputPortNumber);
+        bitsPerSample, numChannels, samplingFrequency, granularityInMS) {
+    success = initialSetInputPort(inputPortNumber);
 }
 
 WindowsAudioInputDevice::~WindowsAudioInputDevice() {
@@ -115,18 +115,18 @@ Boolean WindowsAudioInputDevice::setInputPort(int portIndex) {
 
   // Check that this port is allowed:
   if (allowedDeviceNames != NULL) {
-	  int i;
-	  for (i = 0; allowedDeviceNames[i] != NULL; ++i) {
-		  if (strncmp(ourAudioInputPorts[portIndex].name, allowedDeviceNames[i],
-			  strlen(allowedDeviceNames[i])) == 0) {
-			  // The allowed device name is a prefix of this port's name
-			  break; // this port is allowed
-		  }
-	  }
-	  if (allowedDeviceNames[i] == NULL) { // this port is not on the allowed list
-		envir().setResultMsg("Access to this audio device is not allowed\n");
-		return False;
-	  }
+      int i;
+      for (i = 0; allowedDeviceNames[i] != NULL; ++i) {
+          if (strncmp(ourAudioInputPorts[portIndex].name, allowedDeviceNames[i],
+              strlen(allowedDeviceNames[i])) == 0) {
+              // The allowed device name is a prefix of this port's name
+              break; // this port is allowed
+          }
+      }
+      if (allowedDeviceNames[i] == NULL) { // this port is not on the allowed list
+        envir().setResultMsg("Access to this audio device is not allowed\n");
+        return False;
+      }
   }
 
   if (portIndex != fCurPortIndex) {
@@ -151,10 +151,10 @@ void AudioInputPort::open(unsigned numChannels, unsigned samplingFrequency, unsi
     // Get the port name:
     WAVEINCAPS wic;
     if (waveInGetDevCaps(index, &wic, sizeof wic) != MMSYSERR_NOERROR) {
-	    name[0] = '\0';
-	    break;
-	}
-    
+        name[0] = '\0';
+        break;
+    }
+
     #ifdef UNICODE
     // Copy the mixer name:
         wcstombs(name, wic.szPname, MAXPNAMELEN);
@@ -162,7 +162,7 @@ void AudioInputPort::open(unsigned numChannels, unsigned samplingFrequency, unsi
         strncpy(name, wic.szPname, MAXPNAMELEN);
     #endif
 
-	if (!WindowsAudioInputDevice_common::openWavInPort(index, numChannels, samplingFrequency, granularityInMS)) break;
+    if (!WindowsAudioInputDevice_common::openWavInPort(index, numChannels, samplingFrequency, granularityInMS)) break;
 
     return;
   } while (0);

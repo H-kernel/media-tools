@@ -13,9 +13,9 @@
  */
 #undef _ANSI_ARGS_
 #if ((defined(__STDC__) || defined(SABER)) && !defined(NO_PROTOTYPE)) || defined(__cplusplus) || defined(USE_PROTOTYPE)
-#   define _ANSI_ARGS_(x)	x
+#   define _ANSI_ARGS_(x)    x
 #else
-#   define _ANSI_ARGS_(x)	()
+#   define _ANSI_ARGS_(x)    ()
 #endif
 #ifdef __cplusplus
 #   define EXTERN extern "C"

@@ -36,7 +36,7 @@ public:
 
 protected:
   FramedFilter(UsageEnvironment& env, FramedSource* inputSource);
-	 // abstract base class
+     // abstract base class
   virtual ~FramedFilter();
 
 protected:

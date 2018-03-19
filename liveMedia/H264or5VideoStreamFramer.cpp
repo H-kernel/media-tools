@@ -27,7 +27,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class H264or5VideoStreamParser: public MPEGVideoStreamParser {
 public:
   H264or5VideoStreamParser(int hNumber, H264or5VideoStreamFramer* usingSource,
-			   FramedSource* inputSource, Boolean includeStartCodeInOutput);
+               FramedSource* inputSource, Boolean includeStartCodeInOutput);
   virtual ~H264or5VideoStreamParser();
 
 private: // redefined virtual functions:
@@ -74,7 +74,7 @@ private:
 
 H264or5VideoStreamFramer
 ::H264or5VideoStreamFramer(int hNumber, UsageEnvironment& env, FramedSource* inputSource,
-			   Boolean createParser, Boolean includeStartCodeInOutput)
+               Boolean createParser, Boolean includeStartCodeInOutput)
   : MPEGVideoStreamFramer(env, inputSource),
     fHNumber(hNumber),
     fLastSeenVPS(NULL), fLastSeenVPSSize(0),
@@ -148,7 +148,7 @@ Boolean H264or5VideoStreamFramer::isVCL(u_int8_t nal_unit_type) {
 
 H264or5VideoStreamParser
 ::H264or5VideoStreamParser(int hNumber, H264or5VideoStreamFramer* usingSource,
-			   FramedSource* inputSource, Boolean includeStartCodeInOutput)
+               FramedSource* inputSource, Boolean includeStartCodeInOutput)
   : MPEGVideoStreamParser(usingSource, inputSource),
     fHNumber(hNumber), fOutputStartCodeSize(includeStartCodeInOutput ? 4 : 0), fHaveSeenFirstStartCode(False), fHaveSeenFirstByteOfNALUnit(False), fParsedFrameRate(0.0),
     cpb_removal_delay_length_minus1(23), dpb_output_delay_length_minus1(23),
@@ -335,7 +335,7 @@ void H264or5VideoStreamParser::profile_tier_level(BitVector& bv, unsigned max_su
 
 void H264or5VideoStreamParser
 ::analyze_vui_parameters(BitVector& bv,
-			 unsigned& num_units_in_tick, unsigned& time_scale) {
+             unsigned& num_units_in_tick, unsigned& time_scale) {
   Boolean aspect_ratio_info_present_flag = bv.get1BitBoolean();
   DEBUG_PRINT(aspect_ratio_info_present_flag);
   if (aspect_ratio_info_present_flag) {
@@ -397,8 +397,8 @@ void H264or5VideoStreamParser
       Boolean vui_poc_proportional_to_timing_flag = bv.get1BitBoolean();
       DEBUG_PRINT(vui_poc_proportional_to_timing_flag);
       if (vui_poc_proportional_to_timing_flag) {
-	unsigned vui_num_ticks_poc_diff_one_minus1 = bv.get_expGolomb();
-	DEBUG_PRINT(vui_num_ticks_poc_diff_one_minus1);
+    unsigned vui_num_ticks_poc_diff_one_minus1 = bv.get_expGolomb();
+    DEBUG_PRINT(vui_num_ticks_poc_diff_one_minus1);
       }
       return; // For H.265, don't bother parsing any more of this #####
     }
@@ -472,7 +472,7 @@ void H264or5VideoStreamParser
     (void)bv.get_expGolomb(); // vps_max_dec_pic_buffering_minus1[i]
     (void)bv.get_expGolomb(); // vps_max_num_reorder_pics[i]
     (void)bv.get_expGolomb(); // vps_max_latency_increase_plus1[i]
-  }    
+  }
   unsigned vps_max_layer_id = bv.getBits(6);
   DEBUG_PRINT(vps_max_layer_id);
   unsigned vps_num_layer_sets_minus1 = bv.get_expGolomb();
@@ -525,9 +525,9 @@ void H264or5VideoStreamParser
       unsigned chroma_format_idc = bv.get_expGolomb();
       DEBUG_PRINT(chroma_format_idc);
       if (chroma_format_idc == 3) {
-	DEBUG_TAB;
-	Boolean separate_colour_plane_flag = bv.get1BitBoolean();
-	DEBUG_PRINT(separate_colour_plane_flag);
+    DEBUG_TAB;
+    Boolean separate_colour_plane_flag = bv.get1BitBoolean();
+    DEBUG_PRINT(separate_colour_plane_flag);
       }
       (void)bv.get_expGolomb(); // bit_depth_luma_minus8
       (void)bv.get_expGolomb(); // bit_depth_chroma_minus8
@@ -535,31 +535,31 @@ void H264or5VideoStreamParser
       Boolean seq_scaling_matrix_present_flag = bv.get1BitBoolean();
       DEBUG_PRINT(seq_scaling_matrix_present_flag);
       if (seq_scaling_matrix_present_flag) {
-	for (int i = 0; i < ((chroma_format_idc != 3) ? 8 : 12); ++i) {
-	  DEBUG_TAB;
-	  DEBUG_PRINT(i);
-	  Boolean seq_scaling_list_present_flag = bv.get1BitBoolean();
-	  DEBUG_PRINT(seq_scaling_list_present_flag);
-	  if (seq_scaling_list_present_flag) {
-	    DEBUG_TAB;
-	    unsigned sizeOfScalingList = i < 6 ? 16 : 64;
-	    unsigned lastScale = 8;
-	    unsigned nextScale = 8;
-	    for (unsigned j = 0; j < sizeOfScalingList; ++j) {
-	      DEBUG_TAB;
-	      DEBUG_PRINT(j);
-	      DEBUG_PRINT(nextScale);
-	      if (nextScale != 0) {
-		DEBUG_TAB;
-		unsigned delta_scale = bv.get_expGolomb();
-		DEBUG_PRINT(delta_scale);
-		nextScale = (lastScale + delta_scale + 256) % 256;
-	      }
-	      lastScale = (nextScale == 0) ? lastScale : nextScale;
-	      DEBUG_PRINT(lastScale);
-	    }
-	  }
-	}
+    for (int i = 0; i < ((chroma_format_idc != 3) ? 8 : 12); ++i) {
+      DEBUG_TAB;
+      DEBUG_PRINT(i);
+      Boolean seq_scaling_list_present_flag = bv.get1BitBoolean();
+      DEBUG_PRINT(seq_scaling_list_present_flag);
+      if (seq_scaling_list_present_flag) {
+        DEBUG_TAB;
+        unsigned sizeOfScalingList = i < 6 ? 16 : 64;
+        unsigned lastScale = 8;
+        unsigned nextScale = 8;
+        for (unsigned j = 0; j < sizeOfScalingList; ++j) {
+          DEBUG_TAB;
+          DEBUG_PRINT(j);
+          DEBUG_PRINT(nextScale);
+          if (nextScale != 0) {
+        DEBUG_TAB;
+        unsigned delta_scale = bv.get_expGolomb();
+        DEBUG_PRINT(delta_scale);
+        nextScale = (lastScale + delta_scale + 256) % 256;
+          }
+          lastScale = (nextScale == 0) ? lastScale : nextScale;
+          DEBUG_PRINT(lastScale);
+        }
+      }
+    }
       }
     }
     unsigned log2_max_frame_num_minus4 = bv.get_expGolomb();
@@ -578,7 +578,7 @@ void H264or5VideoStreamParser
       unsigned num_ref_frames_in_pic_order_cnt_cycle = bv.get_expGolomb();
       DEBUG_PRINT(num_ref_frames_in_pic_order_cnt_cycle);
       for (unsigned i = 0; i < num_ref_frames_in_pic_order_cnt_cycle; ++i) {
-	(void)bv.get_expGolomb(); // offset_for_ref_frame[i]
+    (void)bv.get_expGolomb(); // offset_for_ref_frame[i]
       }
     }
     unsigned max_num_ref_frames = bv.get_expGolomb();
@@ -645,7 +645,7 @@ void H264or5VideoStreamParser
     Boolean sps_sub_layer_ordering_info_present_flag = bv.get1BitBoolean();
     DEBUG_PRINT(sps_sub_layer_ordering_info_present_flag);
     for (i = (sps_sub_layer_ordering_info_present_flag ? 0 : sps_max_sub_layers_minus1);
-	 i <= sps_max_sub_layers_minus1; ++i) {
+     i <= sps_max_sub_layers_minus1; ++i) {
       (void)bv.get_expGolomb(); // sps_max_dec_pic_buffering_minus1[i]
       (void)bv.get_expGolomb(); // sps_max_num_reorder_pics[i]
       (void)bv.get_expGolomb(); // sps_max_latency_increase[i]
@@ -663,29 +663,29 @@ void H264or5VideoStreamParser
       Boolean sps_scaling_list_data_present_flag = bv.get1BitBoolean();
       DEBUG_PRINT(sps_scaling_list_data_present_flag);
       if (sps_scaling_list_data_present_flag) {
-	// scaling_list_data()
-	DEBUG_TAB;
-	for (unsigned sizeId = 0; sizeId < 4; ++sizeId) {
-	  DEBUG_PRINT(sizeId);
-	  for (unsigned matrixId = 0; matrixId < (sizeId == 3 ? 2 : 6); ++matrixId) {
-	    DEBUG_TAB;
-	    DEBUG_PRINT(matrixId);
-	    Boolean scaling_list_pred_mode_flag = bv.get1BitBoolean();
-	    DEBUG_PRINT(scaling_list_pred_mode_flag);
-	    if (!scaling_list_pred_mode_flag) {
-	      (void)bv.get_expGolomb(); // scaling_list_pred_matrix_id_delta[sizeId][matrixId]
-	    } else {
-	      unsigned const c = 1 << (4+(sizeId<<1));
-	      unsigned coefNum = c < 64 ? c : 64;
-	      if (sizeId > 1) {
-		(void)bv.get_expGolomb(); // scaling_list_dc_coef_minus8[sizeId][matrixId]
-	      }
-	      for (i = 0; i < coefNum; ++i) {
-		(void)bv.get_expGolomb(); // scaling_list_delta_coef
-	      }
-	    }
-	  } 
-	}
+    // scaling_list_data()
+    DEBUG_TAB;
+    for (unsigned sizeId = 0; sizeId < 4; ++sizeId) {
+      DEBUG_PRINT(sizeId);
+      for (unsigned matrixId = 0; matrixId < (sizeId == 3 ? 2 : 6); ++matrixId) {
+        DEBUG_TAB;
+        DEBUG_PRINT(matrixId);
+        Boolean scaling_list_pred_mode_flag = bv.get1BitBoolean();
+        DEBUG_PRINT(scaling_list_pred_mode_flag);
+        if (!scaling_list_pred_mode_flag) {
+          (void)bv.get_expGolomb(); // scaling_list_pred_matrix_id_delta[sizeId][matrixId]
+        } else {
+          unsigned const c = 1 << (4+(sizeId<<1));
+          unsigned coefNum = c < 64 ? c : 64;
+          if (sizeId > 1) {
+        (void)bv.get_expGolomb(); // scaling_list_dc_coef_minus8[sizeId][matrixId]
+          }
+          for (i = 0; i < coefNum; ++i) {
+        (void)bv.get_expGolomb(); // scaling_list_delta_coef
+          }
+        }
+      }
+    }
       }
     }
     bv.skipBits(2); // amp_enabled_flag, sample_adaptive_offset_enabled_flag
@@ -707,40 +707,40 @@ void H264or5VideoStreamParser
       DEBUG_PRINT(i);
       Boolean inter_ref_pic_set_prediction_flag = False;
       if (i != 0) {
-	inter_ref_pic_set_prediction_flag = bv.get1BitBoolean();
+    inter_ref_pic_set_prediction_flag = bv.get1BitBoolean();
       }
       DEBUG_PRINT(inter_ref_pic_set_prediction_flag);
       if (inter_ref_pic_set_prediction_flag) {
-	DEBUG_TAB;
-	if (i == num_short_term_ref_pic_sets) {
-	  // This can't happen here, but it's in the spec, so we include it for completeness
-	  (void)bv.get_expGolomb(); // delta_idx_minus1
-	}
-	bv.skipBits(1); // delta_rps_sign
-	(void)bv.get_expGolomb(); // abs_delta_rps_minus1
-	unsigned NumDeltaPocs = prev_num_negative_pics + prev_num_positive_pics; // correct???
-	for (unsigned j = 0; j < NumDeltaPocs; ++j) {
-	  DEBUG_PRINT(j);
-	  Boolean used_by_curr_pic_flag = bv.get1BitBoolean();
-	  DEBUG_PRINT(used_by_curr_pic_flag);
-	  if (!used_by_curr_pic_flag) bv.skipBits(1); // use_delta_flag[j]
-	}
+    DEBUG_TAB;
+    if (i == num_short_term_ref_pic_sets) {
+      // This can't happen here, but it's in the spec, so we include it for completeness
+      (void)bv.get_expGolomb(); // delta_idx_minus1
+    }
+    bv.skipBits(1); // delta_rps_sign
+    (void)bv.get_expGolomb(); // abs_delta_rps_minus1
+    unsigned NumDeltaPocs = prev_num_negative_pics + prev_num_positive_pics; // correct???
+    for (unsigned j = 0; j < NumDeltaPocs; ++j) {
+      DEBUG_PRINT(j);
+      Boolean used_by_curr_pic_flag = bv.get1BitBoolean();
+      DEBUG_PRINT(used_by_curr_pic_flag);
+      if (!used_by_curr_pic_flag) bv.skipBits(1); // use_delta_flag[j]
+    }
       } else {
-	prev_num_negative_pics = num_negative_pics;
-	num_negative_pics = bv.get_expGolomb();
-	DEBUG_PRINT(num_negative_pics);
-	prev_num_positive_pics = num_positive_pics;
-	num_positive_pics = bv.get_expGolomb();
-	DEBUG_PRINT(num_positive_pics);
-	unsigned k;
-	for (k = 0; k < num_negative_pics; ++k) {
-	  (void)bv.get_expGolomb(); // delta_poc_s0_minus1[k]
-	  bv.skipBits(1); // used_by_curr_pic_s0_flag[k]
-	}
-	for (k = 0; k < num_positive_pics; ++k) {
-	  (void)bv.get_expGolomb(); // delta_poc_s1_minus1[k]
-	  bv.skipBits(1); // used_by_curr_pic_s1_flag[k]
-	}
+    prev_num_negative_pics = num_negative_pics;
+    num_negative_pics = bv.get_expGolomb();
+    DEBUG_PRINT(num_negative_pics);
+    prev_num_positive_pics = num_positive_pics;
+    num_positive_pics = bv.get_expGolomb();
+    DEBUG_PRINT(num_positive_pics);
+    unsigned k;
+    for (k = 0; k < num_negative_pics; ++k) {
+      (void)bv.get_expGolomb(); // delta_poc_s0_minus1[k]
+      bv.skipBits(1); // used_by_curr_pic_s0_flag[k]
+    }
+    for (k = 0; k < num_positive_pics; ++k) {
+      (void)bv.get_expGolomb(); // delta_poc_s1_minus1[k]
+      bv.skipBits(1); // used_by_curr_pic_s1_flag[k]
+    }
       }
     }
     Boolean long_term_ref_pics_present_flag = bv.get1BitBoolean();
@@ -750,8 +750,8 @@ void H264or5VideoStreamParser
       unsigned num_long_term_ref_pics_sps = bv.get_expGolomb();
       DEBUG_PRINT(num_long_term_ref_pics_sps);
       for (i = 0; i < num_long_term_ref_pics_sps; ++i) {
-	bv.skipBits(log2_max_pic_order_cnt_lsb_minus4); // lt_ref_pic_poc_lsb_sps[i]
-	bv.skipBits(1); // used_by_curr_pic_lt_sps_flag[1]
+    bv.skipBits(log2_max_pic_order_cnt_lsb_minus4); // lt_ref_pic_poc_lsb_sps[i]
+    bv.skipBits(1); // used_by_curr_pic_lt_sps_flag[1]
       }
     }
     bv.skipBits(2); // sps_temporal_mvp_enabled_flag, strong_intra_smoothing_enabled_flag
@@ -827,7 +827,7 @@ void H264or5VideoStreamParser::analyze_sei_data(u_int8_t nal_unit_type) {
   unsigned seiSize;
   removeEmulationBytes(sei, sizeof sei, seiSize);
 
-  unsigned j = 1; // skip the initial byte (forbidden_zero_bit; nal_ref_idc; nal_unit_type); we've already seen it 
+  unsigned j = 1; // skip the initial byte (forbidden_zero_bit; nal_ref_idc; nal_unit_type); we've already seen it
   while (j < seiSize) {
     unsigned payloadType = 0;
     do {
@@ -845,34 +845,34 @@ void H264or5VideoStreamParser::analyze_sei_data(u_int8_t nal_unit_type) {
     char const* description;
     if (fHNumber == 264) {
       unsigned descriptionNum = payloadType <= MAX_SEI_PAYLOAD_TYPE_DESCRIPTION_H264
-	? payloadType : MAX_SEI_PAYLOAD_TYPE_DESCRIPTION_H264;
+    ? payloadType : MAX_SEI_PAYLOAD_TYPE_DESCRIPTION_H264;
       description = sei_payloadType_description_h264[descriptionNum];
     } else { // 265
       description =
-	payloadType == 3 ? "filler_payload" :
-	payloadType == 4 ? "user_data_registered_itu_t_t35" :
-	payloadType == 5 ? "user_data_unregistered" :
-	payloadType == 17 ? "progressive_refinement_segment_end" :
-	payloadType == 22 ? "post_filter_hint" :
-	(payloadType == 132 && nal_unit_type == SUFFIX_SEI_NUT) ? "decoded_picture_hash" :
-	nal_unit_type == SUFFIX_SEI_NUT ? "reserved_sei_message" :
-	payloadType == 0 ? "buffering_period" :
-	payloadType == 1 ? "pic_timing" :
-	payloadType == 2 ? "pan_scan_rect" :
-	payloadType == 6 ? "recovery_point" :
-	payloadType == 9 ? "scene_info" :
-	payloadType == 15 ? "picture_snapshot" :
-	payloadType == 16 ? "progressive_refinement_segment_start" :
-	payloadType == 19 ? "film_grain_characteristics" :
-	payloadType == 23 ? "tone_mapping_info" :
-	payloadType == 45 ? "frame_packing_arrangement" :
-	payloadType == 47 ? "display_orientation" :
-	payloadType == 128 ? "structure_of_pictures_info" :
-	payloadType == 129 ? "active_parameter_sets" :
-	payloadType == 130 ? "decoding_unit_info" :
-	payloadType == 131 ? "temporal_sub_layer_zero_index" :
-	payloadType == 133 ? "scalable_nesting" :
-	payloadType == 134 ? "region_refresh_info" : "reserved_sei_message";
+    payloadType == 3 ? "filler_payload" :
+    payloadType == 4 ? "user_data_registered_itu_t_t35" :
+    payloadType == 5 ? "user_data_unregistered" :
+    payloadType == 17 ? "progressive_refinement_segment_end" :
+    payloadType == 22 ? "post_filter_hint" :
+    (payloadType == 132 && nal_unit_type == SUFFIX_SEI_NUT) ? "decoded_picture_hash" :
+    nal_unit_type == SUFFIX_SEI_NUT ? "reserved_sei_message" :
+    payloadType == 0 ? "buffering_period" :
+    payloadType == 1 ? "pic_timing" :
+    payloadType == 2 ? "pan_scan_rect" :
+    payloadType == 6 ? "recovery_point" :
+    payloadType == 9 ? "scene_info" :
+    payloadType == 15 ? "picture_snapshot" :
+    payloadType == 16 ? "progressive_refinement_segment_start" :
+    payloadType == 19 ? "film_grain_characteristics" :
+    payloadType == 23 ? "tone_mapping_info" :
+    payloadType == 45 ? "frame_packing_arrangement" :
+    payloadType == 47 ? "display_orientation" :
+    payloadType == 128 ? "structure_of_pictures_info" :
+    payloadType == 129 ? "active_parameter_sets" :
+    payloadType == 130 ? "decoding_unit_info" :
+    payloadType == 131 ? "temporal_sub_layer_zero_index" :
+    payloadType == 133 ? "scalable_nesting" :
+    payloadType == 134 ? "region_refresh_info" : "reserved_sei_message";
     }
     fprintf(stderr, "\tpayloadType %d (\"%s\"); payloadSize %d\n", payloadType, description, payloadSize);
 #endif
@@ -898,34 +898,34 @@ void H264or5VideoStreamParser
       unsigned pic_struct = bv.getBits(4);
       DEBUG_PRINT(pic_struct);
       // Use this to set "DeltaTfiDivisor" (which is used to compute the frame rate):
-      double prevDeltaTfiDivisor = DeltaTfiDivisor; 
+      double prevDeltaTfiDivisor = DeltaTfiDivisor;
       if (fHNumber == 264) {
-	DeltaTfiDivisor =
-	  pic_struct == 0 ? 2.0 :
-	  pic_struct <= 2 ? 1.0 :
-	  pic_struct <= 4 ? 2.0 :
-	  pic_struct <= 6 ? 3.0 :
-	  pic_struct == 7 ? 4.0 :
-	  pic_struct == 8 ? 6.0 :
-	  2.0;
+    DeltaTfiDivisor =
+      pic_struct == 0 ? 2.0 :
+      pic_struct <= 2 ? 1.0 :
+      pic_struct <= 4 ? 2.0 :
+      pic_struct <= 6 ? 3.0 :
+      pic_struct == 7 ? 4.0 :
+      pic_struct == 8 ? 6.0 :
+      2.0;
       } else { // H.265
-	DeltaTfiDivisor =
-	  pic_struct == 0 ? 2.0 :
-	  pic_struct <= 2 ? 1.0 :
-	  pic_struct <= 4 ? 2.0 :
-	  pic_struct <= 6 ? 3.0 :
-	  pic_struct == 7 ? 2.0 :
-	  pic_struct == 8 ? 3.0 :
-	  pic_struct <= 12 ? 1.0 :
-	  2.0;
+    DeltaTfiDivisor =
+      pic_struct == 0 ? 2.0 :
+      pic_struct <= 2 ? 1.0 :
+      pic_struct <= 4 ? 2.0 :
+      pic_struct <= 6 ? 3.0 :
+      pic_struct == 7 ? 2.0 :
+      pic_struct == 8 ? 3.0 :
+      pic_struct <= 12 ? 1.0 :
+      2.0;
       }
       // If "DeltaTfiDivisor" has changed, and we've already computed the frame rate, then
       // adjust it, based on the new value of "DeltaTfiDivisor":
       if (DeltaTfiDivisor != prevDeltaTfiDivisor && fParsedFrameRate != 0.0) {
-	  usingSource()->fFrameRate = fParsedFrameRate
-	    = fParsedFrameRate*(prevDeltaTfiDivisor/DeltaTfiDivisor);
+      usingSource()->fFrameRate = fParsedFrameRate
+        = fParsedFrameRate*(prevDeltaTfiDivisor/DeltaTfiDivisor);
 #ifdef DEBUG
-	  fprintf(stderr, "Changed frame rate to %f fps\n", usingSource()->fFrameRate);
+      fprintf(stderr, "Changed frame rate to %f fps\n", usingSource()->fFrameRate);
 #endif
       }
     }
@@ -949,21 +949,21 @@ unsigned H264or5VideoStreamParser::parse() {
       // Skip over any input bytes that precede the first 0x00000001:
       u_int32_t first4Bytes;
       while ((first4Bytes = test4Bytes()) != 0x00000001) {
-	get1Byte(); setParseState(); // ensures that we progress over bad data
+    get1Byte(); setParseState(); // ensures that we progress over bad data
       }
       skipBytes(4); // skip this initial code
-      
+
       setParseState();
       fHaveSeenFirstStartCode = True; // from now on
     }
-    
+
     if (fOutputStartCodeSize > 0 && curFrameSize() == 0 && !haveSeenEOF()) {
       // Include a start code in the output:
       save4Bytes(0x00000001);
     }
 
     // Then save everything up until the next 0x00000001 (4 bytes) or 0x000001 (3 bytes), or we hit EOF.
-    // Also make note of the first byte, because it contains the "nal_unit_type": 
+    // Also make note of the first byte, because it contains the "nal_unit_type":
     if (haveSeenEOF()) {
       // We hit EOF the last time that we tried to parse this data, so we know that any remaining unparsed data
       // forms a complete NAL unit, and that there's no 'start code' at the end:
@@ -972,25 +972,25 @@ unsigned H264or5VideoStreamParser::parse() {
       unsigned const trailingNALUnitSize = remainingDataSize;
 #endif
       while (remainingDataSize > 0) {
-	u_int8_t nextByte = get1Byte();
-	if (!fHaveSeenFirstByteOfNALUnit) {
-	  fFirstByteOfNALUnit = nextByte;
-	  fHaveSeenFirstByteOfNALUnit = True;
-	}
-	saveByte(nextByte);
-	--remainingDataSize;
+    u_int8_t nextByte = get1Byte();
+    if (!fHaveSeenFirstByteOfNALUnit) {
+      fFirstByteOfNALUnit = nextByte;
+      fHaveSeenFirstByteOfNALUnit = True;
+    }
+    saveByte(nextByte);
+    --remainingDataSize;
       }
 
 #ifdef DEBUG
       if (fHNumber == 264) {
-	u_int8_t nal_ref_idc = (fFirstByteOfNALUnit&0x60)>>5;
-	u_int8_t nal_unit_type = fFirstByteOfNALUnit&0x1F;
-	fprintf(stderr, "Parsed trailing %d-byte NAL-unit (nal_ref_idc: %d, nal_unit_type: %d (\"%s\"))\n",
-		trailingNALUnitSize, nal_ref_idc, nal_unit_type, nal_unit_type_description_h264[nal_unit_type]);
+    u_int8_t nal_ref_idc = (fFirstByteOfNALUnit&0x60)>>5;
+    u_int8_t nal_unit_type = fFirstByteOfNALUnit&0x1F;
+    fprintf(stderr, "Parsed trailing %d-byte NAL-unit (nal_ref_idc: %d, nal_unit_type: %d (\"%s\"))\n",
+        trailingNALUnitSize, nal_ref_idc, nal_unit_type, nal_unit_type_description_h264[nal_unit_type]);
       } else { // 265
-	u_int8_t nal_unit_type = (fFirstByteOfNALUnit&0x7E)>>1;
-	fprintf(stderr, "Parsed trailing %d-byte NAL-unit (nal_unit_type: %d (\"%s\"))\n",
-		trailingNALUnitSize, nal_unit_type, nal_unit_type_description_h265[nal_unit_type]);
+    u_int8_t nal_unit_type = (fFirstByteOfNALUnit&0x7E)>>1;
+    fprintf(stderr, "Parsed trailing %d-byte NAL-unit (nal_unit_type: %d (\"%s\"))\n",
+        trailingNALUnitSize, nal_unit_type, nal_unit_type_description_h265[nal_unit_type]);
       }
 #endif
 
@@ -999,29 +999,29 @@ unsigned H264or5VideoStreamParser::parse() {
     } else {
       u_int32_t next4Bytes = test4Bytes();
       if (!fHaveSeenFirstByteOfNALUnit) {
-	fFirstByteOfNALUnit = next4Bytes>>24;
-	fHaveSeenFirstByteOfNALUnit = True;
+    fFirstByteOfNALUnit = next4Bytes>>24;
+    fHaveSeenFirstByteOfNALUnit = True;
       }
       while (next4Bytes != 0x00000001 && (next4Bytes&0xFFFFFF00) != 0x00000100) {
-	// We save at least some of "next4Bytes".
-	if ((unsigned)(next4Bytes&0xFF) > 1) {
-	  // Common case: 0x00000001 or 0x000001 definitely doesn't begin anywhere in "next4Bytes", so we save all of it:
-	  save4Bytes(next4Bytes);
-	  skipBytes(4);
-	} else {
-	  // Save the first byte, and continue testing the rest:
-	  saveByte(next4Bytes>>24);
-	  skipBytes(1);
-	}
-	setParseState(); // ensures forward progress
-	next4Bytes = test4Bytes();
+    // We save at least some of "next4Bytes".
+    if ((unsigned)(next4Bytes&0xFF) > 1) {
+      // Common case: 0x00000001 or 0x000001 definitely doesn't begin anywhere in "next4Bytes", so we save all of it:
+      save4Bytes(next4Bytes);
+      skipBytes(4);
+    } else {
+      // Save the first byte, and continue testing the rest:
+      saveByte(next4Bytes>>24);
+      skipBytes(1);
+    }
+    setParseState(); // ensures forward progress
+    next4Bytes = test4Bytes();
       }
       // Assert: next4Bytes starts with 0x00000001 or 0x000001, and we've saved all previous bytes (forming a complete NAL unit).
       // Skip over these remaining bytes, up until the start of the next NAL unit:
       if (next4Bytes == 0x00000001) {
-	skipBytes(4);
+    skipBytes(4);
       } else {
-	skipBytes(3);
+    skipBytes(3);
       }
     }
 
@@ -1032,13 +1032,13 @@ unsigned H264or5VideoStreamParser::parse() {
 #ifdef DEBUG
       u_int8_t nal_ref_idc = (fFirstByteOfNALUnit&0x60)>>5;
       fprintf(stderr, "Parsed %d-byte NAL-unit (nal_ref_idc: %d, nal_unit_type: %d (\"%s\"))\n",
-	      curFrameSize()-fOutputStartCodeSize, nal_ref_idc, nal_unit_type, nal_unit_type_description_h264[nal_unit_type]);
+          curFrameSize()-fOutputStartCodeSize, nal_ref_idc, nal_unit_type, nal_unit_type_description_h264[nal_unit_type]);
 #endif
     } else { // 265
       nal_unit_type = (fFirstByteOfNALUnit&0x7E)>>1;
 #ifdef DEBUG
       fprintf(stderr, "Parsed %d-byte NAL-unit (nal_unit_type: %d (\"%s\"))\n",
-	      curFrameSize()-fOutputStartCodeSize, nal_unit_type, nal_unit_type_description_h265[nal_unit_type]);
+          curFrameSize()-fOutputStartCodeSize, nal_unit_type, nal_unit_type_description_h265[nal_unit_type]);
 #endif
     }
 
@@ -1048,42 +1048,42 @@ unsigned H264or5VideoStreamParser::parse() {
       usingSource()->saveCopyOfVPS(fStartOfFrame + fOutputStartCodeSize, curFrameSize() - fOutputStartCodeSize);
 
       if (fParsedFrameRate == 0.0) {
-	// We haven't yet parsed a frame rate from the stream.
-	// So parse this NAL unit to check whether frame rate information is present:
-	unsigned num_units_in_tick, time_scale;
-	analyze_video_parameter_set_data(num_units_in_tick, time_scale);
-	if (time_scale > 0 && num_units_in_tick > 0) {
-	  usingSource()->fFrameRate = fParsedFrameRate
-	    = time_scale/(DeltaTfiDivisor*num_units_in_tick);
+    // We haven't yet parsed a frame rate from the stream.
+    // So parse this NAL unit to check whether frame rate information is present:
+    unsigned num_units_in_tick, time_scale;
+    analyze_video_parameter_set_data(num_units_in_tick, time_scale);
+    if (time_scale > 0 && num_units_in_tick > 0) {
+      usingSource()->fFrameRate = fParsedFrameRate
+        = time_scale/(DeltaTfiDivisor*num_units_in_tick);
 #ifdef DEBUG
-	  fprintf(stderr, "Set frame rate to %f fps\n", usingSource()->fFrameRate);
+      fprintf(stderr, "Set frame rate to %f fps\n", usingSource()->fFrameRate);
 #endif
-	} else {
+    } else {
 #ifdef DEBUG
-	  fprintf(stderr, "\tThis \"Video Parameter Set\" NAL unit contained no frame rate information, so we use a default frame rate of %f fps\n", usingSource()->fFrameRate);
+      fprintf(stderr, "\tThis \"Video Parameter Set\" NAL unit contained no frame rate information, so we use a default frame rate of %f fps\n", usingSource()->fFrameRate);
 #endif
-	}
+    }
       }
     } else if (isSPS(nal_unit_type)) { // Sequence parameter set
       // First, save a copy of this NAL unit, in case the downstream object wants to see it:
       usingSource()->saveCopyOfSPS(fStartOfFrame + fOutputStartCodeSize, curFrameSize() - fOutputStartCodeSize);
 
       if (fParsedFrameRate == 0.0) {
-	// We haven't yet parsed a frame rate from the stream.
-	// So parse this NAL unit to check whether frame rate information is present:
-	unsigned num_units_in_tick, time_scale;
-	analyze_seq_parameter_set_data(num_units_in_tick, time_scale);
-	if (time_scale > 0 && num_units_in_tick > 0) {
-	  usingSource()->fFrameRate = fParsedFrameRate
-	    = time_scale/(DeltaTfiDivisor*num_units_in_tick);
+    // We haven't yet parsed a frame rate from the stream.
+    // So parse this NAL unit to check whether frame rate information is present:
+    unsigned num_units_in_tick, time_scale;
+    analyze_seq_parameter_set_data(num_units_in_tick, time_scale);
+    if (time_scale > 0 && num_units_in_tick > 0) {
+      usingSource()->fFrameRate = fParsedFrameRate
+        = time_scale/(DeltaTfiDivisor*num_units_in_tick);
 #ifdef DEBUG
-	  fprintf(stderr, "Set frame rate to %f fps\n", usingSource()->fFrameRate);
+      fprintf(stderr, "Set frame rate to %f fps\n", usingSource()->fFrameRate);
 #endif
-	} else {
+    } else {
 #ifdef DEBUG
-	  fprintf(stderr, "\tThis \"Sequence Parameter Set\" NAL unit contained no frame rate information, so we use a default frame rate of %f fps\n", usingSource()->fFrameRate);
+      fprintf(stderr, "\tThis \"Sequence Parameter Set\" NAL unit contained no frame rate information, so we use a default frame rate of %f fps\n", usingSource()->fFrameRate);
 #endif
-	}
+    }
       }
     } else if (isPPS(nal_unit_type)) { // Picture parameter set
       // Save a copy of this NAL unit, in case the downstream object wants to see it:
@@ -1116,24 +1116,24 @@ unsigned H264or5VideoStreamParser::parse() {
       testBytes(firstBytesOfNextNALUnit, 3);
 
       u_int8_t const& next_nal_unit_type = fHNumber == 264
-	? (firstBytesOfNextNALUnit[0]&0x1F) : ((firstBytesOfNextNALUnit[0]&0x7E)>>1);
+    ? (firstBytesOfNextNALUnit[0]&0x1F) : ((firstBytesOfNextNALUnit[0]&0x7E)>>1);
       if (isVCL(next_nal_unit_type)) {
-	// The high-order bit of the byte after the "nal_unit_header" tells us whether it's
-	// the start of a new 'access unit' (and thus the current NAL unit ends an 'access unit'):
-	u_int8_t const byteAfter_nal_unit_header
-	  = fHNumber == 264 ? firstBytesOfNextNALUnit[1] : firstBytesOfNextNALUnit[2];
-	thisNALUnitEndsAccessUnit = (byteAfter_nal_unit_header&0x80) != 0;
+    // The high-order bit of the byte after the "nal_unit_header" tells us whether it's
+    // the start of a new 'access unit' (and thus the current NAL unit ends an 'access unit'):
+    u_int8_t const byteAfter_nal_unit_header
+      = fHNumber == 264 ? firstBytesOfNextNALUnit[1] : firstBytesOfNextNALUnit[2];
+    thisNALUnitEndsAccessUnit = (byteAfter_nal_unit_header&0x80) != 0;
       } else if (usuallyBeginsAccessUnit(next_nal_unit_type)) {
-	// The next NAL unit's type is one that usually appears at the start of an 'access unit',
-	// so we assume that the current NAL unit ends an 'access unit':
-	thisNALUnitEndsAccessUnit = True;
+    // The next NAL unit's type is one that usually appears at the start of an 'access unit',
+    // so we assume that the current NAL unit ends an 'access unit':
+    thisNALUnitEndsAccessUnit = True;
       } else {
-	// The next NAL unit definitely doesn't start a new 'access unit',
-	// which means that the current NAL unit doesn't end one:
-	thisNALUnitEndsAccessUnit = False;
+    // The next NAL unit definitely doesn't start a new 'access unit',
+    // which means that the current NAL unit doesn't end one:
+    thisNALUnitEndsAccessUnit = False;
       }
     }
-	
+
     if (thisNALUnitEndsAccessUnit) {
 #ifdef DEBUG
       fprintf(stderr, "*****This NAL unit ends the current access unit*****\n");

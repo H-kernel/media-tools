@@ -30,16 +30,16 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 MPEG1or2DemuxedServerMediaSubsession* MPEG1or2DemuxedServerMediaSubsession
 ::createNew(MPEG1or2FileServerDemux& demux, u_int8_t streamIdTag,
-	    Boolean reuseFirstSource, Boolean iFramesOnly, double vshPeriod) {
+        Boolean reuseFirstSource, Boolean iFramesOnly, double vshPeriod) {
   return new MPEG1or2DemuxedServerMediaSubsession(demux, streamIdTag,
-						  reuseFirstSource,
-						  iFramesOnly, vshPeriod);
+                          reuseFirstSource,
+                          iFramesOnly, vshPeriod);
 }
 
 MPEG1or2DemuxedServerMediaSubsession
 ::MPEG1or2DemuxedServerMediaSubsession(MPEG1or2FileServerDemux& demux,
-				       u_int8_t streamIdTag, Boolean reuseFirstSource,
-				       Boolean iFramesOnly, double vshPeriod)
+                       u_int8_t streamIdTag, Boolean reuseFirstSource,
+                       Boolean iFramesOnly, double vshPeriod)
   : OnDemandServerMediaSubsession(demux.envir(), reuseFirstSource),
     fOurDemux(demux), fStreamIdTag(streamIdTag),
     fIFramesOnly(iFramesOnly), fVSHPeriod(vshPeriod) {
@@ -61,7 +61,7 @@ FramedSource* MPEG1or2DemuxedServerMediaSubsession
     } else if ((fStreamIdTag&0xF0) == 0xE0 /*video*/) {
       estBitrate = 500; // kbps, estimate
       return MPEG1or2VideoStreamFramer::createNew(envir(), es,
-						  fIFramesOnly, fVSHPeriod);
+                          fIFramesOnly, fVSHPeriod);
     } else if (fStreamIdTag == 0xBD /*AC-3 audio*/) {
       estBitrate = 192; // kbps, estimate
       return AC3AudioStreamFramer::createNew(envir(), es, 0x80);
@@ -77,7 +77,7 @@ FramedSource* MPEG1or2DemuxedServerMediaSubsession
 
 RTPSink* MPEG1or2DemuxedServerMediaSubsession
 ::createNewRTPSink(Groupsock* rtpGroupsock, unsigned char rtpPayloadTypeIfDynamic,
-		   FramedSource* inputSource) {
+           FramedSource* inputSource) {
   if ((fStreamIdTag&0xF0) == 0xC0 /*MPEG audio*/) {
     return MPEG1or2AudioRTPSink::createNew(envir(), rtpGroupsock);
   } else if ((fStreamIdTag&0xF0) == 0xE0 /*video*/) {
@@ -87,7 +87,7 @@ RTPSink* MPEG1or2DemuxedServerMediaSubsession
     AC3AudioStreamFramer* audioSource
       = (AC3AudioStreamFramer*)inputSource;
     return AC3AudioRTPSink::createNew(envir(), rtpGroupsock, rtpPayloadTypeIfDynamic,
-				      audioSource->samplingRate());
+                      audioSource->samplingRate());
   } else {
     return NULL;
   }

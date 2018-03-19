@@ -29,7 +29,7 @@ public:
 
 private: // redefined virtual functions
   virtual unsigned nextEnclosedFrameSize(unsigned char*& framePtr,
-					 unsigned dataSize);
+                     unsigned dataSize);
 };
 
 class TheoraBufferedPacketFactory: public BufferedPacketFactory {
@@ -42,15 +42,15 @@ private: // redefined virtual functions
 
 TheoraVideoRTPSource*
 TheoraVideoRTPSource::createNew(UsageEnvironment& env, Groupsock* RTPgs,
-				unsigned char rtpPayloadFormat) {
+                unsigned char rtpPayloadFormat) {
   return new TheoraVideoRTPSource(env, RTPgs, rtpPayloadFormat);
 }
 
 TheoraVideoRTPSource
 ::TheoraVideoRTPSource(UsageEnvironment& env, Groupsock* RTPgs,
-		       unsigned char rtpPayloadFormat)
+               unsigned char rtpPayloadFormat)
   : MultiFramedRTPSource(env, RTPgs, rtpPayloadFormat, 90000,
-			 new TheoraBufferedPacketFactory),
+             new TheoraBufferedPacketFactory),
     fCurPacketIdent(0) {
 }
 

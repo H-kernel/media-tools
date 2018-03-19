@@ -44,8 +44,8 @@ public:
 
   static AudioInputDevice*
   createNew(UsageEnvironment& env, int inputPortNumber,
-	    unsigned char bitsPerSample, unsigned char numChannels,
-	    unsigned samplingFrequency, unsigned granularityInMS = 20);
+        unsigned char bitsPerSample, unsigned char numChannels,
+        unsigned samplingFrequency, unsigned granularityInMS = 20);
   static AudioPortNames* getPortNames();
 
   static char** allowedDeviceNames;
@@ -54,11 +54,11 @@ public:
 
 protected:
   AudioInputDevice(UsageEnvironment& env,
-		   unsigned char bitsPerSample,
-		   unsigned char numChannels,
-		   unsigned samplingFrequency,
-		   unsigned granularityInMS);
-	// we're an abstract base class
+           unsigned char bitsPerSample,
+           unsigned char numChannels,
+           unsigned samplingFrequency,
+           unsigned granularityInMS);
+    // we're an abstract base class
 
   virtual ~AudioInputDevice();
 

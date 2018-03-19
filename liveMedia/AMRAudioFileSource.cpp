@@ -71,7 +71,7 @@ AMRAudioFileSource::createNew(UsageEnvironment& env, char const* fileName) {
 
 #ifdef DEBUG
     fprintf(stderr, "isWideband: %d, numChannels: %d\n",
-	    isWideband, numChannels);
+        isWideband, numChannels);
 #endif
     return new AMRAudioFileSource(env, fid, isWideband, numChannels);
   } while (0);
@@ -86,7 +86,7 @@ AMRAudioFileSource::createNew(UsageEnvironment& env, char const* fileName) {
 
 AMRAudioFileSource
 ::AMRAudioFileSource(UsageEnvironment& env, FILE* fid,
-		     Boolean isWideband, unsigned numChannels)
+             Boolean isWideband, unsigned numChannels)
   : AMRAudioSource(env, isWideband, numChannels),
     fFid(fid) {
 }
@@ -134,15 +134,15 @@ void AMRAudioFileSource::doGetNextFrame() {
       fFrameSize = fIsWideband ? frameSizeWideband[ft] : frameSize[ft];
       if (fFrameSize == FT_INVALID) {
 #ifdef DEBUG
-	fprintf(stderr, "Invalid FT field %d (from frame header 0x%02x)\n",
-		ft, fLastFrameHeader);
+    fprintf(stderr, "Invalid FT field %d (from frame header 0x%02x)\n",
+        ft, fLastFrameHeader);
 #endif
       } else {
-	// The frame header is OK
+    // The frame header is OK
 #ifdef DEBUG
-	fprintf(stderr, "Valid frame header 0x%02x -> ft %d -> frame size %d\n", fLastFrameHeader, ft, fFrameSize);
+    fprintf(stderr, "Valid frame header 0x%02x -> ft %d -> frame size %d\n", fLastFrameHeader, ft, fFrameSize);
 #endif
-	break;
+    break;
       }
     }
   }
@@ -161,7 +161,7 @@ void AMRAudioFileSource::doGetNextFrame() {
     gettimeofday(&fPresentationTime, NULL);
   } else {
     // Increment by the play time of the previous frame (20 ms)
-    unsigned uSeconds	= fPresentationTime.tv_usec + 20000;
+    unsigned uSeconds    = fPresentationTime.tv_usec + 20000;
     fPresentationTime.tv_sec += uSeconds/1000000;
     fPresentationTime.tv_usec = uSeconds%1000000;
   }
@@ -170,5 +170,5 @@ void AMRAudioFileSource::doGetNextFrame() {
 
   // Switch to another task, and inform the reader that he has data:
   nextTask() = envir().taskScheduler().scheduleDelayedTask(0,
-				(TaskFunc*)FramedSource::afterGetting, this);
+                (TaskFunc*)FramedSource::afterGetting, this);
  }

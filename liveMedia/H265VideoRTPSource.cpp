@@ -29,7 +29,7 @@ public:
 
 private: // redefined virtual functions
   virtual unsigned nextEnclosedFrameSize(unsigned char*& framePtr,
-					 unsigned dataSize);
+                     unsigned dataSize);
 private:
   H265VideoRTPSource& fOurSource;
 };
@@ -44,20 +44,20 @@ private: // redefined virtual functions
 
 H265VideoRTPSource*
 H265VideoRTPSource::createNew(UsageEnvironment& env, Groupsock* RTPgs,
-			      unsigned char rtpPayloadFormat,
-			      Boolean expectDONFields,		     
-			      unsigned rtpTimestampFrequency) {
+                  unsigned char rtpPayloadFormat,
+                  Boolean expectDONFields,
+                  unsigned rtpTimestampFrequency) {
   return new H265VideoRTPSource(env, RTPgs, rtpPayloadFormat,
-				expectDONFields, rtpTimestampFrequency);
+                expectDONFields, rtpTimestampFrequency);
 }
 
 H265VideoRTPSource
 ::H265VideoRTPSource(UsageEnvironment& env, Groupsock* RTPgs,
-		     unsigned char rtpPayloadFormat,
-		     Boolean expectDONFields,		     
-		     unsigned rtpTimestampFrequency)
+             unsigned char rtpPayloadFormat,
+             Boolean expectDONFields,
+             unsigned rtpTimestampFrequency)
   : MultiFramedRTPSource(env, RTPgs, rtpPayloadFormat, rtpTimestampFrequency,
-			 new H265BufferedPacketFactory),
+             new H265BufferedPacketFactory),
     fExpectDONFields(expectDONFields),
     fPreviousNALUnitDON(0), fCurrentNALUnitAbsDon((u_int64_t)(~0)) {
 }
@@ -105,25 +105,25 @@ Boolean H265VideoRTPSource
       newNALHeader[1] = headerStart[1];
 
       if (fExpectDONFields) {
-	if (packetSize < 5) return False;
-	DONL = (headerStart[3]<<8)|headerStart[4];
-	headerStart[3] = newNALHeader[0];
-	headerStart[4] = newNALHeader[1];
-	numBytesToSkip = 3;
+    if (packetSize < 5) return False;
+    DONL = (headerStart[3]<<8)|headerStart[4];
+    headerStart[3] = newNALHeader[0];
+    headerStart[4] = newNALHeader[1];
+    numBytesToSkip = 3;
       } else {
-	headerStart[1] = newNALHeader[0];
-	headerStart[2] = newNALHeader[1];
-	numBytesToSkip = 1;
+    headerStart[1] = newNALHeader[0];
+    headerStart[2] = newNALHeader[1];
+    numBytesToSkip = 1;
       }
     } else {
       // The start bit is not set, so we skip over all headers:
       fCurrentPacketBeginsFrame = False;
       if (fExpectDONFields) {
-	if (packetSize < 5) return False;
-	DONL = (headerStart[3]<<8)|headerStart[4];
-	numBytesToSkip = 5;
+    if (packetSize < 5) return False;
+    DONL = (headerStart[3]<<8)|headerStart[4];
+    numBytesToSkip = 5;
       } else {
-	numBytesToSkip = 3;
+    numBytesToSkip = 3;
       }
     }
     fCurrentPacketCompletesFrame = (endBit != 0);
@@ -187,12 +187,12 @@ unsigned H265BufferedPacket
       // Update our 'decoding order number':
       u_int16_t DONL = 0;
       if (fOurSource.fExpectDONFields) {
-	// There's a 1-byte DOND field next:
-	if (dataSize < 1) break;
-	u_int8_t DOND = framePtr[0];
-	DONL = fOurSource.fPreviousNALUnitDON + (u_int16_t)(DOND + 1);
-	++framePtr;
-	--dataSize;
+    // There's a 1-byte DOND field next:
+    if (dataSize < 1) break;
+    u_int8_t DOND = framePtr[0];
+    DONL = fOurSource.fPreviousNALUnitDON + (u_int16_t)(DOND + 1);
+    ++framePtr;
+    --dataSize;
       }
       fOurSource.computeAbsDonFromDON(DONL);
     }

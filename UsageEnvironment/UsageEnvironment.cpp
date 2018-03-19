@@ -51,8 +51,8 @@ TaskScheduler::~TaskScheduler() {
 }
 
 void TaskScheduler::rescheduleDelayedTask(TaskToken& task,
-					  int64_t microseconds, TaskFunc* proc,
-					  void* clientData) {
+                      int64_t microseconds, TaskFunc* proc,
+                      void* clientData) {
   unscheduleDelayedTask(task);
   task = scheduleDelayedTask(microseconds, proc, clientData);
 }

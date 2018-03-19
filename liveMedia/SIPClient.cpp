@@ -31,11 +31,11 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 SIPClient* SIPClient
 ::createNew(UsageEnvironment& env,
-	    unsigned char desiredAudioRTPPayloadFormat,
-	    char const* mimeSubtype,
-	    int verbosityLevel, char const* applicationName) {
+        unsigned char desiredAudioRTPPayloadFormat,
+        char const* mimeSubtype,
+        int verbosityLevel, char const* applicationName) {
   return new SIPClient(env, desiredAudioRTPPayloadFormat, mimeSubtype,
-		       verbosityLevel, applicationName);
+               verbosityLevel, applicationName);
 }
 
 void SIPClient::setUserAgentString(char const* userAgentName) {
@@ -51,9 +51,9 @@ void SIPClient::setUserAgentString(char const* userAgentName) {
 }
 
 SIPClient::SIPClient(UsageEnvironment& env,
-		     unsigned char desiredAudioRTPPayloadFormat,
-		     char const* mimeSubtype,
-		     int verbosityLevel, char const* applicationName)
+             unsigned char desiredAudioRTPPayloadFormat,
+             char const* mimeSubtype,
+             int verbosityLevel, char const* applicationName)
   : Medium(env),
     fT1(500000 /* 500 ms */),
     fDesiredAudioRTPPayloadFormat(desiredAudioRTPPayloadFormat),
@@ -80,8 +80,8 @@ SIPClient::SIPClient(UsageEnvironment& env,
   fOurSocket = new Groupsock(env, ourAddress, 0, 255);
   if (fOurSocket == NULL) {
     env << "ERROR: Failed to create socket for addr "
-	<< fOurAddressStr << ": "
-	<< env.getResultMsg() << "\n";
+    << fOurAddressStr << ": "
+    << env.getResultMsg() << "\n";
   }
 
   // Now, find out our source port number.  Hack: Do this by first trying to
@@ -98,9 +98,9 @@ SIPClient::SIPClient(UsageEnvironment& env,
     fOurSocket = new Groupsock(env, ourAddress, fOurPortNum, 255);
     if (fOurSocket == NULL) {
       env << "ERROR: Failed to create socket for addr "
-	  << fOurAddressStr << ", port "
-	  << fOurPortNum << ": "
-	  << env.getResultMsg() << "\n";
+      << fOurAddressStr << ", port "
+      << fOurPortNum << ": "
+      << env.getResultMsg() << "\n";
     }
   }
 
@@ -118,7 +118,7 @@ SIPClient::SIPClient(UsageEnvironment& env,
     = fApplicationNameSize + strlen(libPrefix) + strlen(libName) + strlen(libVersionStr) + strlen(libSuffix) + 1;
   char* userAgentName = new char[userAgentNameSize];
   sprintf(userAgentName, "%s%s%s%s%s",
-	  applicationName, libPrefix, libName, libVersionStr, libSuffix);
+      applicationName, libPrefix, libName, libVersionStr, libSuffix);
   setUserAgentString(userAgentName);
   delete[] userAgentName;
 
@@ -152,12 +152,12 @@ void SIPClient::reset() {
 }
 
 void SIPClient::setProxyServer(unsigned proxyServerAddress,
-			       portNumBits proxyServerPortNum) {
+                   portNumBits proxyServerPortNum) {
   fServerAddress.s_addr = proxyServerAddress;
   fServerPortNum = proxyServerPortNum;
   if (fOurSocket != NULL) {
     fOurSocket->changeDestinationParameters(fServerAddress,
-					    fServerPortNum, 255);
+                        fServerPortNum, 255);
   }
 }
 
@@ -211,12 +211,12 @@ char* SIPClient::invite1(Authenticator* authenticator) {
     unsigned rtpmapLineSize;
     if (fMIMESubtypeSize > 0) {
       char const* const rtpmapFmt =
-	"a=rtpmap:%u %s/8000\r\n";
+    "a=rtpmap:%u %s/8000\r\n";
       unsigned rtpmapFmtSize = strlen(rtpmapFmt)
-	+ 3 /* max char len */ + fMIMESubtypeSize;
+    + 3 /* max char len */ + fMIMESubtypeSize;
       rtpmapLine = new char[rtpmapFmtSize];
       sprintf(rtpmapLine, rtpmapFmt,
-	      fDesiredAudioRTPPayloadFormat, fMIMESubtype);
+          fDesiredAudioRTPPayloadFormat, fMIMESubtype);
       rtpmapLineSize = strlen(rtpmapLine);
     } else {
       // Static payload type => no "a=rtpmap:" line
@@ -240,11 +240,11 @@ char* SIPClient::invite1(Authenticator* authenticator) {
     delete[] fInviteSDPDescription;
     fInviteSDPDescription = new char[inviteSDPFmtSize];
     sprintf(fInviteSDPDescription, inviteSDPFmt,
-	    fCallId, fCSeq, fOurAddressStr,
-	    fApplicationName,
-	    fOurAddressStr,
-	    fClientStartPortNum, fDesiredAudioRTPPayloadFormat,
-	    rtpmapLine);
+        fCallId, fCSeq, fOurAddressStr,
+        fApplicationName,
+        fOurAddressStr,
+        fClientStartPortNum, fDesiredAudioRTPPayloadFormat,
+        rtpmapLine);
     unsigned inviteSDPSize = strlen(fInviteSDPDescription);
     delete[] rtpmapLine;
 
@@ -276,17 +276,17 @@ char* SIPClient::invite1(Authenticator* authenticator) {
       + inviteSDPSize;
     delete[] fInviteCmd; fInviteCmd = new char[inviteCmdSize];
     sprintf(fInviteCmd, cmdFmt,
-	    fURL,
-	    fUserName, fUserName, fOurAddressStr, fFromTag,
-	    fOurAddressStr, fOurPortNum,
-	    fURL,
-	    fUserName, fOurAddressStr, fOurPortNum,
-	    fCallId, fOurAddressStr,
-	    ++fCSeq,
-	    authenticatorStr,
-	    fUserAgentHeaderStr,
-	    inviteSDPSize,
-	    fInviteSDPDescription);
+        fURL,
+        fUserName, fUserName, fOurAddressStr, fFromTag,
+        fOurAddressStr, fOurPortNum,
+        fURL,
+        fUserName, fOurAddressStr, fOurPortNum,
+        fCallId, fOurAddressStr,
+        ++fCSeq,
+        authenticatorStr,
+        fUserAgentHeaderStr,
+        inviteSDPSize,
+        fInviteSDPDescription);
     fInviteCmdSize = strlen(fInviteCmd);
     delete[] authenticatorStr;
 
@@ -296,7 +296,7 @@ char* SIPClient::invite1(Authenticator* authenticator) {
     fEventLoopStopFlag = 0;
     TaskScheduler& sched = envir().taskScheduler(); // abbrev.
     sched.turnOnBackgroundReadHandling(fOurSocket->socketNum(),
-				       &inviteResponseHandler, this);
+                       &inviteResponseHandler, this);
     fTimerALen = 1*fT1; // initially
     fTimerACount = 0; // initially
     fTimerA = sched.scheduleDelayedTask(fTimerALen, timerAHandler, this);
@@ -341,8 +341,8 @@ void SIPClient::timerAHandler(void* clientData) {
   SIPClient* client = (SIPClient*)clientData;
   if (client->fVerbosityLevel >= 1) {
     client->envir() << "RETRANSMISSION " << ++client->fTimerACount
-		    << ", after " << client->fTimerALen/1000000.0
-		    << " additional seconds\n";
+            << ", after " << client->fTimerALen/1000000.0
+            << " additional seconds\n";
   }
   client->doInviteStateMachine(timerAFires);
 }
@@ -351,7 +351,7 @@ void SIPClient::timerBHandler(void* clientData) {
   SIPClient* client = (SIPClient*)clientData;
   if (client->fVerbosityLevel >= 1) {
     client->envir() << "RETRANSMISSION TIMEOUT, after "
-		    << 64*client->fT1/1000000.0 << " seconds\n";
+            << 64*client->fT1/1000000.0 << " seconds\n";
     fflush(stderr);
   }
   client->doInviteStateMachine(timerBFires);
@@ -371,68 +371,68 @@ void SIPClient::doInviteStateMachine(unsigned responseCode) {
   switch (fInviteClientState) {
     case Calling: {
       if (responseCode == timerAFires) {
-	// Restart timer A (with double the timeout interval):
-	fTimerALen *= 2;
-	fTimerA
-	  = sched.scheduleDelayedTask(fTimerALen, timerAHandler, this);
+    // Restart timer A (with double the timeout interval):
+    fTimerALen *= 2;
+    fTimerA
+      = sched.scheduleDelayedTask(fTimerALen, timerAHandler, this);
 
-	fInviteClientState = Calling;
-	if (!sendINVITE()) doInviteStateTerminated(0);
+    fInviteClientState = Calling;
+    if (!sendINVITE()) doInviteStateTerminated(0);
       } else {
-	// Turn off timers A & B before moving to a new state:
-	sched.unscheduleDelayedTask(fTimerA);
-	sched.unscheduleDelayedTask(fTimerB);
+    // Turn off timers A & B before moving to a new state:
+    sched.unscheduleDelayedTask(fTimerA);
+    sched.unscheduleDelayedTask(fTimerB);
 
-	if (responseCode == timerBFires) {
-	  envir().setResultMsg("No response from server");
-	  doInviteStateTerminated(0);
-	} else if (responseCode >= 100 && responseCode <= 199) {
-	  fInviteClientState = Proceeding;
-	} else if (responseCode >= 200 && responseCode <= 299) {
-	  doInviteStateTerminated(responseCode);
-	} else if (responseCode >= 400 && responseCode <= 499) {
-	  doInviteStateTerminated(responseCode);
-	      // this isn't what the spec says, but it seems right...
-	} else if (responseCode >= 300 && responseCode <= 699) {
-	  fInviteClientState = Completed;
-	  fTimerD
-	    = sched.scheduleDelayedTask(32000000, timerDHandler, this);
-	  if (!sendACK()) doInviteStateTerminated(0);
-	}
+    if (responseCode == timerBFires) {
+      envir().setResultMsg("No response from server");
+      doInviteStateTerminated(0);
+    } else if (responseCode >= 100 && responseCode <= 199) {
+      fInviteClientState = Proceeding;
+    } else if (responseCode >= 200 && responseCode <= 299) {
+      doInviteStateTerminated(responseCode);
+    } else if (responseCode >= 400 && responseCode <= 499) {
+      doInviteStateTerminated(responseCode);
+          // this isn't what the spec says, but it seems right...
+    } else if (responseCode >= 300 && responseCode <= 699) {
+      fInviteClientState = Completed;
+      fTimerD
+        = sched.scheduleDelayedTask(32000000, timerDHandler, this);
+      if (!sendACK()) doInviteStateTerminated(0);
+    }
       }
       break;
     }
 
     case Proceeding: {
       if (responseCode >= 100 && responseCode <= 199) {
-	fInviteClientState = Proceeding;
+    fInviteClientState = Proceeding;
       } else if (responseCode >= 200 && responseCode <= 299) {
-	doInviteStateTerminated(responseCode);
+    doInviteStateTerminated(responseCode);
       } else if (responseCode >= 400 && responseCode <= 499) {
-	doInviteStateTerminated(responseCode);
-	    // this isn't what the spec says, but it seems right...
+    doInviteStateTerminated(responseCode);
+        // this isn't what the spec says, but it seems right...
       } else if (responseCode >= 300 && responseCode <= 699) {
-	fInviteClientState = Completed;
-	fTimerD = sched.scheduleDelayedTask(32000000, timerDHandler, this);
-	if (!sendACK()) doInviteStateTerminated(0);
+    fInviteClientState = Completed;
+    fTimerD = sched.scheduleDelayedTask(32000000, timerDHandler, this);
+    if (!sendACK()) doInviteStateTerminated(0);
       }
       break;
     }
 
     case Completed: {
       if (responseCode == timerDFires) {
-	envir().setResultMsg("Transaction terminated");
-	doInviteStateTerminated(0);
+    envir().setResultMsg("Transaction terminated");
+    doInviteStateTerminated(0);
       } else if (responseCode >= 300 && responseCode <= 699) {
-	fInviteClientState = Completed;
-	if (!sendACK()) doInviteStateTerminated(0);
+    fInviteClientState = Completed;
+    if (!sendACK()) doInviteStateTerminated(0);
       }
       break;
     }
 
     case Terminated: {
-	doInviteStateTerminated(responseCode);
-	break;
+    doInviteStateTerminated(responseCode);
+    break;
     }
   }
 }
@@ -479,39 +479,39 @@ unsigned SIPClient::getResponseCode() {
 
     if (responseCode != 200) {
       if (responseCode >= 400 && responseCode <= 499
-	  && fWorkingAuthenticator != NULL) {
-	// We have an authentication failure, so fill in
-	// "*fWorkingAuthenticator" using the contents of a following
-	// "Proxy-Authenticate:" line.  (Once we compute a 'response' for
-	// "fWorkingAuthenticator", it can be used in a subsequent request
-	// - that will hopefully succeed.)
-	char* lineStart;
-	while (1) {
-	  lineStart = nextLineStart;
-	  if (lineStart == NULL) break;
+      && fWorkingAuthenticator != NULL) {
+    // We have an authentication failure, so fill in
+    // "*fWorkingAuthenticator" using the contents of a following
+    // "Proxy-Authenticate:" line.  (Once we compute a 'response' for
+    // "fWorkingAuthenticator", it can be used in a subsequent request
+    // - that will hopefully succeed.)
+    char* lineStart;
+    while (1) {
+      lineStart = nextLineStart;
+      if (lineStart == NULL) break;
 
-	  nextLineStart = getLine(lineStart);
-	  if (lineStart[0] == '\0') break; // this is a blank line
+      nextLineStart = getLine(lineStart);
+      if (lineStart[0] == '\0') break; // this is a blank line
 
-	  char* realm = strDupSize(lineStart);
-	  char* nonce = strDupSize(lineStart);
-	  // ##### Check for the format of "Proxy-Authenticate:" lines from
-	  // ##### known server types.
-	  // ##### This is a crock! We should make the parsing more general
+      char* realm = strDupSize(lineStart);
+      char* nonce = strDupSize(lineStart);
+      // ##### Check for the format of "Proxy-Authenticate:" lines from
+      // ##### known server types.
+      // ##### This is a crock! We should make the parsing more general
           Boolean foundAuthenticateHeader = False;
-	  if (
-	      // Asterisk #####
-	      sscanf(lineStart, "Proxy-Authenticate: Digest realm=\"%[^\"]\", nonce=\"%[^\"]\"",
-		     realm, nonce) == 2 ||
-	      // Cisco ATA #####
-	      sscanf(lineStart, "Proxy-Authenticate: Digest algorithm=MD5,domain=\"%*[^\"]\",nonce=\"%[^\"]\", realm=\"%[^\"]\"",
-		     nonce, realm) == 2) {
+      if (
+          // Asterisk #####
+          sscanf(lineStart, "Proxy-Authenticate: Digest realm=\"%[^\"]\", nonce=\"%[^\"]\"",
+             realm, nonce) == 2 ||
+          // Cisco ATA #####
+          sscanf(lineStart, "Proxy-Authenticate: Digest algorithm=MD5,domain=\"%*[^\"]\",nonce=\"%[^\"]\", realm=\"%[^\"]\"",
+             nonce, realm) == 2) {
             fWorkingAuthenticator->setRealmAndNonce(realm, nonce);
             foundAuthenticateHeader = True;
           }
           delete[] realm; delete[] nonce;
           if (foundAuthenticateHeader) break;
-	}
+    }
       }
       envir().setResultMsg("cannot handle INVITE response: ", firstLine);
       break;
@@ -533,8 +533,8 @@ unsigned SIPClient::getResponseCode() {
 
       char* toTagStr = strDupSize(lineStart);
       if (sscanf(lineStart, "To:%*[^;]; tag=%s", toTagStr) == 1) {
-	delete[] (char*)fToTagStr; fToTagStr = strDup(toTagStr);
-	fToTagStrSize = strlen(fToTagStr);
+    delete[] (char*)fToTagStr; fToTagStr = strDup(toTagStr);
+    fToTagStrSize = strlen(fToTagStr);
       }
       delete[] toTagStr;
 
@@ -566,7 +566,7 @@ unsigned SIPClient::getResponseCode() {
         // space for it:
         unsigned numExtraBytesNeeded = contentLength - numBodyBytes;
 #ifdef USING_TCP
-	// THIS CODE WORKS ONLY FOR TCP: #####
+    // THIS CODE WORKS ONLY FOR TCP: #####
         unsigned remainingBufferSize
           = readBufSize - (bytesRead + (readBuf - readBuffer));
         if (numExtraBytesNeeded > remainingBufferSize) {
@@ -581,21 +581,21 @@ unsigned SIPClient::getResponseCode() {
         // Keep reading more data until we have enough:
         if (fVerbosityLevel >= 1) {
           envir() << "Need to read " << numExtraBytesNeeded
-		  << " extra bytes\n";
+          << " extra bytes\n";
         }
         while (numExtraBytesNeeded > 0) {
           char* ptr = &readBuf[bytesRead];
-	  unsigned bytesRead2;
-	  struct sockaddr_in fromAddr;
-	  Boolean readSuccess
-	    = fOurSocket->handleRead((unsigned char*)ptr,
-				     numExtraBytesNeeded,
-				     bytesRead2, fromAddr);
+      unsigned bytesRead2;
+      struct sockaddr_in fromAddr;
+      Boolean readSuccess
+        = fOurSocket->handleRead((unsigned char*)ptr,
+                     numExtraBytesNeeded,
+                     bytesRead2, fromAddr);
           if (!readSuccess) break;
           ptr[bytesRead2] = '\0';
           if (fVerbosityLevel >= 1) {
             envir() << "Read " << bytesRead2
-		    << " extra bytes: " << ptr << "\n";
+            << " extra bytes: " << ptr << "\n";
           }
 
           bytesRead += bytesRead2;
@@ -614,7 +614,7 @@ unsigned SIPClient::getResponseCode() {
 }
 
 char* SIPClient::inviteWithPassword(char const* url, char const* username,
-				    char const* password) {
+                    char const* password) {
   delete[] (char*)fUserName; fUserName = strDup(username);
   fUserNameSize = strlen(fUserName);
 
@@ -662,12 +662,12 @@ Boolean SIPClient::sendACK() {
       + 20;
     cmd = new char[cmdSize];
     sprintf(cmd, cmdFmt,
-	    fURL,
-	    fUserName, fUserName, fOurAddressStr, fFromTag,
-	    fOurAddressStr, fOurPortNum,
-	    fURL, fToTagStr,
-	    fCallId, fOurAddressStr,
-	    fCSeq /* note: it's the same as before; not incremented */);
+        fURL,
+        fUserName, fUserName, fOurAddressStr, fFromTag,
+        fOurAddressStr, fOurPortNum,
+        fURL, fToTagStr,
+        fCallId, fOurAddressStr,
+        fCSeq /* note: it's the same as before; not incremented */);
 
     if (!sendRequest(cmd, strlen(cmd))) {
       envir().setResultErrMsg("ACK send() failed: ");
@@ -704,12 +704,12 @@ Boolean SIPClient::sendBYE() {
       + 20;
     cmd = new char[cmdSize];
     sprintf(cmd, cmdFmt,
-	    fURL,
-	    fUserName, fUserName, fOurAddressStr, fFromTag,
-	    fOurAddressStr, fOurPortNum,
-	    fURL, fToTagStr,
-	    fCallId, fOurAddressStr,
-	    ++fCSeq);
+        fURL,
+        fUserName, fUserName, fOurAddressStr, fFromTag,
+        fOurAddressStr, fOurPortNum,
+        fURL, fToTagStr,
+        fCallId, fOurAddressStr,
+        ++fCSeq);
 
     if (!sendRequest(cmd, strlen(cmd))) {
       envir().setResultErrMsg("BYE send() failed: ");
@@ -734,8 +734,8 @@ Boolean SIPClient::processURL(char const* url) {
       fServerAddress.s_addr = *(unsigned*)(destAddress.data());
 
       if (fOurSocket != NULL) {
-	fOurSocket->changeDestinationParameters(fServerAddress,
-						fServerPortNum, 255);
+    fOurSocket->changeDestinationParameters(fServerAddress,
+                        fServerPortNum, 255);
       }
     }
 
@@ -746,8 +746,8 @@ Boolean SIPClient::processURL(char const* url) {
 }
 
 Boolean SIPClient::parseSIPURL(UsageEnvironment& env, char const* url,
-			       NetAddress& address,
-			       portNumBits& portNum) {
+                   NetAddress& address,
+                   portNumBits& portNum) {
   do {
     // Parse the URL as "sip:<username>@<address>:<port>/<etc>"
     // (with ":<port>" and "/<etc>" optional)
@@ -763,15 +763,15 @@ Boolean SIPClient::parseSIPURL(UsageEnvironment& env, char const* url,
     char parseBuffer[parseBufferSize];
     unsigned addressStartIndex = prefixLength;
     while (url[addressStartIndex] != '\0'
-	   && url[addressStartIndex++] != '@') {}
+       && url[addressStartIndex++] != '@') {}
     char const* from = &url[addressStartIndex];
 
     // Skip over any "<username>[:<password>]@"
     char const* from1 = from;
     while (*from1 != '\0' && *from1 != '/') {
       if (*from1 == '@') {
-	from = ++from1;
-	break;
+    from = ++from1;
+    break;
       }
       ++from1;
     }
@@ -780,9 +780,9 @@ Boolean SIPClient::parseSIPURL(UsageEnvironment& env, char const* url,
     unsigned i;
     for (i = 0; i < parseBufferSize; ++i) {
       if (*from == '\0' || *from == ':' || *from == '/') {
-	// We've completed parsing the address
-	*to = '\0';
-	break;
+    // We've completed parsing the address
+    *to = '\0';
+    break;
       }
       *to++ = *from++;
     }
@@ -794,7 +794,7 @@ Boolean SIPClient::parseSIPURL(UsageEnvironment& env, char const* url,
     NetAddressList addresses(parseBuffer);
     if (addresses.numAddresses() == 0) {
       env.setResultMsg("Failed to find network address for \"",
-			   parseBuffer, "\"");
+               parseBuffer, "\"");
       break;
     }
     address = *(addresses.firstAddress());
@@ -804,12 +804,12 @@ Boolean SIPClient::parseSIPURL(UsageEnvironment& env, char const* url,
     if (nextChar == ':') {
       int portNumInt;
       if (sscanf(++from, "%d", &portNumInt) != 1) {
-	env.setResultMsg("No port number follows ':'");
-	break;
+    env.setResultMsg("No port number follows ':'");
+    break;
       }
       if (portNumInt < 1 || portNumInt > 65535) {
-	env.setResultMsg("Bad port number");
-	break;
+    env.setResultMsg("Bad port number");
+    break;
       }
       portNum = (portNumBits)portNumInt;
     }
@@ -821,8 +821,8 @@ Boolean SIPClient::parseSIPURL(UsageEnvironment& env, char const* url,
 }
 
 Boolean SIPClient::parseSIPURLUsernamePassword(char const* url,
-					       char*& username,
-					       char*& password) {
+                           char*& username,
+                           char*& password) {
   username = password = NULL; // by default
   do {
     // Parse the URL as "sip:<username>[:<password>]@<whatever>"
@@ -835,7 +835,7 @@ Boolean SIPClient::parseSIPURLUsernamePassword(char const* url,
     unsigned colonIndex = 0, atIndex = 0;
     for (unsigned i = usernameIndex; url[i] != '\0' && url[i] != '/'; ++i) {
       if (url[i] == ':' && colonIndex == 0) {
-	colonIndex = i;
+    colonIndex = i;
       } else if (url[i] == '@') {
         atIndex = i;
         break; // we're done
@@ -862,7 +862,7 @@ Boolean SIPClient::parseSIPURLUsernamePassword(char const* url,
 
 char*
 SIPClient::createAuthenticatorString(Authenticator const* authenticator,
-				      char const* cmd, char const* url) {
+                      char const* cmd, char const* url) {
   if (authenticator != NULL && authenticator->realm() != NULL
       && authenticator->nonce() != NULL && authenticator->username() != NULL
       && authenticator->password() != NULL) {
@@ -875,8 +875,8 @@ SIPClient::createAuthenticatorString(Authenticator const* authenticator,
       + strlen(authenticator->nonce()) + strlen(url) + strlen(response);
     char* authenticatorStr = new char[authBufSize];
     sprintf(authenticatorStr, authFmt,
-	    authenticator->username(), authenticator->realm(),
-	    authenticator->nonce(), response, url);
+        authenticator->username(), authenticator->realm(),
+        authenticator->nonce(), response, url);
     authenticator->reclaimDigestResponse(response);
 
     return authenticatorStr;
@@ -886,7 +886,7 @@ SIPClient::createAuthenticatorString(Authenticator const* authenticator,
 }
 
 Boolean SIPClient::sendRequest(char const* requestString,
-			       unsigned requestLength) {
+                   unsigned requestLength) {
   if (fVerbosityLevel >= 1) {
     envir() << "Sending request: " << requestString << "\n";
   }
@@ -896,7 +896,7 @@ Boolean SIPClient::sendRequest(char const* requestString,
 }
 
 unsigned SIPClient::getResponse(char*& responseBuffer,
-				unsigned responseBufferSize) {
+                unsigned responseBufferSize) {
   if (responseBufferSize == 0) return 0; // just in case...
   responseBuffer[0] = '\0'; // ditto
 
@@ -912,7 +912,7 @@ unsigned SIPClient::getResponse(char*& responseBuffer,
     unsigned char* toPosn = (unsigned char*)(responseBuffer+bytesRead);
     Boolean readSuccess
       = fOurSocket->handleRead(toPosn, responseBufferSize-bytesRead,
-			       bytesReadNow, fromAddr);
+                   bytesReadNow, fromAddr);
     if (!readSuccess || bytesReadNow == 0) {
       envir().setResultMsg("SIP response was truncated");
       break;
@@ -947,7 +947,7 @@ unsigned SIPClient::getResponse(char*& responseBuffer,
 }
 
 Boolean SIPClient::parseResponseCode(char const* line,
-				      unsigned& responseCode) {
+                      unsigned& responseCode) {
   if (sscanf(line, "%*s%u", &responseCode) != 1) {
     envir().setResultMsg("no response code in line: \"", line, "\"");
     return False;

@@ -22,16 +22,16 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 VP8VideoRTPSource*
 VP8VideoRTPSource::createNew(UsageEnvironment& env, Groupsock* RTPgs,
-			      unsigned char rtpPayloadFormat,
-			      unsigned rtpTimestampFrequency) {
+                  unsigned char rtpPayloadFormat,
+                  unsigned rtpTimestampFrequency) {
   return new VP8VideoRTPSource(env, RTPgs, rtpPayloadFormat,
-			       rtpTimestampFrequency);
+                   rtpTimestampFrequency);
 }
 
 VP8VideoRTPSource
 ::VP8VideoRTPSource(UsageEnvironment& env, Groupsock* RTPgs,
-		     unsigned char rtpPayloadFormat,
-		     unsigned rtpTimestampFrequency)
+             unsigned char rtpPayloadFormat,
+             unsigned rtpTimestampFrequency)
   : MultiFramedRTPSource(env, RTPgs, rtpPayloadFormat, rtpTimestampFrequency) {
 }
 
@@ -70,14 +70,14 @@ Boolean VP8VideoRTPSource
     if (I) {
       incrHeader;
       if ((*headerStart)&0x80) { // extension flag in the PictureID is set
-	incrHeader;
+    incrHeader;
       }
     }
 
     if (L) incrHeader;
     if (T||K) incrHeader;
   }
-  
+
   return True;
 }
 

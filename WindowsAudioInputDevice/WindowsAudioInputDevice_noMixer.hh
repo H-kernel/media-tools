@@ -33,10 +33,10 @@ class WindowsAudioInputDevice: public WindowsAudioInputDevice_common {
 private:
   friend class AudioInputDevice;
   WindowsAudioInputDevice(UsageEnvironment& env, int inputPortNumber,
-	unsigned char bitsPerSample, unsigned char numChannels,
-	unsigned samplingFrequency, unsigned granularityInMS,
-	Boolean& success);
-	// called only by createNew()
+    unsigned char bitsPerSample, unsigned char numChannels,
+    unsigned samplingFrequency, unsigned granularityInMS,
+    Boolean& success);
+    // called only by createNew()
 
   virtual ~WindowsAudioInputDevice();
 

@@ -29,13 +29,13 @@ class H264VideoRTPSource: public MultiFramedRTPSource {
 public:
   static H264VideoRTPSource*
   createNew(UsageEnvironment& env, Groupsock* RTPgs,
-	    unsigned char rtpPayloadFormat,
-	    unsigned rtpTimestampFrequency = 90000);
+        unsigned char rtpPayloadFormat,
+        unsigned rtpTimestampFrequency = 90000);
 
 protected:
   H264VideoRTPSource(UsageEnvironment& env, Groupsock* RTPgs,
-			 unsigned char rtpPayloadFormat,
-			 unsigned rtpTimestampFrequency);
+             unsigned char rtpPayloadFormat,
+             unsigned rtpTimestampFrequency);
       // called only by createNew()
 
   virtual ~H264VideoRTPSource();
@@ -60,8 +60,8 @@ public:
 };
 
 SPropRecord* parseSPropParameterSets(char const* sPropParameterSetsStr,
-				     // result parameter:
-				     unsigned& numSPropRecords);
+                     // result parameter:
+                     unsigned& numSPropRecords);
     // Returns the binary value of each 'parameter set' specified in a
     // "sprop-parameter-sets" string (in the SDP description for a H.264/RTP stream).
     // The value is returned as an array (length "numSPropRecords") of "SPropRecord"s.

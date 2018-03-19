@@ -28,23 +28,23 @@
 #define RTCP_XR_GMIN 16 /* Recommended value of Gmin from RFC3611, section 4.7.6 */
 
 typedef enum {
-	RTP_SESSION_RECV_SYNC=1,	/* the rtp session is synchronising in the incoming stream */
-	RTP_SESSION_FIRST_PACKET_DELIVERED=1<<1,
-	RTP_SESSION_SCHEDULED=1<<2,/* the scheduler controls this session*/
-	RTP_SESSION_BLOCKING_MODE=1<<3, /* in blocking mode */
-	RTP_SESSION_RECV_NOT_STARTED=1<<4,	/* the application has not started to try to recv */
-	RTP_SESSION_SEND_NOT_STARTED=1<<5,  /* the application has not started to send something */
-	RTP_SESSION_IN_SCHEDULER=1<<6,	/* the rtp session is in the scheduler list */
-	RTP_SESSION_USING_EXT_SOCKETS=1<<7, /* the session is using externaly supplied sockets */
-	RTP_SOCKET_CONNECTED=1<<8,
-	RTCP_SOCKET_CONNECTED=1<<9,
-	RTP_SESSION_USING_TRANSPORT=1<<10,
-	RTCP_OVERRIDE_LOST_PACKETS=1<<11,
-	RTCP_OVERRIDE_JITTER=1<<12,
-	RTCP_OVERRIDE_DELAY=1<<13,
-	RTP_SESSION_RECV_SEQ_INIT=1<<14,
-	RTP_SESSION_FLUSH=1<<15,
-	RTP_SESSION_SOCKET_REFRESH_REQUESTED=1<<16
+    RTP_SESSION_RECV_SYNC=1,    /* the rtp session is synchronising in the incoming stream */
+    RTP_SESSION_FIRST_PACKET_DELIVERED=1<<1,
+    RTP_SESSION_SCHEDULED=1<<2,/* the scheduler controls this session*/
+    RTP_SESSION_BLOCKING_MODE=1<<3, /* in blocking mode */
+    RTP_SESSION_RECV_NOT_STARTED=1<<4,    /* the application has not started to try to recv */
+    RTP_SESSION_SEND_NOT_STARTED=1<<5,  /* the application has not started to send something */
+    RTP_SESSION_IN_SCHEDULER=1<<6,    /* the rtp session is in the scheduler list */
+    RTP_SESSION_USING_EXT_SOCKETS=1<<7, /* the session is using externaly supplied sockets */
+    RTP_SOCKET_CONNECTED=1<<8,
+    RTCP_SOCKET_CONNECTED=1<<9,
+    RTP_SESSION_USING_TRANSPORT=1<<10,
+    RTCP_OVERRIDE_LOST_PACKETS=1<<11,
+    RTCP_OVERRIDE_JITTER=1<<12,
+    RTCP_OVERRIDE_DELAY=1<<13,
+    RTP_SESSION_RECV_SEQ_INIT=1<<14,
+    RTP_SESSION_FLUSH=1<<15,
+    RTP_SESSION_SOCKET_REFRESH_REQUESTED=1<<16
 }RtpSessionFlags;
 
 #define rtp_session_using_transport(s, stream) (((s)->flags & RTP_SESSION_USING_TRANSPORT) && (s->stream.gs.tr != 0))

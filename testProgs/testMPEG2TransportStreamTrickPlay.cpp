@@ -52,7 +52,7 @@ int main(int argc, char const** argv) {
   int len = strlen(inputFileName);
   if (len < 4 || strcmp(&inputFileName[len-3], ".ts") != 0) {
     *env << "ERROR: input file name \"" << inputFileName
-	 << "\" does not end with \".ts\"\n";
+     << "\" does not end with \".ts\"\n";
     usage();
   }
 
@@ -92,8 +92,8 @@ int main(int argc, char const** argv) {
     indexFile->lookupTSPacketNumFromNPT(startTime, tsRecordNumber, indexRecordNumber);
     if (!trickModeFilter->seekTo(tsRecordNumber, indexRecordNumber)) { // TARFU!
       *env << "Failed to seek trick mode filter to ts #" << (unsigned)tsRecordNumber
-	   << ", ix #" << (unsigned)indexRecordNumber
-	   << "(for time " << startTime << ")\n";
+       << ", ix #" << (unsigned)indexRecordNumber
+       << "(for time " << startTime << ")\n";
       exit(1);
     }
   }

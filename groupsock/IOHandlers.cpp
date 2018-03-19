@@ -31,7 +31,7 @@ static unsigned const maxPacketLength = 50*1024; // bytes
     // fragmentation, but that occurs below us.  We just have to hope that
     // fragments don't get lost.
 static unsigned const ioBufferSize
-	= maxPacketLength + TunnelEncapsulationTrailerMaxSize;
+    = maxPacketLength + TunnelEncapsulationTrailerMaxSize;
 static unsigned char ioBuffer[ioBufferSize];
 
 

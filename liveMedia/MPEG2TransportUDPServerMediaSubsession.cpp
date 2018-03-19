@@ -29,7 +29,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 MPEG2TransportUDPServerMediaSubsession*
 MPEG2TransportUDPServerMediaSubsession::createNew(UsageEnvironment& env,
-						  char const* inputAddressStr, Port const& inputPort, Boolean inputStreamIsRawUDP) {
+                          char const* inputAddressStr, Port const& inputPort, Boolean inputStreamIsRawUDP) {
   return new MPEG2TransportUDPServerMediaSubsession(env, inputAddressStr, inputPort, inputStreamIsRawUDP);
 }
 
@@ -70,6 +70,6 @@ FramedSource* MPEG2TransportUDPServerMediaSubsession
 RTPSink* MPEG2TransportUDPServerMediaSubsession
 ::createNewRTPSink(Groupsock* rtpGroupsock, unsigned char /*rtpPayloadTypeIfDynamic*/, FramedSource* /*inputSource*/) {
   return SimpleRTPSink::createNew(envir(), rtpGroupsock,
-				  33, 90000, "video", "MP2T",
-				  1, True, False /*no 'M' bit*/);
+                  33, 90000, "video", "MP2T",
+                  1, True, False /*no 'M' bit*/);
 }

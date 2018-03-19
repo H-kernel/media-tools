@@ -29,16 +29,16 @@ class MPEG1or2VideoRTPSource: public MultiFramedRTPSource {
 public:
   static MPEG1or2VideoRTPSource*
   createNew(UsageEnvironment& env, Groupsock* RTPgs,
-	    unsigned char rtpPayloadFormat = 32,
-	    unsigned rtpPayloadFrequency = 90000);
+        unsigned char rtpPayloadFormat = 32,
+        unsigned rtpPayloadFrequency = 90000);
 
 protected:
   virtual ~MPEG1or2VideoRTPSource();
 
 private:
   MPEG1or2VideoRTPSource(UsageEnvironment& env, Groupsock* RTPgs,
-		     unsigned char rtpPayloadFormat,
-		     unsigned rtpTimestampFrequency);
+             unsigned char rtpPayloadFormat,
+             unsigned rtpTimestampFrequency);
       // called only by createNew()
 
 private:
@@ -46,7 +46,7 @@ private:
   virtual Boolean processSpecialHeader(BufferedPacket* packet,
                                        unsigned& resultSpecialHeaderSize);
   virtual Boolean packetIsUsableInJitterCalculation(unsigned char* packet,
-						    unsigned packetSize);
+                            unsigned packetSize);
   virtual char const* MIMEtype() const;
 };
 

@@ -44,14 +44,14 @@ class MPEG2TransportFileServerMediaSubsession: public FileServerMediaSubsession 
 public:
   static MPEG2TransportFileServerMediaSubsession*
   createNew(UsageEnvironment& env,
-	    char const* dataFileName, char const* indexFileName,
-	    Boolean reuseFirstSource);
+        char const* dataFileName, char const* indexFileName,
+        Boolean reuseFirstSource);
 
 protected:
   MPEG2TransportFileServerMediaSubsession(UsageEnvironment& env,
-					  char const* fileName,
-					  MPEG2TransportStreamIndexFile* indexFile,
-					  Boolean reuseFirstSource);
+                      char const* fileName,
+                      MPEG2TransportStreamIndexFile* indexFile,
+                      Boolean reuseFirstSource);
       // called only by createNew();
   virtual ~MPEG2TransportFileServerMediaSubsession();
 
@@ -67,7 +67,7 @@ private: // redefined virtual functions
                            void* rtcpRRHandlerClientData,
                            unsigned short& rtpSeqNum,
                            unsigned& rtpTimestamp,
-			   ServerRequestAlternativeByteHandler* serverRequestAlternativeByteHandler,
+               ServerRequestAlternativeByteHandler* serverRequestAlternativeByteHandler,
                            void* serverRequestAlternativeByteHandlerClientData);
   virtual void pauseStream(unsigned clientSessionId, void* streamToken);
   virtual void seekStream(unsigned clientSessionId, void* streamToken, double& seekNPT, double streamDuration, u_int64_t& numBytes);
@@ -76,10 +76,10 @@ private: // redefined virtual functions
 
   // The virtual functions that are usually implemented by "ServerMediaSubsession"s:
   virtual FramedSource* createNewStreamSource(unsigned clientSessionId,
-					      unsigned& estBitrate);
+                          unsigned& estBitrate);
   virtual RTPSink* createNewRTPSink(Groupsock* rtpGroupsock,
                                     unsigned char rtpPayloadTypeIfDynamic,
-				    FramedSource* inputSource);
+                    FramedSource* inputSource);
 
   virtual void testScaleFactor(float& scale);
   virtual float duration() const;

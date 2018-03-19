@@ -43,10 +43,10 @@ public:
 
   virtual void setResultMsg(MsgString msg);
   virtual void setResultMsg(MsgString msg1,
-		    MsgString msg2);
+            MsgString msg2);
   virtual void setResultMsg(MsgString msg1,
-		    MsgString msg2,
-		    MsgString msg3);
+            MsgString msg2,
+            MsgString msg3);
   virtual void setResultErrMsg(MsgString msg, int err = 0);
 
   virtual void appendToResultMsg(MsgString msg);
@@ -83,7 +83,7 @@ public:
 public:
   // Redefined virtual functions:
   virtual TaskToken scheduleDelayedTask(int64_t microseconds, TaskFunc* proc,
-				void* clientData);
+                void* clientData);
   virtual void unscheduleDelayedTask(TaskToken& prevTask);
 
   virtual void doEventLoop(char volatile* watchVariable);

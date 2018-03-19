@@ -29,7 +29,7 @@ class ByteStreamMultiFileSource: public FramedSource {
 public:
   static ByteStreamMultiFileSource*
   createNew(UsageEnvironment& env, char const** fileNameArray,
-	    unsigned preferredFrameSize = 0, unsigned playTimePerFrame = 0);
+        unsigned preferredFrameSize = 0, unsigned playTimePerFrame = 0);
   // A 'filename' of NULL indicates the end of the array
 
   Boolean haveStartedNewFile() const { return fHaveStartedNewFile; }
@@ -37,8 +37,8 @@ public:
 
 protected:
   ByteStreamMultiFileSource(UsageEnvironment& env, char const** fileNameArray,
-			    unsigned preferredFrameSize, unsigned playTimePerFrame);
-	// called only by createNew()
+                unsigned preferredFrameSize, unsigned playTimePerFrame);
+    // called only by createNew()
 
   virtual ~ByteStreamMultiFileSource();
 
@@ -50,9 +50,9 @@ private:
   static void onSourceClosure(void* clientData);
   void onSourceClosure1();
   static void afterGettingFrame(void* clientData,
-				unsigned frameSize, unsigned numTruncatedBytes,
+                unsigned frameSize, unsigned numTruncatedBytes,
                                 struct timeval presentationTime,
-				unsigned durationInMicroseconds);
+                unsigned durationInMicroseconds);
 
 private:
   unsigned fPreferredFrameSize;

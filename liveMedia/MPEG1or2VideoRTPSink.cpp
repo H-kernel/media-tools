@@ -46,7 +46,7 @@ Boolean MPEG1or2VideoRTPSink::allowFragmentationAfterStart() const {
 
 Boolean MPEG1or2VideoRTPSink
 ::frameCanAppearAfterPacketStart(unsigned char const* frameStart,
-				 unsigned numBytesInFrame) const {
+                 unsigned numBytesInFrame) const {
   // A 'frame' (which in this context can mean a header or a slice as well as a
   // complete picture) can appear at other than the first position in a packet
   // in all situations, EXCEPT when it follows the end of (i.e., the last slice
@@ -66,10 +66,10 @@ Boolean MPEG1or2VideoRTPSink
 
 void MPEG1or2VideoRTPSink
 ::doSpecialFrameHandling(unsigned fragmentationOffset,
-			 unsigned char* frameStart,
-			 unsigned numBytesInFrame,
-			 struct timeval framePresentationTime,
-			 unsigned numRemainingBytes) {
+             unsigned char* frameStart,
+             unsigned numBytesInFrame,
+             struct timeval framePresentationTime,
+             unsigned numRemainingBytes) {
   Boolean thisFrameIsASlice = False; // until we learn otherwise
   if (isFirstFrameInPacket()) {
     fSequenceHeaderPresent = fPacketBeginsSlice = fPacketEndsSlice = False;
@@ -90,7 +90,7 @@ void MPEG1or2VideoRTPSink
       // Record the parameters of this picture:
       if (numBytesInFrame < 8) return; // shouldn't happen
       unsigned next4Bytes = (frameStart[4]<<24) | (frameStart[5]<<16)
-	                  | (frameStart[6]<<8) | frameStart[7];
+                      | (frameStart[6]<<8) | frameStart[7];
       unsigned char byte8 = numBytesInFrame == 8 ? 0 : frameStart[8];
 
       fPictureState.temporal_reference = (next4Bytes&0xFFC00000)>>(32-10);
@@ -100,12 +100,12 @@ void MPEG1or2VideoRTPSink
       FBV = BFC = FFV = FFC = 0;
       switch (fPictureState.picture_coding_type) {
       case 3:
-	FBV = (byte8&0x40)>>6;
-	BFC = (byte8&0x38)>>3;
-	// fall through to:
+    FBV = (byte8&0x40)>>6;
+    BFC = (byte8&0x38)>>3;
+    // fall through to:
       case 2:
-	FFV = (next4Bytes&0x00000004)>>2;
-	FFC = ((next4Bytes&0x00000003)<<1) | ((byte8&0x80)>>7);
+    FFV = (next4Bytes&0x00000004)>>2;
+    FFC = ((next4Bytes&0x00000003)<<1) | ((byte8&0x80)>>7);
       }
 
       fPictureState.vector_code_bits = (FBV<<7) | (BFC<<4) | (FFV<<3) | FFC;
@@ -113,15 +113,15 @@ void MPEG1or2VideoRTPSink
       unsigned char lastCodeByte = startCode&0xFF;
 
       if (lastCodeByte <= 0xAF) {
-	// This is (the start of) a slice
-	thisFrameIsASlice = True;
+    // This is (the start of) a slice
+    thisFrameIsASlice = True;
       } else {
-	// This is probably a GOP header; we don't do anything with this
+    // This is probably a GOP header; we don't do anything with this
       }
     } else {
       // The first 4 bytes aren't a code that we recognize.
       envir() << "Warning: MPEG1or2VideoRTPSink::doSpecialFrameHandling saw strange first 4 bytes "
-	      << (void*)startCode << ", but we're not a fragment\n";
+          << (void*)startCode << ", but we're not a fragment\n";
     }
   } else {
     // We're a fragment (other than the first) of a slice.

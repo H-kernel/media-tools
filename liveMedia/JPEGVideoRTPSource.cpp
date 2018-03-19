@@ -30,7 +30,7 @@ private:
   // Redefined virtual functions:
   virtual void reset();
   virtual unsigned nextEnclosedFrameSize(unsigned char*& framePtr,
-					 unsigned dataSize);
+                     unsigned dataSize);
 };
 
 class JPEGBufferedPacketFactory: public BufferedPacketFactory {
@@ -47,21 +47,21 @@ private: // redefined virtual functions
 
 JPEGVideoRTPSource*
 JPEGVideoRTPSource::createNew(UsageEnvironment& env, Groupsock* RTPgs,
-			      unsigned char rtpPayloadFormat,
-			      unsigned rtpTimestampFrequency,
-			      unsigned defaultWidth, unsigned defaultHeight) {
+                  unsigned char rtpPayloadFormat,
+                  unsigned rtpTimestampFrequency,
+                  unsigned defaultWidth, unsigned defaultHeight) {
   return new JPEGVideoRTPSource(env, RTPgs, rtpPayloadFormat,
-				rtpTimestampFrequency, defaultWidth, defaultHeight);
+                rtpTimestampFrequency, defaultWidth, defaultHeight);
 }
 
 JPEGVideoRTPSource::JPEGVideoRTPSource(UsageEnvironment& env,
-				       Groupsock* RTPgs,
-				       unsigned char rtpPayloadFormat,
-				       unsigned rtpTimestampFrequency,
-				       unsigned defaultWidth, unsigned defaultHeight)
+                       Groupsock* RTPgs,
+                       unsigned char rtpPayloadFormat,
+                       unsigned rtpTimestampFrequency,
+                       unsigned defaultWidth, unsigned defaultHeight)
   : MultiFramedRTPSource(env, RTPgs,
-			 rtpPayloadFormat, rtpTimestampFrequency,
-			 new JPEGBufferedPacketFactory),
+             rtpPayloadFormat, rtpTimestampFrequency,
+             new JPEGBufferedPacketFactory),
     fDefaultWidth(defaultWidth), fDefaultHeight(defaultHeight) {
 }
 
@@ -69,16 +69,16 @@ JPEGVideoRTPSource::~JPEGVideoRTPSource() {
 }
 
 enum {
-	MARKER_SOF0	= 0xc0,		// start-of-frame, baseline scan
-	MARKER_SOI	= 0xd8,		// start of image
-	MARKER_EOI	= 0xd9,		// end of image
-	MARKER_SOS	= 0xda,		// start of scan
-	MARKER_DRI	= 0xdd,		// restart interval
-	MARKER_DQT	= 0xdb,		// define quantization tables
-	MARKER_DHT  = 0xc4,		// huffman tables
-	MARKER_APP_FIRST	= 0xe0,
-	MARKER_APP_LAST		= 0xef,
-	MARKER_COMMENT		= 0xfe,
+    MARKER_SOF0    = 0xc0,        // start-of-frame, baseline scan
+    MARKER_SOI    = 0xd8,        // start of image
+    MARKER_EOI    = 0xd9,        // end of image
+    MARKER_SOS    = 0xda,        // start of scan
+    MARKER_DRI    = 0xdd,        // restart interval
+    MARKER_DQT    = 0xdb,        // define quantization tables
+    MARKER_DHT  = 0xc4,        // huffman tables
+    MARKER_APP_FIRST    = 0xe0,
+    MARKER_APP_LAST        = 0xef,
+    MARKER_COMMENT        = 0xfe,
 };
 
 static unsigned char const lum_dc_codelens[] = {
@@ -154,11 +154,11 @@ static unsigned char const chm_ac_symbols[] = {
 };
 
 static void createHuffmanHeader(unsigned char*& p,
-				unsigned char const* codelens,
-				int ncodes,
-				unsigned char const* symbols,
-				int nsymbols,
-				int tableNo, int tableClass) {
+                unsigned char const* codelens,
+                int ncodes,
+                unsigned char const* symbols,
+                int nsymbols,
+                int tableNo, int tableClass) {
   *p++ = 0xff; *p++ = MARKER_DHT;
   *p++ = 0;               /* length msb */
   *p++ = 3 + ncodes + nsymbols; /* length lsb */
@@ -178,9 +178,9 @@ static unsigned computeJPEGHeaderSize(unsigned qtlen, unsigned dri) {
 }
 
 static void createJPEGHeader(unsigned char* buf, unsigned type,
-			     unsigned w, unsigned h,
-			     unsigned char const* qtables, unsigned qtlen,
-			     unsigned dri) {
+                 unsigned w, unsigned h,
+                 unsigned char const* qtables, unsigned qtlen,
+                 unsigned dri) {
   unsigned char *ptr = buf;
   unsigned numQtables = qtlen > 64 ? 2 : 1;
 
@@ -244,13 +244,13 @@ static void createJPEGHeader(unsigned char* buf, unsigned type,
   *ptr++ = numQtables == 1 ? 0x00 : 0x01; // quant table id
 
   createHuffmanHeader(ptr, lum_dc_codelens, sizeof lum_dc_codelens,
-		      lum_dc_symbols, sizeof lum_dc_symbols, 0, 0);
+              lum_dc_symbols, sizeof lum_dc_symbols, 0, 0);
   createHuffmanHeader(ptr, lum_ac_codelens, sizeof lum_ac_codelens,
-		      lum_ac_symbols, sizeof lum_ac_symbols, 0, 1);
+              lum_ac_symbols, sizeof lum_ac_symbols, 0, 1);
   createHuffmanHeader(ptr, chm_dc_codelens, sizeof chm_dc_codelens,
-		      chm_dc_symbols, sizeof chm_dc_symbols, 1, 0);
+              chm_dc_symbols, sizeof chm_dc_symbols, 1, 0);
   createHuffmanHeader(ptr, chm_ac_codelens, sizeof chm_ac_codelens,
-		      chm_ac_symbols, sizeof chm_ac_symbols, 1, 1);
+              chm_ac_symbols, sizeof chm_ac_symbols, 1, 1);
 
   // MARKER_SOS:
   *ptr++ = 0xFF;  *ptr++ = MARKER_SOS;
@@ -312,7 +312,7 @@ static void makeDefaultQtables(unsigned char* resultTables, unsigned Q) {
 
 Boolean JPEGVideoRTPSource
 ::processSpecialHeader(BufferedPacket* packet,
-		       unsigned& resultSpecialHeaderSize) {
+               unsigned& resultSpecialHeaderSize) {
   unsigned char* headerStart = packet->data();
   unsigned packetSize = packet->dataSize();
 
@@ -381,19 +381,19 @@ Boolean JPEGVideoRTPSource
 
       unsigned MBZ = (unsigned)headerStart[resultSpecialHeaderSize];
       if (MBZ == 0) {
-	// unsigned Precision = (unsigned)headerStart[resultSpecialHeaderSize + 1];
-	unsigned Length = (unsigned)((WORD)headerStart[resultSpecialHeaderSize + 2] << 8 | (WORD)headerStart[resultSpecialHeaderSize + 3]);
+    // unsigned Precision = (unsigned)headerStart[resultSpecialHeaderSize + 1];
+    unsigned Length = (unsigned)((WORD)headerStart[resultSpecialHeaderSize + 2] << 8 | (WORD)headerStart[resultSpecialHeaderSize + 3]);
 
-	//ASSERT(Length == 128);
+    //ASSERT(Length == 128);
 
-	resultSpecialHeaderSize += 4;
+    resultSpecialHeaderSize += 4;
 
-	if (packetSize < resultSpecialHeaderSize + Length) return False;
+    if (packetSize < resultSpecialHeaderSize + Length) return False;
 
-	qtlen = Length;
-	qtables = &headerStart[resultSpecialHeaderSize];
+    qtlen = Length;
+    qtables = &headerStart[resultSpecialHeaderSize];
 
-	resultSpecialHeaderSize += Length;
+    resultSpecialHeaderSize += Length;
       }
     }
   }

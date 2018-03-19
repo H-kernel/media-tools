@@ -20,17 +20,17 @@
 #ifndef rtpsignaltable_h
 #define rtpsignaltable_h
 
-#define RTP_CALLBACK_TABLE_MAX_ENTRIES	5
+#define RTP_CALLBACK_TABLE_MAX_ENTRIES    5
 
 typedef void (*RtpCallback)(struct _RtpSession *, void *arg1, void *arg2, void *arg3);
 
 struct _RtpSignalTable
 {
-	RtpCallback callback[RTP_CALLBACK_TABLE_MAX_ENTRIES];
-	void * user_data[RTP_CALLBACK_TABLE_MAX_ENTRIES];
-	struct _RtpSession *session;
-	const char *signal_name;
-	int count;
+    RtpCallback callback[RTP_CALLBACK_TABLE_MAX_ENTRIES];
+    void * user_data[RTP_CALLBACK_TABLE_MAX_ENTRIES];
+    struct _RtpSession *session;
+    const char *signal_name;
+    int count;
 };
 
 typedef struct _RtpSignalTable RtpSignalTable;

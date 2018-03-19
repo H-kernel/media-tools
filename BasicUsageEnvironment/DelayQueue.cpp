@@ -14,7 +14,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 **********/
 // Copyright (c) 1996-2017, Live Networks, Inc.  All rights reserved
-//	Help by Carlo Bonamico to get working for Windows
+//    Help by Carlo Bonamico to get working for Windows
 // Delay queue
 // Implementation
 
@@ -28,7 +28,7 @@ static const int MILLION = 1000000;
 int Timeval::operator>=(const Timeval& arg2) const {
   return seconds() > arg2.seconds()
     || (seconds() == arg2.seconds()
-	&& useconds() >= arg2.useconds());
+    && useconds() >= arg2.useconds());
 }
 
 void Timeval::operator+=(const DelayInterval& arg2) {
@@ -79,7 +79,7 @@ DelayInterval operator*(short arg1, const DelayInterval& arg2) {
 }
 
 #ifndef INT_MAX
-#define INT_MAX	0x7FFFFFFF
+#define INT_MAX    0x7FFFFFFF
 #endif
 const DelayInterval DELAY_ZERO(0, 0);
 const DelayInterval DELAY_SECOND(1, 0);

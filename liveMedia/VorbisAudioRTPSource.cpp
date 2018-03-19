@@ -30,7 +30,7 @@ public:
 
 private: // redefined virtual functions
   virtual unsigned nextEnclosedFrameSize(unsigned char*& framePtr,
-					 unsigned dataSize);
+                     unsigned dataSize);
 };
 
 class VorbisBufferedPacketFactory: public BufferedPacketFactory {
@@ -43,17 +43,17 @@ private: // redefined virtual functions
 
 VorbisAudioRTPSource*
 VorbisAudioRTPSource::createNew(UsageEnvironment& env, Groupsock* RTPgs,
-				unsigned char rtpPayloadFormat,
-				unsigned rtpTimestampFrequency) {
+                unsigned char rtpPayloadFormat,
+                unsigned rtpTimestampFrequency) {
   return new VorbisAudioRTPSource(env, RTPgs, rtpPayloadFormat, rtpTimestampFrequency);
 }
 
 VorbisAudioRTPSource
 ::VorbisAudioRTPSource(UsageEnvironment& env, Groupsock* RTPgs,
-		     unsigned char rtpPayloadFormat,
-		     unsigned rtpTimestampFrequency)
+             unsigned char rtpPayloadFormat,
+             unsigned rtpTimestampFrequency)
   : MultiFramedRTPSource(env, RTPgs, rtpPayloadFormat, rtpTimestampFrequency,
-			 new VorbisBufferedPacketFactory),
+             new VorbisBufferedPacketFactory),
     fCurPacketIdent(0) {
 }
 
@@ -125,7 +125,7 @@ void parseVorbisOrTheoraConfigStr(char const* configStr,
                                   u_int8_t*& identificationHdr, unsigned& identificationHdrSize,
                                   u_int8_t*& commentHdr, unsigned& commentHdrSize,
                                   u_int8_t*& setupHdr, unsigned& setupHdrSize,
-				  u_int32_t& identField) {
+                  u_int32_t& identField) {
   identificationHdr = commentHdr = setupHdr = NULL; // default values, if an error occur
   identificationHdrSize = commentHdrSize = setupHdrSize = 0; // ditto
   identField = 0; // ditto
@@ -157,21 +157,21 @@ void parseVorbisOrTheoraConfigStr(char const* configStr,
       unsigned headerSize;
       if (i < numHeaders) {
         // The header size is encoded:
-	GET_ENCODED_VAL(headerSize);
+    GET_ENCODED_VAL(headerSize);
         if (headerSize > length) break;
         length -= headerSize;
       } else {
-	// The last header is implicit:
+    // The last header is implicit:
         headerSize = length;
       }
 
       // Allocate space for the header bytes; we'll fill it in later
       if (i == 0) {
-	identificationHdrSize = headerSize;
+    identificationHdrSize = headerSize;
         identificationHdr = new u_int8_t[identificationHdrSize];
       } else if (i == 1) {
         commentHdrSize = headerSize;
-	commentHdr = new u_int8_t[commentHdrSize];
+    commentHdr = new u_int8_t[commentHdrSize];
       } else { // i == 2
         setupHdrSize = headerSize;
         setupHdr = new u_int8_t[setupHdrSize];
@@ -186,7 +186,7 @@ void parseVorbisOrTheoraConfigStr(char const* configStr,
       memmove(identificationHdr, p, identificationHdrSize); ADVANCE(identificationHdrSize);
       if (commentHdr != NULL) {
         memmove(commentHdr, p, commentHdrSize); ADVANCE(commentHdrSize);
-	if (setupHdr != NULL) {
+    if (setupHdr != NULL) {
           memmove(setupHdr, p, setupHdrSize); ADVANCE(setupHdrSize);
         }
       }

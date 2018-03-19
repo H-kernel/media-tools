@@ -24,14 +24,14 @@
 /*
  * int
  * bitncmp(l, r, n)
- *	compare bit masks l and r, for n bits.
+ *    compare bit masks l and r, for n bits.
  * return:
- *	<0, >0, or 0 in the libc tradition.
+ *    <0, >0, or 0 in the libc tradition.
  * note:
- *	network byte order assumed.  this means 192.5.5.240/28 has
- *	0x11110000 in its fourth octet.
+ *    network byte order assumed.  this means 192.5.5.240/28 has
+ *    0x11110000 in its fourth octet.
  * author:
- *	Paul Vixie (ISC), June 1996
+ *    Paul Vixie (ISC), June 1996
  */
 int ares__bitncmp(const void *l, const void *r, int n)
 {

@@ -31,18 +31,18 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class FramedSource: public MediaSource {
 public:
   static Boolean lookupByName(UsageEnvironment& env, char const* sourceName,
-			      FramedSource*& resultSource);
+                  FramedSource*& resultSource);
 
   typedef void (afterGettingFunc)(void* clientData, unsigned frameSize,
-				  unsigned numTruncatedBytes,
-				  struct timeval presentationTime,
-				  unsigned durationInMicroseconds);
+                  unsigned numTruncatedBytes,
+                  struct timeval presentationTime,
+                  unsigned durationInMicroseconds);
   typedef void (onCloseFunc)(void* clientData);
   void getNextFrame(unsigned char* to, unsigned maxSize,
-		    afterGettingFunc* afterGettingFunc,
-		    void* afterGettingClientData,
-		    onCloseFunc* onCloseFunc,
-		    void* onCloseClientData);
+            afterGettingFunc* afterGettingFunc,
+            void* afterGettingClientData,
+            onCloseFunc* onCloseFunc,
+            void* onCloseClientData);
 
   static void handleClosure(void* clientData);
   void handleClosure();

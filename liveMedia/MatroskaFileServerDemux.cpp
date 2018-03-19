@@ -24,11 +24,11 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 void MatroskaFileServerDemux
 ::createNew(UsageEnvironment& env, char const* fileName,
-	    onCreationFunc* onCreation, void* onCreationClientData,
-	    char const* preferredLanguage) {
+        onCreationFunc* onCreation, void* onCreationClientData,
+        char const* preferredLanguage) {
   (void)new MatroskaFileServerDemux(env, fileName,
-				    onCreation, onCreationClientData,
-				    preferredLanguage);
+                    onCreation, onCreationClientData,
+                    preferredLanguage);
 }
 
 ServerMediaSubsession* MatroskaFileServerDemux::newServerMediaSubsession() {
@@ -97,8 +97,8 @@ FramedSource* MatroskaFileServerDemux::newDemuxedTrack(unsigned clientSessionId,
 
 MatroskaFileServerDemux
 ::MatroskaFileServerDemux(UsageEnvironment& env, char const* fileName,
-			  onCreationFunc* onCreation, void* onCreationClientData,
-			  char const* preferredLanguage)
+              onCreationFunc* onCreation, void* onCreationClientData,
+              char const* preferredLanguage)
   : Medium(env),
     fFileName(fileName), fOnCreation(onCreation), fOnCreationClientData(onCreationClientData),
     fNextTrackTypeToCheck(0x1), fLastClientSessionId(0), fLastCreatedDemux(NULL) {

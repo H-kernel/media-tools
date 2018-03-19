@@ -33,11 +33,11 @@ class ServerMediaSubsession; // forward
 class ServerMediaSession: public Medium {
 public:
   static ServerMediaSession* createNew(UsageEnvironment& env,
-				       char const* streamName = NULL,
-				       char const* info = NULL,
-				       char const* description = NULL,
-				       Boolean isSSM = False,
-				       char const* miscSDPLines = NULL);
+                       char const* streamName = NULL,
+                       char const* info = NULL,
+                       char const* description = NULL,
+                       Boolean isSSM = False,
+                       char const* miscSDPLines = NULL);
 
   static Boolean lookupByName(UsageEnvironment& env,
                               char const* mediumName,
@@ -75,8 +75,8 @@ public:
 
 protected:
   ServerMediaSession(UsageEnvironment& env, char const* streamName,
-		     char const* info, char const* description,
-		     Boolean isSSM, char const* miscSDPLines);
+             char const* info, char const* description,
+             Boolean isSSM, char const* miscSDPLines);
   // called only by "createNew()"
 
   virtual ~ServerMediaSession();
@@ -123,29 +123,29 @@ public:
   char const* trackId();
   virtual char const* sdpLines() = 0;
   virtual void getStreamParameters(unsigned clientSessionId, // in
-				   netAddressBits clientAddress, // in
-				   Port const& clientRTPPort, // in
-				   Port const& clientRTCPPort, // in
-				   int tcpSocketNum, // in (-1 means use UDP, not TCP)
-				   unsigned char rtpChannelId, // in (used if TCP)
-				   unsigned char rtcpChannelId, // in (used if TCP)
-				   netAddressBits& destinationAddress, // in out
-				   u_int8_t& destinationTTL, // in out
-				   Boolean& isMulticast, // out
-				   Port& serverRTPPort, // out
-				   Port& serverRTCPPort, // out
-				   void*& streamToken // out
-				   ) = 0;
+                   netAddressBits clientAddress, // in
+                   Port const& clientRTPPort, // in
+                   Port const& clientRTCPPort, // in
+                   int tcpSocketNum, // in (-1 means use UDP, not TCP)
+                   unsigned char rtpChannelId, // in (used if TCP)
+                   unsigned char rtcpChannelId, // in (used if TCP)
+                   netAddressBits& destinationAddress, // in out
+                   u_int8_t& destinationTTL, // in out
+                   Boolean& isMulticast, // out
+                   Port& serverRTPPort, // out
+                   Port& serverRTCPPort, // out
+                   void*& streamToken // out
+                   ) = 0;
   virtual void startStream(unsigned clientSessionId, void* streamToken,
-			   TaskFunc* rtcpRRHandler,
-			   void* rtcpRRHandlerClientData,
-			   unsigned short& rtpSeqNum,
-			   unsigned& rtpTimestamp,
-			   ServerRequestAlternativeByteHandler* serverRequestAlternativeByteHandler,
-			   void* serverRequestAlternativeByteHandlerClientData) = 0;
+               TaskFunc* rtcpRRHandler,
+               void* rtcpRRHandlerClientData,
+               unsigned short& rtpSeqNum,
+               unsigned& rtpTimestamp,
+               ServerRequestAlternativeByteHandler* serverRequestAlternativeByteHandler,
+               void* serverRequestAlternativeByteHandlerClientData) = 0;
   virtual void pauseStream(unsigned clientSessionId, void* streamToken);
   virtual void seekStream(unsigned clientSessionId, void* streamToken, double& seekNPT,
-			  double streamDuration, u_int64_t& numBytes);
+              double streamDuration, u_int64_t& numBytes);
      // This routine is used to seek by relative (i.e., NPT) time.
      // "streamDuration", if >0.0, specifies how much data to stream, past "seekNPT".  (If <=0.0, all remaining data is streamed.)
      // "numBytes" returns the size (in bytes) of the data to be streamed, or 0 if unknown or unlimited.
@@ -155,13 +155,13 @@ public:
      // "absEnd" should be either NULL (for no end time), or a string of the same form as "absStart".
      // These strings may be modified in-place, or can be reassigned to a newly-allocated value (after delete[]ing the original).
   virtual void nullSeekStream(unsigned clientSessionId, void* streamToken,
-			      double streamEndTime, u_int64_t& numBytes);
+                  double streamEndTime, u_int64_t& numBytes);
      // Called whenever we're handling a "PLAY" command without a specified start time.
   virtual void setStreamScale(unsigned clientSessionId, void* streamToken, float scale);
   virtual float getCurrentNPT(void* streamToken);
   virtual FramedSource* getStreamSource(void* streamToken);
   virtual void getRTPSinkandRTCP(void* streamToken,
-				 RTPSink const*& rtpSink, RTCPInstance const*& rtcp) = 0;
+                 RTPSink const*& rtpSink, RTCPInstance const*& rtcp) = 0;
      // Returns pointers to the "RTPSink" and "RTCPInstance" objects for "streamToken".
      // (This can be useful if you want to get the associated 'Groupsock' objects, for example.)
      // You must not delete these objects, or start/stop playing them; instead, that is done
@@ -178,7 +178,7 @@ public:
   // The following may be called by (e.g.) SIP servers, for which the
   // address and port number fields in SDP descriptions need to be non-zero:
   void setServerAddressAndPortForSDP(netAddressBits addressBits,
-				     portNumBits portBits);
+                     portNumBits portBits);
 
 protected: // we're a virtual base class
   ServerMediaSubsession(UsageEnvironment& env);

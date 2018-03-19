@@ -33,7 +33,7 @@ public:
   virtual u_int8_t height() = 0; // # pixels/8 (or 0 for 2048 pixels)
 
   virtual u_int8_t const* quantizationTables(u_int8_t& precision,
-					     u_int16_t& length);
+                         u_int16_t& length);
     // If "qFactor()" returns a value >= 128, then this function is called
     // to tell us the quantization tables that are being used.
     // (The default implementation of this function just returns NULL.)

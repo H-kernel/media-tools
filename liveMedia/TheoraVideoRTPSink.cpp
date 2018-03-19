@@ -25,15 +25,15 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 TheoraVideoRTPSink* TheoraVideoRTPSink
 ::createNew(UsageEnvironment& env, Groupsock* RTPgs, u_int8_t rtpPayloadFormat,
-	    u_int8_t* identificationHeader, unsigned identificationHeaderSize,
-	    u_int8_t* commentHeader, unsigned commentHeaderSize,
-	    u_int8_t* setupHeader, unsigned setupHeaderSize,
-	    u_int32_t identField) {
+        u_int8_t* identificationHeader, unsigned identificationHeaderSize,
+        u_int8_t* commentHeader, unsigned commentHeaderSize,
+        u_int8_t* setupHeader, unsigned setupHeaderSize,
+        u_int32_t identField) {
   return new TheoraVideoRTPSink(env, RTPgs,
-				rtpPayloadFormat,
-				identificationHeader, identificationHeaderSize,
-				commentHeader, commentHeaderSize,
-				setupHeader, setupHeaderSize, identField);
+                rtpPayloadFormat,
+                identificationHeader, identificationHeaderSize,
+                commentHeader, commentHeaderSize,
+                setupHeader, setupHeaderSize, identField);
 }
 
 TheoraVideoRTPSink* TheoraVideoRTPSink
@@ -64,10 +64,10 @@ TheoraVideoRTPSink* TheoraVideoRTPSink
 
 TheoraVideoRTPSink
 ::TheoraVideoRTPSink(UsageEnvironment& env, Groupsock* RTPgs, u_int8_t rtpPayloadFormat,
-		     u_int8_t* identificationHeader, unsigned identificationHeaderSize,
-		     u_int8_t* commentHeader, unsigned commentHeaderSize,
-		     u_int8_t* setupHeader, unsigned setupHeaderSize,
-		     u_int32_t identField)
+             u_int8_t* identificationHeader, unsigned identificationHeaderSize,
+             u_int8_t* commentHeader, unsigned commentHeaderSize,
+             u_int8_t* setupHeader, unsigned setupHeaderSize,
+             u_int32_t identField)
   : VideoRTPSink(env, RTPgs, rtpPayloadFormat, 90000, "THEORA"),
     fIdent(identField), fFmtpSDPLine(NULL) {
   static const char *pf_to_str[] = {
@@ -76,7 +76,7 @@ TheoraVideoRTPSink
     "YCbCr-4:2:2",
     "YCbCr-4:4:4",
   };
-  
+
   unsigned width = 1280; // default value
   unsigned height = 720; // default value
   unsigned pf = 0; // default value
@@ -116,16 +116,16 @@ char const* TheoraVideoRTPSink::auxSDPLine() {
 
 void TheoraVideoRTPSink
 ::doSpecialFrameHandling(unsigned fragmentationOffset,
-			 unsigned char* frameStart,
-			 unsigned numBytesInFrame,
-			 struct timeval framePresentationTime,
-			 unsigned numRemainingBytes) {
+             unsigned char* frameStart,
+             unsigned numBytesInFrame,
+             struct timeval framePresentationTime,
+             unsigned numRemainingBytes) {
   // Set the 4-byte "payload header", as defined in http://svn.xiph.org/trunk/theora/doc/draft-ietf-avt-rtp-theora-00.txt
   u_int8_t header[6];
-  
+
   // The three bytes of the header are our "Ident":
   header[0] = fIdent>>16; header[1] = fIdent>>8; header[2] = fIdent;
-  
+
   // The final byte contains the "F", "TDT", and "numPkts" fields:
   u_int8_t F; // Fragment type
   if (numRemainingBytes > 0) {
@@ -144,29 +144,29 @@ void TheoraVideoRTPSink
   u_int8_t const TDT = 0<<4; // Theora Data Type (always a "Raw Theora payload")
   u_int8_t numPkts = F == 0 ? (numFramesUsedSoFar() + 1): 0; // set to 0 when we're a fragment
   header[3] = F|TDT|numPkts;
-  
+
   // There's also a 2-byte 'frame-specific' header: The length of the
   // Theora data:
   header[4] = numBytesInFrame >>8;
   header[5] = numBytesInFrame;
   setSpecialHeaderBytes(header, sizeof(header));
-  
+
   if (numRemainingBytes == 0) {
     // This packet contains the last (or only) fragment of the frame.
     // Set the RTP 'M' ('marker') bit:
     setMarkerBit();
   }
-  
+
   // Important: Also call our base class's doSpecialFrameHandling(),
   // to set the packet's timestamp:
   MultiFramedRTPSink::doSpecialFrameHandling(fragmentationOffset,
-					     frameStart, numBytesInFrame,
-					     framePresentationTime,
-					     numRemainingBytes);
+                         frameStart, numBytesInFrame,
+                         framePresentationTime,
+                         numRemainingBytes);
 }
 
 Boolean TheoraVideoRTPSink::frameCanAppearAfterPacketStart(unsigned char const* /*frameStart*/,
-							   unsigned /*numBytesInFrame*/) const {
+                               unsigned /*numBytesInFrame*/) const {
   // Only one frame per packet:
   return False;
 }

@@ -28,11 +28,11 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 H265VideoRTPSink
 ::H265VideoRTPSink(UsageEnvironment& env, Groupsock* RTPgs, unsigned char rtpPayloadFormat,
-		   u_int8_t const* vps, unsigned vpsSize,
-		   u_int8_t const* sps, unsigned spsSize,
-		   u_int8_t const* pps, unsigned ppsSize)
+           u_int8_t const* vps, unsigned vpsSize,
+           u_int8_t const* sps, unsigned spsSize,
+           u_int8_t const* pps, unsigned ppsSize)
   : H264or5VideoRTPSink(265, env, RTPgs, rtpPayloadFormat,
-			vps, vpsSize, sps, spsSize, pps, ppsSize) {
+            vps, vpsSize, sps, spsSize, pps, ppsSize) {
 }
 
 H265VideoRTPSink::~H265VideoRTPSink() {
@@ -45,16 +45,16 @@ H265VideoRTPSink* H265VideoRTPSink
 
 H265VideoRTPSink* H265VideoRTPSink
 ::createNew(UsageEnvironment& env, Groupsock* RTPgs, unsigned char rtpPayloadFormat,
-	    u_int8_t const* vps, unsigned vpsSize,
-	    u_int8_t const* sps, unsigned spsSize,
-	    u_int8_t const* pps, unsigned ppsSize) {
+        u_int8_t const* vps, unsigned vpsSize,
+        u_int8_t const* sps, unsigned spsSize,
+        u_int8_t const* pps, unsigned ppsSize) {
   return new H265VideoRTPSink(env, RTPgs, rtpPayloadFormat,
-			      vps, vpsSize, sps, spsSize, pps, ppsSize);
+                  vps, vpsSize, sps, spsSize, pps, ppsSize);
 }
 
 H265VideoRTPSink* H265VideoRTPSink
 ::createNew(UsageEnvironment& env, Groupsock* RTPgs, unsigned char rtpPayloadFormat,
-	    char const* sPropVPSStr, char const* sPropSPSStr, char const* sPropPPSStr) {
+        char const* sPropVPSStr, char const* sPropSPSStr, char const* sPropPPSStr) {
   u_int8_t* vps = NULL; unsigned vpsSize = 0;
   u_int8_t* sps = NULL; unsigned spsSize = 0;
   u_int8_t* pps = NULL; unsigned ppsSize = 0;
@@ -76,20 +76,20 @@ H265VideoRTPSink* H265VideoRTPSink
       if (records[i].sPropLength == 0) continue; // bad data
       u_int8_t nal_unit_type = ((records[i].sPropBytes[0])&0x7E)>>1;
       if (nal_unit_type == 32/*VPS*/) {
-	vps = records[i].sPropBytes;
-	vpsSize = records[i].sPropLength;
+    vps = records[i].sPropBytes;
+    vpsSize = records[i].sPropLength;
       } else if (nal_unit_type == 33/*SPS*/) {
-	sps = records[i].sPropBytes;
-	spsSize = records[i].sPropLength;
+    sps = records[i].sPropBytes;
+    spsSize = records[i].sPropLength;
       } else if (nal_unit_type == 34/*PPS*/) {
-	pps = records[i].sPropBytes;
-	ppsSize = records[i].sPropLength;
+    pps = records[i].sPropBytes;
+    ppsSize = records[i].sPropLength;
       }
     }
   }
 
   H265VideoRTPSink* result = new H265VideoRTPSink(env, RTPgs, rtpPayloadFormat,
-						  vps, vpsSize, sps, spsSize, pps, ppsSize);
+                          vps, vpsSize, sps, spsSize, pps, ppsSize);
   delete[] sPropRecords[0]; delete[] sPropRecords[1]; delete[] sPropRecords[2];
 
   return result;
@@ -135,9 +135,9 @@ char const* H265VideoRTPSink::auxSDPLine() {
   unsigned levelId = profileTierLevelHeaderBytes[11]; // general_level_idc
   u_int8_t const* interop_constraints = &profileTierLevelHeaderBytes[5];
   char interopConstraintsStr[100];
-  sprintf(interopConstraintsStr, "%02X%02X%02X%02X%02X%02X", 
-	  interop_constraints[0], interop_constraints[1], interop_constraints[2],
-	  interop_constraints[3], interop_constraints[4], interop_constraints[5]);
+  sprintf(interopConstraintsStr, "%02X%02X%02X%02X%02X%02X",
+      interop_constraints[0], interop_constraints[1], interop_constraints[2],
+      interop_constraints[3], interop_constraints[4], interop_constraints[5]);
   delete[] vpsWEB;
 
   char* sprop_vps = base64Encode((char*)vps, vpsSize);
@@ -165,13 +165,13 @@ char const* H265VideoRTPSink::auxSDPLine() {
   char* fmtp = new char[fmtpFmtSize];
   sprintf(fmtp, fmtpFmt,
           rtpPayloadType(), profileSpace,
-	  profileId,
-	  tierFlag,
-	  levelId,
-	  interopConstraintsStr,
-	  sprop_vps,
-	  sprop_sps,
-	  sprop_pps);
+      profileId,
+      tierFlag,
+      levelId,
+      interopConstraintsStr,
+      sprop_vps,
+      sprop_sps,
+      sprop_pps);
 
   delete[] sprop_vps;
   delete[] sprop_sps;

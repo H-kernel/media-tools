@@ -102,8 +102,8 @@ int main(int argc, char** argv) {
   RTCPInstance* audioRTCP =
 #endif
     RTCPInstance::createNew(*env, &rtcpGroupsockAudio,
-			    estimatedSessionBandwidthAudio, CNAME,
-			    audioSink, NULL /* we're a server */, isSSM);
+                estimatedSessionBandwidthAudio, CNAME,
+                audioSink, NULL /* we're a server */, isSSM);
   // Note: This starts RTCP running automatically
 
   // Create a 'MPEG Video RTP' sink from the RTP 'groupsock':
@@ -115,8 +115,8 @@ int main(int argc, char** argv) {
   RTCPInstance* videoRTCP =
 #endif
     RTCPInstance::createNew(*env, &rtcpGroupsockVideo,
-			      estimatedSessionBandwidthVideo, CNAME,
-			      videoSink, NULL /* we're a server */, isSSM);
+                  estimatedSessionBandwidthVideo, CNAME,
+                  videoSink, NULL /* we're a server */, isSSM);
   // Note: This starts RTCP running automatically
 
 #ifdef IMPLEMENT_RTSP_SERVER
@@ -130,8 +130,8 @@ int main(int argc, char** argv) {
   }
   ServerMediaSession* sms
     = ServerMediaSession::createNew(*env, "testStream", inputFileName,
-		   "Session streamed by \"testMPEG1or2AudioVideoStreamer\"",
-					   isSSM);
+           "Session streamed by \"testMPEG1or2AudioVideoStreamer\"",
+                       isSSM);
   sms->addSubsession(PassiveServerMediaSubsession::createNew(*audioSink, audioRTCP));
   sms->addSubsession(PassiveServerMediaSubsession::createNew(*videoSink, videoRTCP));
   rtspServer->addServerMediaSession(sms);
@@ -179,7 +179,7 @@ void play() {
     = ByteStreamFileSource::createNew(*env, inputFileName);
   if (fileSource == NULL) {
     *env << "Unable to open file \"" << inputFileName
-	 << "\" as a byte-stream file source\n";
+     << "\" as a byte-stream file source\n";
     exit(1);
   }
 

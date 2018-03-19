@@ -22,8 +22,8 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 H263plusVideoRTPSink
 ::H263plusVideoRTPSink(UsageEnvironment& env, Groupsock* RTPgs,
-		       unsigned char rtpPayloadFormat,
-		       u_int32_t rtpTimestampFrequency)
+               unsigned char rtpPayloadFormat,
+               u_int32_t rtpTimestampFrequency)
   : VideoRTPSink(env, RTPgs, rtpPayloadFormat, rtpTimestampFrequency, "H263-1998") {
 }
 
@@ -32,24 +32,24 @@ H263plusVideoRTPSink::~H263plusVideoRTPSink() {
 
 H263plusVideoRTPSink*
 H263plusVideoRTPSink::createNew(UsageEnvironment& env, Groupsock* RTPgs,
-				unsigned char rtpPayloadFormat,
-				u_int32_t rtpTimestampFrequency) {
+                unsigned char rtpPayloadFormat,
+                u_int32_t rtpTimestampFrequency) {
   return new H263plusVideoRTPSink(env, RTPgs, rtpPayloadFormat, rtpTimestampFrequency);
 }
 
 Boolean H263plusVideoRTPSink
 ::frameCanAppearAfterPacketStart(unsigned char const* /*frameStart*/,
-				 unsigned /*numBytesInFrame*/) const {
+                 unsigned /*numBytesInFrame*/) const {
   // A packet can contain only one frame
   return False;
 }
 
 void H263plusVideoRTPSink
 ::doSpecialFrameHandling(unsigned fragmentationOffset,
-			 unsigned char* frameStart,
-			 unsigned numBytesInFrame,
-			 struct timeval framePresentationTime,
-			 unsigned numRemainingBytes) {
+             unsigned char* frameStart,
+             unsigned numBytesInFrame,
+             struct timeval framePresentationTime,
+             unsigned numRemainingBytes) {
   if (fragmentationOffset == 0) {
     // This packet contains the first (or only) fragment of the frame.
     // Set the 'P' bit in the special header:
@@ -59,7 +59,7 @@ void H263plusVideoRTPSink
     // header.  (They should both have been zero.)
     if (numBytesInFrame < 2) {
       envir() << "H263plusVideoRTPSink::doSpecialFrameHandling(): bad frame size "
-	      << numBytesInFrame << "\n";
+          << numBytesInFrame << "\n";
       return;
     }
     if (frameStart[0] != 0 || frameStart[1] != 0) {

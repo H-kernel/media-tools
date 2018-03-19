@@ -50,8 +50,8 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class Medium {
 public:
   static Boolean lookupByName(UsageEnvironment& env,
-			      char const* mediumName,
-			      Medium*& resultMedium);
+                  char const* mediumName,
+                  Medium*& resultMedium);
   static void close(UsageEnvironment& env, char const* mediumName);
   static void close(Medium* medium); // alternative close() method using ptrs
       // (has no effect if medium == NULL)
@@ -75,7 +75,7 @@ protected:
   virtual ~Medium(); // instances are deleted using close() only
 
   TaskToken& nextTask() {
-	return fNextTask;
+    return fNextTask;
   }
 
 private:

@@ -76,14 +76,14 @@ ADTSAudioFileSource::createNew(UsageEnvironment& env, char const* fileName) {
 #endif
 #ifdef DEBUG
     fprintf(stderr, "Read first frame: profile %d, "
-	    "sampling_frequency_index %d => samplingFrequency %d, "
-	    "channel_configuration %d\n",
-	    profile,
-	    sampling_frequency_index, samplingFrequencyTable[sampling_frequency_index],
-	    channel_configuration);
+        "sampling_frequency_index %d => samplingFrequency %d, "
+        "channel_configuration %d\n",
+        profile,
+        sampling_frequency_index, samplingFrequencyTable[sampling_frequency_index],
+        channel_configuration);
 #endif
     return new ADTSAudioFileSource(env, fid, profile,
-				   sampling_frequency_index, channel_configuration);
+                   sampling_frequency_index, channel_configuration);
   } while (0);
 
   // An error occurred:
@@ -93,7 +93,7 @@ ADTSAudioFileSource::createNew(UsageEnvironment& env, char const* fileName) {
 
 ADTSAudioFileSource
 ::ADTSAudioFileSource(UsageEnvironment& env, FILE* fid, u_int8_t profile,
-		      u_int8_t samplingFrequencyIndex, u_int8_t channelConfiguration)
+              u_int8_t samplingFrequencyIndex, u_int8_t channelConfiguration)
   : FramedFileSource(env, fid) {
   fSamplingFrequency = samplingFrequencyTable[samplingFrequencyIndex];
   fNumChannels = channelConfiguration == 0 ? 2 : channelConfiguration;
@@ -167,5 +167,5 @@ void ADTSAudioFileSource::doGetNextFrame() {
 
   // Switch to another task, and inform the reader that he has data:
   nextTask() = envir().taskScheduler().scheduleDelayedTask(0,
-				(TaskFunc*)FramedSource::afterGetting, this);
+                (TaskFunc*)FramedSource::afterGetting, this);
 }

@@ -16,7 +16,7 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-/** 
+/**
  * \file sessionset.h
  * \brief Sending and receiving multiple streams together with only one thread.
  *
@@ -32,7 +32,7 @@ extern "C"{
 #endif
 
 
-#if	!defined(_WIN32) && !defined(_WIN32_WCE)
+#if    !defined(_WIN32) && !defined(_WIN32_WCE)
 /* UNIX */
 #include <sys/time.h>
 #include <sys/types.h>
@@ -41,7 +41,7 @@ extern "C"{
 #define ORTP_FD_SET(d, s)     FD_SET(d, s)
 #define ORTP_FD_CLR(d, s)     FD_CLR(d, s)
 #define ORTP_FD_ISSET(d, s)   FD_ISSET(d, s)
-#define ORTP_FD_ZERO(s)		  FD_ZERO(s)
+#define ORTP_FD_ZERO(s)          FD_ZERO(s)
 
 typedef fd_set ortp_fd_set;
 
@@ -50,11 +50,11 @@ typedef fd_set ortp_fd_set;
 /* _WIN32 */
 
 #define ORTP_FD_ZERO(s) \
-  do {									      \
-    unsigned int __i;							      \
-    ortp_fd_set *__arr = (s);						      \
-    for (__i = 0; __i < sizeof (ortp_fd_set) / sizeof (ortp__fd_mask); ++__i)	      \
-      ORTP__FDS_BITS (__arr)[__i] = 0;					      \
+  do {                                          \
+    unsigned int __i;                                  \
+    ortp_fd_set *__arr = (s);                              \
+    for (__i = 0; __i < sizeof (ortp_fd_set) / sizeof (ortp__fd_mask); ++__i)          \
+      ORTP__FDS_BITS (__arr)[__i] = 0;                          \
   } while (0)
 #define ORTP_FD_SET(d, s)     (ORTP__FDS_BITS (s)[ORTP__FDELT(d)] |= ORTP__FDMASK(d))
 #define ORTP_FD_CLR(d, s)     (ORTP__FDS_BITS (s)[ORTP__FDELT(d)] &= ~ORTP__FDMASK(d))
@@ -70,9 +70,9 @@ typedef long int ortp__fd_mask;
 #define ORTP__FD_SETSIZE 1024
 
 /* It's easier to assume 8-bit bytes than to get CHAR_BIT.  */
-#define ORTP__NFDBITS	(8 * sizeof (ortp__fd_mask))
-#define	ORTP__FDELT(d)	((d) / ORTP__NFDBITS)
-#define	ORTP__FDMASK(d)	((ortp__fd_mask) 1 << ((d) % ORTP__NFDBITS))
+#define ORTP__NFDBITS    (8 * sizeof (ortp__fd_mask))
+#define    ORTP__FDELT(d)    ((d) / ORTP__NFDBITS)
+#define    ORTP__FDMASK(d)    ((ortp__fd_mask) 1 << ((d) % ORTP__NFDBITS))
 
 
 /* fd_set for select and pselect.  */
@@ -87,13 +87,13 @@ typedef struct
 
 struct _SessionSet
 {
-	ortp_fd_set rtpset;
+    ortp_fd_set rtpset;
 };
 
 
 typedef struct _SessionSet SessionSet;
 
-#define session_set_init(ss)		ORTP_FD_ZERO(&(ss)->rtpset)
+#define session_set_init(ss)        ORTP_FD_ZERO(&(ss)->rtpset)
 
 ORTP_PUBLIC SessionSet * session_set_new(void);
 /**
@@ -101,7 +101,7 @@ ORTP_PUBLIC SessionSet * session_set_new(void);
  * @param ss a set (SessionSet object)
  * @param rtpsession a RtpSession
 **/
-#define session_set_set(ss,rtpsession)		ORTP_FD_SET((rtpsession)->mask_pos,&(ss)->rtpset)
+#define session_set_set(ss,rtpsession)        ORTP_FD_SET((rtpsession)->mask_pos,&(ss)->rtpset)
 
 /**
  * This macro tests if the session is part of the set. 1 is returned if true, 0 else.
@@ -109,7 +109,7 @@ ORTP_PUBLIC SessionSet * session_set_new(void);
  *@param rtpsession a rtp session
  *
 **/
-#define session_set_is_set(ss,rtpsession)	ORTP_FD_ISSET((rtpsession)->mask_pos,&(ss)->rtpset)
+#define session_set_is_set(ss,rtpsession)    ORTP_FD_ISSET((rtpsession)->mask_pos,&(ss)->rtpset)
 
 /**
  * Removes the session from the set.
@@ -118,9 +118,9 @@ ORTP_PUBLIC SessionSet * session_set_new(void);
  *
  *
 **/
-#define session_set_clr(ss,rtpsession)		ORTP_FD_CLR((rtpsession)->mask_pos,&(ss)->rtpset)
+#define session_set_clr(ss,rtpsession)        ORTP_FD_CLR((rtpsession)->mask_pos,&(ss)->rtpset)
 
-#define session_set_copy(dest,src)		memcpy(&(dest)->rtpset,&(src)->rtpset,sizeof(ortp_fd_set))
+#define session_set_copy(dest,src)        memcpy(&(dest)->rtpset,&(src)->rtpset,sizeof(ortp_fd_set))
 
 
 /**
@@ -128,12 +128,12 @@ ORTP_PUBLIC SessionSet * session_set_new(void);
 **/
 ORTP_PUBLIC void session_set_destroy(SessionSet *set);
 
-	
+
 ORTP_PUBLIC int session_set_select(SessionSet *recvs, SessionSet *sends, SessionSet *errors);
 ORTP_PUBLIC int session_set_timedselect(SessionSet *recvs, SessionSet *sends, SessionSet *errors,  struct timeval *timeout);
 
 #ifdef __cplusplus
 }
 #endif
-	
+
 #endif

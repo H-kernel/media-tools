@@ -246,7 +246,7 @@ void WAVAudioFileSource::doGetNextFrame() {
   if (!fHaveStartedReading) {
     // Await readable data from the file:
     envir().taskScheduler().turnOnBackgroundReadHandling(fileno(fFid),
-							 (TaskScheduler::BackgroundHandlerProc*)&fileReadableHandler, this);
+                             (TaskScheduler::BackgroundHandlerProc*)&fileReadableHandler, this);
     fHaveStartedReading = True;
   }
 #endif
@@ -306,7 +306,7 @@ void WAVAudioFileSource::doReadFromFile() {
 #ifndef READ_FROM_FILES_SYNCHRONOUSLY
     if (fFrameSize%bytesPerSample > 0) return;
 #endif
-    
+
     // If we're doing 'trick play', then seek to the appropriate place for reading the next sample,
     // and keep reading until we fill the provided buffer:
     if (fScaleFactor != 1) {

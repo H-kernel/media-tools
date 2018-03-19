@@ -27,9 +27,9 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 H264VideoRTPSink
 ::H264VideoRTPSink(UsageEnvironment& env, Groupsock* RTPgs, unsigned char rtpPayloadFormat,
-		   u_int8_t const* sps, unsigned spsSize, u_int8_t const* pps, unsigned ppsSize)
+           u_int8_t const* sps, unsigned spsSize, u_int8_t const* pps, unsigned ppsSize)
   : H264or5VideoRTPSink(264, env, RTPgs, rtpPayloadFormat,
-			NULL, 0, sps, spsSize, pps, ppsSize) {
+            NULL, 0, sps, spsSize, pps, ppsSize) {
 }
 
 H264VideoRTPSink::~H264VideoRTPSink() {
@@ -42,13 +42,13 @@ H264VideoRTPSink* H264VideoRTPSink
 
 H264VideoRTPSink* H264VideoRTPSink
 ::createNew(UsageEnvironment& env, Groupsock* RTPgs, unsigned char rtpPayloadFormat,
-	    u_int8_t const* sps, unsigned spsSize, u_int8_t const* pps, unsigned ppsSize) {
+        u_int8_t const* sps, unsigned spsSize, u_int8_t const* pps, unsigned ppsSize) {
   return new H264VideoRTPSink(env, RTPgs, rtpPayloadFormat, sps, spsSize, pps, ppsSize);
 }
 
 H264VideoRTPSink* H264VideoRTPSink
 ::createNew(UsageEnvironment& env, Groupsock* RTPgs, unsigned char rtpPayloadFormat,
-	    char const* sPropParameterSetsStr) {
+        char const* sPropParameterSetsStr) {
   u_int8_t* sps = NULL; unsigned spsSize = 0;
   u_int8_t* pps = NULL; unsigned ppsSize = 0;
 
@@ -120,7 +120,7 @@ char const* H264VideoRTPSink::auxSDPLine() {
   char* fmtp = new char[fmtpFmtSize];
   sprintf(fmtp, fmtpFmt,
           rtpPayloadType(),
-	  profileLevelId,
+      profileLevelId,
           sps_base64, pps_base64);
 
   delete[] sps_base64;

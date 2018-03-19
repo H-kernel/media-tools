@@ -26,7 +26,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 PassiveServerMediaSubsession*
 PassiveServerMediaSubsession::createNew(RTPSink& rtpSink,
-					RTCPInstance* rtcpInstance) {
+                    RTCPInstance* rtcpInstance) {
   return new PassiveServerMediaSubsession(rtpSink, rtcpInstance);
 }
 
@@ -106,17 +106,17 @@ PassiveServerMediaSubsession::sdpLines() {
       + strlen(trackId());
     char* sdpLines = new char[sdpFmtSize];
     sprintf(sdpLines, sdpFmt,
-	    mediaType, // m= <media>
-	    portNum, // m= <port>
-	    rtpPayloadType, // m= <fmt list>
-	    groupAddressStr.val(), // c= <connection address>
-	    ttl, // c= TTL
-	    estBitrate, // b=AS:<bandwidth>
-	    rtpmapLine, // a=rtpmap:... (if present)
-	    rtcpmuxLine, // a=rtcp-mux:... (if present)
-	    rangeLine, // a=range:... (if present)
-	    auxSDPLine, // optional extra SDP line
-	    trackId()); // a=control:<track-id>
+        mediaType, // m= <media>
+        portNum, // m= <port>
+        rtpPayloadType, // m= <fmt list>
+        groupAddressStr.val(), // c= <connection address>
+        ttl, // c= TTL
+        estBitrate, // b=AS:<bandwidth>
+        rtpmapLine, // a=rtpmap:... (if present)
+        rtcpmuxLine, // a=rtcp-mux:... (if present)
+        rangeLine, // a=range:... (if present)
+        auxSDPLine, // optional extra SDP line
+        trackId()); // a=control:<track-id>
     delete[] (char*)rangeLine; delete[] rtpmapLine;
 
     fSDPLines = strDup(sdpLines);
@@ -128,18 +128,18 @@ PassiveServerMediaSubsession::sdpLines() {
 
 void PassiveServerMediaSubsession
 ::getStreamParameters(unsigned clientSessionId,
-		      netAddressBits clientAddress,
-		      Port const& /*clientRTPPort*/,
-		      Port const& clientRTCPPort,
-		      int /*tcpSocketNum*/,
-		      unsigned char /*rtpChannelId*/,
-		      unsigned char /*rtcpChannelId*/,
-		      netAddressBits& destinationAddress,
-		      u_int8_t& destinationTTL,
-		      Boolean& isMulticast,
-		      Port& serverRTPPort,
-		      Port& serverRTCPPort,
-		      void*& streamToken) {
+              netAddressBits clientAddress,
+              Port const& /*clientRTPPort*/,
+              Port const& clientRTCPPort,
+              int /*tcpSocketNum*/,
+              unsigned char /*rtpChannelId*/,
+              unsigned char /*rtcpChannelId*/,
+              netAddressBits& destinationAddress,
+              u_int8_t& destinationTTL,
+              Boolean& isMulticast,
+              Port& serverRTPPort,
+              Port& serverRTCPPort,
+              void*& streamToken) {
   isMulticast = True;
   Groupsock& gs = fRTPSink.groupsockBeingUsed();
   if (destinationTTL == 255) destinationTTL = gs.ttl();
@@ -166,13 +166,13 @@ void PassiveServerMediaSubsession
 }
 
 void PassiveServerMediaSubsession::startStream(unsigned clientSessionId,
-					       void* /*streamToken*/,
-					       TaskFunc* rtcpRRHandler,
-					       void* rtcpRRHandlerClientData,
-					       unsigned short& rtpSeqNum,
-					       unsigned& rtpTimestamp,
-					       ServerRequestAlternativeByteHandler* /*serverRequestAlternativeByteHandler*/,
-					       void* /*serverRequestAlternativeByteHandlerClientData*/) {
+                           void* /*streamToken*/,
+                           TaskFunc* rtcpRRHandler,
+                           void* rtcpRRHandlerClientData,
+                           unsigned short& rtpSeqNum,
+                           unsigned& rtpTimestamp,
+                           ServerRequestAlternativeByteHandler* /*serverRequestAlternativeByteHandler*/,
+                           void* /*serverRequestAlternativeByteHandlerClientData*/) {
   rtpSeqNum = fRTPSink.currentSeqNo();
   rtpTimestamp = fRTPSink.presetNextTimestamp();
 
@@ -192,7 +192,7 @@ void PassiveServerMediaSubsession::startStream(unsigned clientSessionId,
     RTCPSourceRecord* source = (RTCPSourceRecord*)(fClientRTCPSourceRecords->Lookup((char const*)clientSessionId));
     if (source != NULL) {
       fRTCPInstance->setSpecificRRHandler(source->addr, source->port,
-					  rtcpRRHandler, rtcpRRHandlerClientData);
+                      rtcpRRHandler, rtcpRRHandlerClientData);
     }
   }
 }
@@ -209,7 +209,7 @@ float PassiveServerMediaSubsession::getCurrentNPT(void* streamToken) {
 
 void PassiveServerMediaSubsession
 ::getRTPSinkandRTCP(void* streamToken,
-		    RTPSink const*& rtpSink, RTCPInstance const*& rtcp) {
+            RTPSink const*& rtpSink, RTCPInstance const*& rtcp) {
   rtpSink = &fRTPSink;
   rtcp = fRTCPInstance;
 }

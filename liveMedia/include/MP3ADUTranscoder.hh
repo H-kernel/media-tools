@@ -28,14 +28,14 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class MP3ADUTranscoder: public FramedFilter {
 public:
   static MP3ADUTranscoder* createNew(UsageEnvironment& env,
-				  unsigned outBitrate /* in kbps */,
-				  FramedSource* inputSource);
+                  unsigned outBitrate /* in kbps */,
+                  FramedSource* inputSource);
 
   unsigned outBitrate() const { return fOutBitrate; }
 protected:
   MP3ADUTranscoder(UsageEnvironment& env,
-		unsigned outBitrate /* in kbps */,
-		FramedSource* inputSource);
+        unsigned outBitrate /* in kbps */,
+        FramedSource* inputSource);
       // called only by createNew()
   virtual ~MP3ADUTranscoder();
 
@@ -46,12 +46,12 @@ private:
 
 private:
   static void afterGettingFrame(void* clientData,
-				unsigned numBytesRead, unsigned numTruncatedBytes,
-				struct timeval presentationTime,
-				unsigned durationInMicroseconds);
+                unsigned numBytesRead, unsigned numTruncatedBytes,
+                struct timeval presentationTime,
+                unsigned durationInMicroseconds);
   void afterGettingFrame1(unsigned numBytesRead, unsigned numTruncatedBytes,
-			  struct timeval presentationTime,
-			  unsigned durationInMicroseconds);
+              struct timeval presentationTime,
+              unsigned durationInMicroseconds);
 
 private:
   unsigned fOutBitrate; // in kbps

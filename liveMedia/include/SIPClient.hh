@@ -37,13 +37,13 @@ enum inviteClientState { Calling, Proceeding, Completed, Terminated };
 class SIPClient: public Medium {
 public:
   static SIPClient* createNew(UsageEnvironment& env,
-			      unsigned char desiredAudioRTPPayloadFormat,
-			      char const* mimeSubtype = NULL,
-			      int verbosityLevel = 0,
-			      char const* applicationName = NULL);
+                  unsigned char desiredAudioRTPPayloadFormat,
+                  char const* mimeSubtype = NULL,
+                  int verbosityLevel = 0,
+                  char const* applicationName = NULL);
 
   void setProxyServer(unsigned proxyServerAddress,
-		      portNumBits proxyServerPortNum);
+              portNumBits proxyServerPortNum);
 
   void setClientStartPortNum(portNumBits clientStartPortNum) {
     fClientStartPortNum = clientStartPortNum;
@@ -53,7 +53,7 @@ public:
       // Issues a SIP "INVITE" command
       // Returns the session SDP description if this command succeeds
   char* inviteWithPassword(char const* url,
-			   char const* username, char const* password);
+               char const* username, char const* password);
       // Uses "invite()" to do an "INVITE" - first
       // without using "password", then (if we get an Unauthorized
       // response) with an authentication response computed from "password"
@@ -62,11 +62,11 @@ public:
   Boolean sendBYE(); // on current call
 
   static Boolean parseSIPURL(UsageEnvironment& env, char const* url,
-			     NetAddress& address, portNumBits& portNum);
+                 NetAddress& address, portNumBits& portNum);
       // (ignores any "<username>[:<password>]@" in "url")
   static Boolean parseSIPURLUsernamePassword(char const* url,
-					     char*& username,
-					     char*& password);
+                         char*& username,
+                         char*& password);
   char const* getInviteSdpReply() const { return fInviteSDPDescriptionReturned; }
 
   void setUserAgentString(char const* userAgentName);
@@ -77,10 +77,10 @@ protected:
 
 private:
   SIPClient(UsageEnvironment& env,
-	    unsigned char desiredAudioRTPPayloadFormat,
-	    char const* mimeSubtype,
-	    int verbosityLevel,
-	    char const* applicationName);
+        unsigned char desiredAudioRTPPayloadFormat,
+        char const* mimeSubtype,
+        int verbosityLevel,
+        char const* applicationName);
       // called only by createNew();
 
   void reset();
@@ -102,7 +102,7 @@ private:
 
   // Routines used to implement all commands:
   char* createAuthenticatorString(Authenticator const* authenticator,
-				  char const* cmd, char const* url);
+                  char const* cmd, char const* url);
   Boolean sendRequest(char const* requestString, unsigned requestLength);
   unsigned getResponseCode();
   unsigned getResponse(char*& responseBuffer, unsigned responseBufferSize);

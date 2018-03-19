@@ -43,7 +43,7 @@ public:
   virtual ~CuePoint();
 
   static void addCuePoint(CuePoint*& root, double cueTime, u_int64_t clusterOffsetInFile, unsigned blockNumWithinCluster/* 1-based */,
-			  Boolean& needToReviseBalanceOfParent);
+              Boolean& needToReviseBalanceOfParent);
     // If "cueTime" == "root.fCueTime", replace the existing data, otherwise add to the left or right subtree.
     // (Note that this is a static member function because - as a result of tree rotation - "root" might change.)
 
@@ -101,12 +101,12 @@ private:
 
 void MatroskaFile
 ::createNew(UsageEnvironment& env, char const* fileName, onCreationFunc* onCreation, void* onCreationClientData,
-	    char const* preferredLanguage) {
+        char const* preferredLanguage) {
   new MatroskaFile(env, fileName, onCreation, onCreationClientData, preferredLanguage);
 }
 
 MatroskaFile::MatroskaFile(UsageEnvironment& env, char const* fileName, onCreationFunc* onCreation, void* onCreationClientData,
-			   char const* preferredLanguage)
+               char const* preferredLanguage)
   : Medium(env),
     fFileName(strDup(fileName)), fOnCreation(onCreation), fOnCreationClientData(onCreationClientData),
     fPreferredLanguage(strDup(preferredLanguage)),
@@ -177,13 +177,13 @@ void MatroskaFile::handleEndOfTrackHeaderParsing() {
       // Assign flags for this track so that, when sorted, the largest value becomes our choice:
       unsigned choiceFlags = 0;
       if (fPreferredLanguage != NULL && track->language != NULL && strcmp(fPreferredLanguage, track->language) == 0) {
-	// This track matches our preferred language:
-	choiceFlags |= 1;
+    // This track matches our preferred language:
+    choiceFlags |= 1;
       }
       if (track->isForced) {
-	choiceFlags |= 4;
+    choiceFlags |= 4;
       } else if (track->isDefault) {
-	choiceFlags |= 2;
+    choiceFlags |= 2;
       }
       trackChoice[numEnabledTracks].choiceFlags = choiceFlags;
 
@@ -195,21 +195,21 @@ void MatroskaFile::handleEndOfTrackHeaderParsing() {
       int bestNum = -1;
       int bestChoiceFlags = -1;
       for (unsigned i = 0; i < numEnabledTracks; ++i) {
-	if (trackChoice[i].trackType == trackType && (int)trackChoice[i].choiceFlags > bestChoiceFlags) {
-	  bestNum = i;
-	  bestChoiceFlags = (int)trackChoice[i].choiceFlags;
-	}
+    if (trackChoice[i].trackType == trackType && (int)trackChoice[i].choiceFlags > bestChoiceFlags) {
+      bestNum = i;
+      bestChoiceFlags = (int)trackChoice[i].choiceFlags;
+    }
       }
       if (bestChoiceFlags >= 0) { // There is a track for this track type
-	if (trackType == MATROSKA_TRACK_TYPE_VIDEO) fChosenVideoTrackNumber = trackChoice[bestNum].trackNumber;
-	else if (trackType == MATROSKA_TRACK_TYPE_AUDIO) fChosenAudioTrackNumber = trackChoice[bestNum].trackNumber;
-	else fChosenSubtitleTrackNumber = trackChoice[bestNum].trackNumber;
+    if (trackType == MATROSKA_TRACK_TYPE_VIDEO) fChosenVideoTrackNumber = trackChoice[bestNum].trackNumber;
+    else if (trackType == MATROSKA_TRACK_TYPE_AUDIO) fChosenAudioTrackNumber = trackChoice[bestNum].trackNumber;
+    else fChosenSubtitleTrackNumber = trackChoice[bestNum].trackNumber;
       }
     }
 
     delete[] trackChoice;
   }
-  
+
 #ifdef DEBUG
   if (fChosenVideoTrackNumber > 0) fprintf(stderr, "Chosen video track: #%d\n", fChosenVideoTrackNumber); else fprintf(stderr, "No chosen video track\n");
   if (fChosenAudioTrackNumber > 0) fprintf(stderr, "Chosen audio track: #%d\n", fChosenAudioTrackNumber); else fprintf(stderr, "No chosen audio track\n");
@@ -246,7 +246,7 @@ float MatroskaFile::fileDuration() {
 
 FramedSource* MatroskaFile
 ::createSourceForStreaming(FramedSource* baseSource, unsigned trackNumber,
-			   unsigned& estBitrate, unsigned& numFiltersInFrontOfTrack) {
+               unsigned& estBitrate, unsigned& numFiltersInFrontOfTrack) {
   if (baseSource == NULL) return NULL;
 
   FramedSource* result = baseSource; // by default
@@ -302,7 +302,7 @@ FramedSource* MatroskaFile
 
 RTPSink* MatroskaFile
 ::createRTPSinkForTrackNumber(unsigned trackNumber, Groupsock* rtpGroupsock,
-			      unsigned char rtpPayloadTypeIfDynamic) {
+                  unsigned char rtpPayloadTypeIfDynamic) {
   RTPSink* result = NULL; // default value, if an error occurs
 
   do {
@@ -319,22 +319,22 @@ RTPSink* MatroskaFile
       char* configStr = new char[2*track->codecPrivateSize + 1]; if (configStr == NULL) break;
           // 2 hex digits per byte, plus the trailing '\0'
       for (unsigned i = 0; i < track->codecPrivateSize; ++i) {
-	sprintf(&configStr[2*i], "%02X", track->codecPrivate[i]);
+    sprintf(&configStr[2*i], "%02X", track->codecPrivate[i]);
       }
 
       result = MPEG4GenericRTPSink::createNew(envir(), rtpGroupsock,
-					      rtpPayloadTypeIfDynamic,
-					      track->samplingFrequency,
-					      "audio", "AAC-hbr", configStr,
-					      track->numChannels);
+                          rtpPayloadTypeIfDynamic,
+                          track->samplingFrequency,
+                          "audio", "AAC-hbr", configStr,
+                          track->numChannels);
       delete[] configStr;
     } else if (strcmp(track->mimeType, "audio/AC3") == 0) {
       result = AC3AudioRTPSink
-	::createNew(envir(), rtpGroupsock, rtpPayloadTypeIfDynamic, track->samplingFrequency);
+    ::createNew(envir(), rtpGroupsock, rtpPayloadTypeIfDynamic, track->samplingFrequency);
     } else if (strcmp(track->mimeType, "audio/OPUS") == 0) {
       result = SimpleRTPSink
-	::createNew(envir(), rtpGroupsock, rtpPayloadTypeIfDynamic,
-		    48000, "audio", "OPUS", 2, False/*only 1 Opus 'packet' in each RTP packet*/);
+    ::createNew(envir(), rtpGroupsock, rtpPayloadTypeIfDynamic,
+            48000, "audio", "OPUS", 2, False/*only 1 Opus 'packet' in each RTP packet*/);
     } else if (strcmp(track->mimeType, "audio/VORBIS") == 0 || strcmp(track->mimeType, "video/THEORA") == 0) {
       // The Matroska file's 'Codec Private' data is assumed to be the codec configuration
       // information, containing the "Identification", "Comment", and "Setup" headers.
@@ -345,95 +345,95 @@ RTPSink* MatroskaFile
       Boolean isTheora = strcmp(track->mimeType, "video/THEORA") == 0; // otherwise, Vorbis
 
       do {
-	u_int8_t* p = track->codecPrivate;
-	unsigned n = track->codecPrivateSize;
-	if (n == 0 || p == NULL) break; // we have no 'Codec Private' data
+    u_int8_t* p = track->codecPrivate;
+    unsigned n = track->codecPrivateSize;
+    if (n == 0 || p == NULL) break; // we have no 'Codec Private' data
 
-	u_int8_t numHeaders;
-	getPrivByte(numHeaders);
-	unsigned headerSize[3]; // we don't handle any more than 2+1 headers
+    u_int8_t numHeaders;
+    getPrivByte(numHeaders);
+    unsigned headerSize[3]; // we don't handle any more than 2+1 headers
 
-	// Extract the sizes of each of these headers:
-	unsigned sizesSum = 0;
-	Boolean success = True;
-	unsigned i;
-	for (i = 0; i < numHeaders && i < 3; ++i) {
-	  unsigned len = 0;
-	  u_int8_t c;
+    // Extract the sizes of each of these headers:
+    unsigned sizesSum = 0;
+    Boolean success = True;
+    unsigned i;
+    for (i = 0; i < numHeaders && i < 3; ++i) {
+      unsigned len = 0;
+      u_int8_t c;
 
-	  do {
-	    success = False;
-	    getPrivByte(c);
-	    success = True;
-	    
-	    len += c;
-	  } while (c == 255);
-	  if (!success || len == 0) break;
-	  
-	  headerSize[i] = len;
-	  sizesSum += len;
-	}
-	if (!success) break;
-	
-	// Compute the implicit size of the final header:
-	if (numHeaders < 3) {
-	  int finalHeaderSize = n - sizesSum;
-	  if (finalHeaderSize <= 0) break; // error in data; give up
-	  
-	  headerSize[numHeaders] = (unsigned)finalHeaderSize;
-	  ++numHeaders; // include the final header now
-	} else {
-	  numHeaders = 3; // The maximum number of headers that we handle
-	}
-	
-	// Then, extract and classify each header:
-	for (i = 0; i < numHeaders; ++i) {
-	  success = False;
-	  unsigned newHeaderSize = headerSize[i];
-	  u_int8_t* newHeader = new u_int8_t[newHeaderSize];
-	  if (newHeader == NULL) break;
-	  
-	  u_int8_t* hdr = newHeader;
-	  while (newHeaderSize-- > 0) {
-	    success = False;
-	    getPrivByte(*hdr++);
-	    success = True;
-	  }
-	  if (!success) {
-	    delete[] newHeader;
-	    break;
-	  }
-	  
-	  u_int8_t headerType = newHeader[0];
-	  if (headerType == 1 || (isTheora && headerType == 0x80)) { // "identification" header
-	    delete[] identificationHeader; identificationHeader = newHeader;
-	    identificationHeaderSize = headerSize[i];
-	  } else if (headerType == 3 || (isTheora && headerType == 0x81)) { // "comment" header
-	    delete[] commentHeader; commentHeader = newHeader;
-	    commentHeaderSize = headerSize[i];
-	  } else if (headerType == 5 || (isTheora && headerType == 0x82)) { // "setup" header
-	    delete[] setupHeader; setupHeader = newHeader;
-	    setupHeaderSize = headerSize[i];
-	  } else {
-	    delete[] newHeader; // because it was a header type that we don't understand
-	  }
-	}
-	if (!success) break;
+      do {
+        success = False;
+        getPrivByte(c);
+        success = True;
 
-	if (isTheora) {
-	  result = TheoraVideoRTPSink
-	    ::createNew(envir(), rtpGroupsock, rtpPayloadTypeIfDynamic,
-			identificationHeader, identificationHeaderSize,
-			commentHeader, commentHeaderSize,
-			setupHeader, setupHeaderSize);
-	} else { // Vorbis
-	  result = VorbisAudioRTPSink
-	    ::createNew(envir(), rtpGroupsock, rtpPayloadTypeIfDynamic,
-			track->samplingFrequency, track->numChannels,
-			identificationHeader, identificationHeaderSize,
-			commentHeader, commentHeaderSize,
-			setupHeader, setupHeaderSize);
-	}
+        len += c;
+      } while (c == 255);
+      if (!success || len == 0) break;
+
+      headerSize[i] = len;
+      sizesSum += len;
+    }
+    if (!success) break;
+
+    // Compute the implicit size of the final header:
+    if (numHeaders < 3) {
+      int finalHeaderSize = n - sizesSum;
+      if (finalHeaderSize <= 0) break; // error in data; give up
+
+      headerSize[numHeaders] = (unsigned)finalHeaderSize;
+      ++numHeaders; // include the final header now
+    } else {
+      numHeaders = 3; // The maximum number of headers that we handle
+    }
+
+    // Then, extract and classify each header:
+    for (i = 0; i < numHeaders; ++i) {
+      success = False;
+      unsigned newHeaderSize = headerSize[i];
+      u_int8_t* newHeader = new u_int8_t[newHeaderSize];
+      if (newHeader == NULL) break;
+
+      u_int8_t* hdr = newHeader;
+      while (newHeaderSize-- > 0) {
+        success = False;
+        getPrivByte(*hdr++);
+        success = True;
+      }
+      if (!success) {
+        delete[] newHeader;
+        break;
+      }
+
+      u_int8_t headerType = newHeader[0];
+      if (headerType == 1 || (isTheora && headerType == 0x80)) { // "identification" header
+        delete[] identificationHeader; identificationHeader = newHeader;
+        identificationHeaderSize = headerSize[i];
+      } else if (headerType == 3 || (isTheora && headerType == 0x81)) { // "comment" header
+        delete[] commentHeader; commentHeader = newHeader;
+        commentHeaderSize = headerSize[i];
+      } else if (headerType == 5 || (isTheora && headerType == 0x82)) { // "setup" header
+        delete[] setupHeader; setupHeader = newHeader;
+        setupHeaderSize = headerSize[i];
+      } else {
+        delete[] newHeader; // because it was a header type that we don't understand
+      }
+    }
+    if (!success) break;
+
+    if (isTheora) {
+      result = TheoraVideoRTPSink
+        ::createNew(envir(), rtpGroupsock, rtpPayloadTypeIfDynamic,
+            identificationHeader, identificationHeaderSize,
+            commentHeader, commentHeaderSize,
+            setupHeader, setupHeaderSize);
+    } else { // Vorbis
+      result = VorbisAudioRTPSink
+        ::createNew(envir(), rtpGroupsock, rtpPayloadTypeIfDynamic,
+            track->samplingFrequency, track->numChannels,
+            identificationHeader, identificationHeaderSize,
+            commentHeader, commentHeaderSize,
+            setupHeader, setupHeaderSize);
+    }
       } while (0);
 
       delete[] identificationHeader; delete[] commentHeader; delete[] setupHeader;
@@ -444,50 +444,50 @@ RTPSink* MatroskaFile
       u_int8_t* SPSandPPSBytes = NULL; unsigned numSPSandPPSBytes = 0;
 
       do {
-	if (track->codecPrivateSize < 6) break;
+    if (track->codecPrivateSize < 6) break;
 
-	numSPSandPPSBytes = track->codecPrivateSize - 5;
-	SPSandPPSBytes = &track->codecPrivate[5];
+    numSPSandPPSBytes = track->codecPrivateSize - 5;
+    SPSandPPSBytes = &track->codecPrivate[5];
 
-	// Extract, from "SPSandPPSBytes", one SPS NAL unit, and one PPS NAL unit.
-	// (I hope one is all we need of each.)
-	unsigned i;
-	u_int8_t* ptr = SPSandPPSBytes;
-	u_int8_t* limit = &SPSandPPSBytes[numSPSandPPSBytes];
-	
-	unsigned numSPSs = (*ptr++)&0x1F; CHECK_PTR;
-	for (i = 0; i < numSPSs; ++i) {
-	  unsigned spsSize = (*ptr++)<<8; CHECK_PTR;
-	  spsSize |= *ptr++; CHECK_PTR;
-	  
-	  if (spsSize > NUM_BYTES_REMAINING) break;
-	  u_int8_t nal_unit_type = ptr[0]&0x1F;
-	  if (SPS == NULL && nal_unit_type == 7/*sanity check*/) { // save the first one
-	    SPSSize = spsSize;
-	    SPS = new u_int8_t[spsSize];
-	    memmove(SPS, ptr, spsSize);
-	  }
-	  ptr += spsSize;
-	}
-	
-	unsigned numPPSs = (*ptr++)&0x1F; CHECK_PTR;
-	for (i = 0; i < numPPSs; ++i) {
-	  unsigned ppsSize = (*ptr++)<<8; CHECK_PTR;
-	  ppsSize |= *ptr++; CHECK_PTR;
-	  
-	  if (ppsSize > NUM_BYTES_REMAINING) break;
-	  u_int8_t nal_unit_type = ptr[0]&0x1F;
-	  if (PPS == NULL && nal_unit_type == 8/*sanity check*/) { // save the first one
-	    PPSSize = ppsSize;
-	    PPS = new u_int8_t[ppsSize];
-	    memmove(PPS, ptr, ppsSize);
-	  }
-	  ptr += ppsSize;
-	}
+    // Extract, from "SPSandPPSBytes", one SPS NAL unit, and one PPS NAL unit.
+    // (I hope one is all we need of each.)
+    unsigned i;
+    u_int8_t* ptr = SPSandPPSBytes;
+    u_int8_t* limit = &SPSandPPSBytes[numSPSandPPSBytes];
+
+    unsigned numSPSs = (*ptr++)&0x1F; CHECK_PTR;
+    for (i = 0; i < numSPSs; ++i) {
+      unsigned spsSize = (*ptr++)<<8; CHECK_PTR;
+      spsSize |= *ptr++; CHECK_PTR;
+
+      if (spsSize > NUM_BYTES_REMAINING) break;
+      u_int8_t nal_unit_type = ptr[0]&0x1F;
+      if (SPS == NULL && nal_unit_type == 7/*sanity check*/) { // save the first one
+        SPSSize = spsSize;
+        SPS = new u_int8_t[spsSize];
+        memmove(SPS, ptr, spsSize);
+      }
+      ptr += spsSize;
+    }
+
+    unsigned numPPSs = (*ptr++)&0x1F; CHECK_PTR;
+    for (i = 0; i < numPPSs; ++i) {
+      unsigned ppsSize = (*ptr++)<<8; CHECK_PTR;
+      ppsSize |= *ptr++; CHECK_PTR;
+
+      if (ppsSize > NUM_BYTES_REMAINING) break;
+      u_int8_t nal_unit_type = ptr[0]&0x1F;
+      if (PPS == NULL && nal_unit_type == 8/*sanity check*/) { // save the first one
+        PPSSize = ppsSize;
+        PPS = new u_int8_t[ppsSize];
+        memmove(PPS, ptr, ppsSize);
+      }
+      ptr += ppsSize;
+    }
       } while (0);
 
       result = H264VideoRTPSink::createNew(envir(), rtpGroupsock, rtpPayloadTypeIfDynamic,
-					   SPS, SPSSize, PPS, PPSSize);
+                       SPS, SPSSize, PPS, PPSSize);
 
       delete[] SPS; delete[] PPS;
     } else if (strcmp(track->mimeType, "video/H265") == 0) {
@@ -498,90 +498,90 @@ RTPSink* MatroskaFile
       unsigned i;
 
       do {
-	if (track->codecPrivateUsesH264FormatForH265) {
-	  // The data uses the H.264-style format (but including VPS NAL unit(s)).
-	  // The VPS,SPS,PPS NAL unit information starts at byte #5:
-	  if (track->codecPrivateSize >= 6) {
-	    numVPS_SPS_PPSBytes = track->codecPrivateSize - 5;
-	    VPS_SPS_PPSBytes = &track->codecPrivate[5];
-	  }
-	} else {
-	  // The data uses the proper H.265-style format.
-	  // The VPS,SPS,PPS NAL unit information starts at byte #22:
-	  if (track->codecPrivateSize >= 23) {
-	    numVPS_SPS_PPSBytes = track->codecPrivateSize - 22;
-	    VPS_SPS_PPSBytes = &track->codecPrivate[22];
-	  }
-	}
-	
-	// Extract, from "VPS_SPS_PPSBytes", one VPS NAL unit, one SPS NAL unit, and one PPS NAL unit.
-	// (I hope one is all we need of each.)
-	if (numVPS_SPS_PPSBytes == 0 || VPS_SPS_PPSBytes == NULL) break; // sanity check
-	u_int8_t* ptr = VPS_SPS_PPSBytes;
-	u_int8_t* limit = &VPS_SPS_PPSBytes[numVPS_SPS_PPSBytes];
-	
-	if (track->codecPrivateUsesH264FormatForH265) {
-	  // The data uses the H.264-style format (but including VPS NAL unit(s)).
-	  while (NUM_BYTES_REMAINING > 0) {
-	    unsigned numNALUnits = (*ptr++)&0x1F; CHECK_PTR;
-	    for (i = 0; i < numNALUnits; ++i) {
-	      unsigned nalUnitLength = (*ptr++)<<8; CHECK_PTR;
-	      nalUnitLength |= *ptr++; CHECK_PTR;
-	      
-	      if (nalUnitLength > NUM_BYTES_REMAINING) break;
-	      u_int8_t nal_unit_type = (ptr[0]&0x7E)>>1;
-	      if (nal_unit_type == 32) { // VPS
-		VPSSize = nalUnitLength;
-		delete[] VPS; VPS = new u_int8_t[nalUnitLength];
-		memmove(VPS, ptr, nalUnitLength);
-	      } else if (nal_unit_type == 33) { // SPS
-		SPSSize = nalUnitLength;
-		delete[] SPS; SPS = new u_int8_t[nalUnitLength];
-		memmove(SPS, ptr, nalUnitLength);
-	      } else if (nal_unit_type == 34) { // PPS
-		PPSSize = nalUnitLength;
-		delete[] PPS; PPS = new u_int8_t[nalUnitLength];
-		memmove(PPS, ptr, nalUnitLength);
-	      }
-	      ptr += nalUnitLength;
-	    }
-	  }
-	} else {
-	  // The data uses the proper H.265-style format.
-	  unsigned numOfArrays = *ptr++; CHECK_PTR;
-	  for (unsigned j = 0; j < numOfArrays; ++j) {
-	    ++ptr; CHECK_PTR; // skip the 'array_completeness'|'reserved'|'NAL_unit_type' byte
-	    
-	    unsigned numNalus = (*ptr++)<<8; CHECK_PTR;
-	    numNalus |= *ptr++; CHECK_PTR;
-	    
-	    for (i = 0; i < numNalus; ++i) {
-	      unsigned nalUnitLength = (*ptr++)<<8; CHECK_PTR;
-	      nalUnitLength |= *ptr++; CHECK_PTR;
-	      
-	      if (nalUnitLength > NUM_BYTES_REMAINING) break;
-	      u_int8_t nal_unit_type = (ptr[0]&0x7E)>>1;
-	      if (nal_unit_type == 32) { // VPS
-		VPSSize = nalUnitLength;
-		delete[] VPS; VPS = new u_int8_t[nalUnitLength];
-		memmove(VPS, ptr, nalUnitLength);
-	      } else if (nal_unit_type == 33) { // SPS
-		SPSSize = nalUnitLength;
-		delete[] SPS; SPS = new u_int8_t[nalUnitLength];
-		memmove(SPS, ptr, nalUnitLength);
-	      } else if (nal_unit_type == 34) { // PPS
-		PPSSize = nalUnitLength;
-		delete[] PPS; PPS = new u_int8_t[nalUnitLength];
-		memmove(PPS, ptr, nalUnitLength);
-	      }
-	      ptr += nalUnitLength;
-	    }
-	  }
-	}
+    if (track->codecPrivateUsesH264FormatForH265) {
+      // The data uses the H.264-style format (but including VPS NAL unit(s)).
+      // The VPS,SPS,PPS NAL unit information starts at byte #5:
+      if (track->codecPrivateSize >= 6) {
+        numVPS_SPS_PPSBytes = track->codecPrivateSize - 5;
+        VPS_SPS_PPSBytes = &track->codecPrivate[5];
+      }
+    } else {
+      // The data uses the proper H.265-style format.
+      // The VPS,SPS,PPS NAL unit information starts at byte #22:
+      if (track->codecPrivateSize >= 23) {
+        numVPS_SPS_PPSBytes = track->codecPrivateSize - 22;
+        VPS_SPS_PPSBytes = &track->codecPrivate[22];
+      }
+    }
+
+    // Extract, from "VPS_SPS_PPSBytes", one VPS NAL unit, one SPS NAL unit, and one PPS NAL unit.
+    // (I hope one is all we need of each.)
+    if (numVPS_SPS_PPSBytes == 0 || VPS_SPS_PPSBytes == NULL) break; // sanity check
+    u_int8_t* ptr = VPS_SPS_PPSBytes;
+    u_int8_t* limit = &VPS_SPS_PPSBytes[numVPS_SPS_PPSBytes];
+
+    if (track->codecPrivateUsesH264FormatForH265) {
+      // The data uses the H.264-style format (but including VPS NAL unit(s)).
+      while (NUM_BYTES_REMAINING > 0) {
+        unsigned numNALUnits = (*ptr++)&0x1F; CHECK_PTR;
+        for (i = 0; i < numNALUnits; ++i) {
+          unsigned nalUnitLength = (*ptr++)<<8; CHECK_PTR;
+          nalUnitLength |= *ptr++; CHECK_PTR;
+
+          if (nalUnitLength > NUM_BYTES_REMAINING) break;
+          u_int8_t nal_unit_type = (ptr[0]&0x7E)>>1;
+          if (nal_unit_type == 32) { // VPS
+        VPSSize = nalUnitLength;
+        delete[] VPS; VPS = new u_int8_t[nalUnitLength];
+        memmove(VPS, ptr, nalUnitLength);
+          } else if (nal_unit_type == 33) { // SPS
+        SPSSize = nalUnitLength;
+        delete[] SPS; SPS = new u_int8_t[nalUnitLength];
+        memmove(SPS, ptr, nalUnitLength);
+          } else if (nal_unit_type == 34) { // PPS
+        PPSSize = nalUnitLength;
+        delete[] PPS; PPS = new u_int8_t[nalUnitLength];
+        memmove(PPS, ptr, nalUnitLength);
+          }
+          ptr += nalUnitLength;
+        }
+      }
+    } else {
+      // The data uses the proper H.265-style format.
+      unsigned numOfArrays = *ptr++; CHECK_PTR;
+      for (unsigned j = 0; j < numOfArrays; ++j) {
+        ++ptr; CHECK_PTR; // skip the 'array_completeness'|'reserved'|'NAL_unit_type' byte
+
+        unsigned numNalus = (*ptr++)<<8; CHECK_PTR;
+        numNalus |= *ptr++; CHECK_PTR;
+
+        for (i = 0; i < numNalus; ++i) {
+          unsigned nalUnitLength = (*ptr++)<<8; CHECK_PTR;
+          nalUnitLength |= *ptr++; CHECK_PTR;
+
+          if (nalUnitLength > NUM_BYTES_REMAINING) break;
+          u_int8_t nal_unit_type = (ptr[0]&0x7E)>>1;
+          if (nal_unit_type == 32) { // VPS
+        VPSSize = nalUnitLength;
+        delete[] VPS; VPS = new u_int8_t[nalUnitLength];
+        memmove(VPS, ptr, nalUnitLength);
+          } else if (nal_unit_type == 33) { // SPS
+        SPSSize = nalUnitLength;
+        delete[] SPS; SPS = new u_int8_t[nalUnitLength];
+        memmove(SPS, ptr, nalUnitLength);
+          } else if (nal_unit_type == 34) { // PPS
+        PPSSize = nalUnitLength;
+        delete[] PPS; PPS = new u_int8_t[nalUnitLength];
+        memmove(PPS, ptr, nalUnitLength);
+          }
+          ptr += nalUnitLength;
+        }
+      }
+    }
       } while (0);
 
       result = H265VideoRTPSink::createNew(envir(), rtpGroupsock, rtpPayloadTypeIfDynamic,
-					   VPS, VPSSize, SPS, SPSSize, PPS, PPSSize);
+                       VPS, VPSSize, SPS, SPSSize, PPS, PPSSize);
       delete[] VPS; delete[] SPS; delete[] PPS;
     } else if (strcmp(track->mimeType, "video/VP8") == 0) {
       result = VP8VideoRTPSink::createNew(envir(), rtpGroupsock, rtpPayloadTypeIfDynamic);
@@ -629,7 +629,7 @@ MatroskaTrackTable::~MatroskaTrackTable() {
     delete track;
   }
   delete fTable;
-} 
+}
 
 void MatroskaTrackTable::add(MatroskaTrack* newTrack, unsigned trackNumber) {
   if (newTrack != NULL && newTrack->trackNumber != 0) fTable->Remove((char const*)newTrack->trackNumber);
@@ -685,7 +685,7 @@ MatroskaDemux::MatroskaDemux(MatroskaFile& ourFile)
     fOurFile(ourFile), fDemuxedTracksTable(HashTable::create(ONE_WORD_HASH_KEYS)),
     fNextTrackTypeToCheck(0x1) {
   fOurParser = new MatroskaFileParser(ourFile, ByteStreamFileSource::createNew(envir(), ourFile.fileName()),
-				      handleEndOfFile, this, this);
+                      handleEndOfFile, this, this);
 }
 
 MatroskaDemux::~MatroskaDemux() {
@@ -742,7 +742,7 @@ void MatroskaDemux::removeTrack(unsigned trackNumber) {
 }
 
 void MatroskaDemux::continueReading() {
-  fOurParser->continueParsing();  
+  fOurParser->continueParsing();
 }
 
 void MatroskaDemux::seekToTime(double& seekNPT) {
@@ -792,7 +792,7 @@ CuePoint::~CuePoint() {
 }
 
 void CuePoint::addCuePoint(CuePoint*& root, double cueTime, u_int64_t clusterOffsetInFile, unsigned blockNumWithinCluster,
-			   Boolean& needToReviseBalanceOfParent) {
+               Boolean& needToReviseBalanceOfParent) {
   needToReviseBalanceOfParent = False; // by default; may get changed below
 
   if (root == NULL) {
@@ -811,36 +811,36 @@ void CuePoint::addCuePoint(CuePoint*& root, double cueTime, u_int64_t clusterOff
     if (needToReviseOurBalance) {
       // We need to change our 'balance' number, perhaps while also performing a rotation to bring ourself back into balance:
       if (root->fBalance == 0) {
-	// We were balanced before, but now we're unbalanced (by 1) on the "direction" side:
-	root->fBalance = -1 + 2*direction; // -1 for "direction" 0; 1 for "direction" 1
-	needToReviseBalanceOfParent = True;
+    // We were balanced before, but now we're unbalanced (by 1) on the "direction" side:
+    root->fBalance = -1 + 2*direction; // -1 for "direction" 0; 1 for "direction" 1
+    needToReviseBalanceOfParent = True;
       } else if (root->fBalance == 1 - 2*direction) { // 1 for "direction" 0; -1 for "direction" 1
-	// We were unbalanced (by 1) on the side opposite to where we added an entry, so now we're balanced:
-	root->fBalance = 0;
+    // We were unbalanced (by 1) on the side opposite to where we added an entry, so now we're balanced:
+    root->fBalance = 0;
       } else {
-	// We were unbalanced (by 1) on the side where we added an entry, so now we're unbalanced by 2, and have to rebalance:
-	if (root->fSubTree[direction]->fBalance == -1 + 2*direction) { // -1 for "direction" 0; 1 for "direction" 1
-	  // We're 'doubly-unbalanced' on this side, so perform a single rotation in the opposite direction:
-	  root->fBalance = root->fSubTree[direction]->fBalance = 0;
-	  rotate(1-direction, root);
-	} else {
-	  // This is the Left-Right case (for "direction" 0) or the Right-Left case (for "direction" 1); perform two rotations:
-	  char newParentCurBalance = root->fSubTree[direction]->fSubTree[1-direction]->fBalance;
-	  if (newParentCurBalance == 1 - 2*direction) { // 1 for "direction" 0; -1 for "direction" 1
-	    root->fBalance = 0;
-	    root->fSubTree[direction]->fBalance = -1 + 2*direction; // -1 for "direction" 0; 1 for "direction" 1
-	  } else if (newParentCurBalance == 0) {
-	    root->fBalance = 0;
-	    root->fSubTree[direction]->fBalance = 0;
-	  } else {
-	    root->fBalance = 1 - 2*direction; // 1 for "direction" 0; -1 for "direction" 1
-	    root->fSubTree[direction]->fBalance = 0;
-	  }
-	  rotate(direction, root->fSubTree[direction]);
+    // We were unbalanced (by 1) on the side where we added an entry, so now we're unbalanced by 2, and have to rebalance:
+    if (root->fSubTree[direction]->fBalance == -1 + 2*direction) { // -1 for "direction" 0; 1 for "direction" 1
+      // We're 'doubly-unbalanced' on this side, so perform a single rotation in the opposite direction:
+      root->fBalance = root->fSubTree[direction]->fBalance = 0;
+      rotate(1-direction, root);
+    } else {
+      // This is the Left-Right case (for "direction" 0) or the Right-Left case (for "direction" 1); perform two rotations:
+      char newParentCurBalance = root->fSubTree[direction]->fSubTree[1-direction]->fBalance;
+      if (newParentCurBalance == 1 - 2*direction) { // 1 for "direction" 0; -1 for "direction" 1
+        root->fBalance = 0;
+        root->fSubTree[direction]->fBalance = -1 + 2*direction; // -1 for "direction" 0; 1 for "direction" 1
+      } else if (newParentCurBalance == 0) {
+        root->fBalance = 0;
+        root->fSubTree[direction]->fBalance = 0;
+      } else {
+        root->fBalance = 1 - 2*direction; // 1 for "direction" 0; -1 for "direction" 1
+        root->fSubTree[direction]->fBalance = 0;
+      }
+      rotate(direction, root->fSubTree[direction]);
 
-	  root->fSubTree[direction]->fBalance = 0; // the new root will be balanced
-	  rotate(1-direction, root);
-	}
+      root->fSubTree[direction]->fBalance = 0; // the new root will be balanced
+      rotate(1-direction, root);
+    }
       }
     }
   }

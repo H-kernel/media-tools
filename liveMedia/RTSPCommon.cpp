@@ -30,8 +30,8 @@ static void decodeURL(char* url) {
   char* cursor = url;
   while (*cursor) {
     if ((cursor[0] == '%') &&
-	cursor[1] && isxdigit(cursor[1]) &&
-	cursor[2] && isxdigit(cursor[2])) {
+    cursor[1] && isxdigit(cursor[1]) &&
+    cursor[2] && isxdigit(cursor[2])) {
       // We saw a % followed by 2 hex digits, so we copy the literal hex value into the URL, then advance the cursor past it:
       char hex[3];
       hex[0] = cursor[1];
@@ -44,23 +44,23 @@ static void decodeURL(char* url) {
       *url++ = *cursor++;
     }
   }
-  
+
   *url = '\0';
 }
 
 Boolean parseRTSPRequestString(char const* reqStr,
-			       unsigned reqStrSize,
-			       char* resultCmdName,
-			       unsigned resultCmdNameMaxSize,
-			       char* resultURLPreSuffix,
-			       unsigned resultURLPreSuffixMaxSize,
-			       char* resultURLSuffix,
-			       unsigned resultURLSuffixMaxSize,
-			       char* resultCSeq,
-			       unsigned resultCSeqMaxSize,
+                   unsigned reqStrSize,
+                   char* resultCmdName,
+                   unsigned resultCmdNameMaxSize,
+                   char* resultURLPreSuffix,
+                   unsigned resultURLPreSuffixMaxSize,
+                   char* resultURLSuffix,
+                   unsigned resultURLSuffixMaxSize,
+                   char* resultCSeq,
+                   unsigned resultCSeqMaxSize,
                                char* resultSessionIdStr,
                                unsigned resultSessionIdStrMaxSize,
-			       unsigned& contentLength) {
+                   unsigned& contentLength) {
   // This parser is currently rather dumb; it should be made smarter #####
 
   // "Be liberal in what you accept": Skip over any whitespace at the start of the request:
@@ -91,18 +91,18 @@ Boolean parseRTSPRequestString(char const* reqStr,
   while (j < reqStrSize && (reqStr[j] == ' ' || reqStr[j] == '\t')) ++j; // skip over any additional white space
   for (; (int)j < (int)(reqStrSize-8); ++j) {
     if ((reqStr[j] == 'r' || reqStr[j] == 'R')
-	&& (reqStr[j+1] == 't' || reqStr[j+1] == 'T')
-	&& (reqStr[j+2] == 's' || reqStr[j+2] == 'S')
-	&& (reqStr[j+3] == 'p' || reqStr[j+3] == 'P')
-	&& reqStr[j+4] == ':' && reqStr[j+5] == '/') {
+    && (reqStr[j+1] == 't' || reqStr[j+1] == 'T')
+    && (reqStr[j+2] == 's' || reqStr[j+2] == 'S')
+    && (reqStr[j+3] == 'p' || reqStr[j+3] == 'P')
+    && reqStr[j+4] == ':' && reqStr[j+5] == '/') {
       j += 6;
       if (reqStr[j] == '/') {
-	// This is a "rtsp://" URL; skip over the host:port part that follows:
-	++j;
-	while (j < reqStrSize && reqStr[j] != '/' && reqStr[j] != ' ') ++j;
+    // This is a "rtsp://" URL; skip over the host:port part that follows:
+    ++j;
+    while (j < reqStrSize && reqStr[j] != '/' && reqStr[j] != ' ') ++j;
       } else {
-	// This is a "rtsp:/" URL; back up to the "/":
-	--j;
+    // This is a "rtsp:/" URL; back up to the "/":
+    --j;
       }
       i = j;
       break;
@@ -113,7 +113,7 @@ Boolean parseRTSPRequestString(char const* reqStr,
   parseSucceeded = False;
   for (unsigned k = i+1; (int)k < (int)(reqStrSize-5); ++k) {
     if (reqStr[k] == 'R' && reqStr[k+1] == 'T' &&
-	reqStr[k+2] == 'S' && reqStr[k+3] == 'P' && reqStr[k+4] == '/') {
+    reqStr[k+2] == 'S' && reqStr[k+3] == 'P' && reqStr[k+4] == '/') {
       while (--k >= i && reqStr[k] == ' ') {} // go back over all spaces before "RTSP/"
       unsigned k1 = k;
       while (k1 > i && reqStr[k1] != '/') --k1;
@@ -158,13 +158,13 @@ Boolean parseRTSPRequestString(char const* reqStr,
       while (j < reqStrSize && (reqStr[j] ==  ' ' || reqStr[j] == '\t')) ++j;
       unsigned n;
       for (n = 0; n < resultCSeqMaxSize-1 && j < reqStrSize; ++n,++j) {
-	char c = reqStr[j];
-	if (c == '\r' || c == '\n') {
-	  parseSucceeded = True;
-	  break;
-	}
+    char c = reqStr[j];
+    if (c == '\r' || c == '\n') {
+      parseSucceeded = True;
+      break;
+    }
 
-	resultCSeq[n] = c;
+    resultCSeq[n] = c;
       }
       resultCSeq[n] = '\0';
       break;
@@ -181,12 +181,12 @@ Boolean parseRTSPRequestString(char const* reqStr,
       while (j < reqStrSize && (reqStr[j] ==  ' ' || reqStr[j] == '\t')) ++j;
       unsigned n;
       for (n = 0; n < resultSessionIdStrMaxSize-1 && j < reqStrSize; ++n,++j) {
-	char c = reqStr[j];
-	if (c == '\r' || c == '\n') {
-	  break;
-	}
+    char c = reqStr[j];
+    if (c == '\r' || c == '\n') {
+      break;
+    }
 
-	resultSessionIdStr[n] = c;
+    resultSessionIdStr[n] = c;
       }
       resultSessionIdStr[n] = '\0';
       break;
@@ -201,7 +201,7 @@ Boolean parseRTSPRequestString(char const* reqStr,
       while (j < reqStrSize && (reqStr[j] ==  ' ' || reqStr[j] == '\t')) ++j;
       unsigned num;
       if (sscanf(&reqStr[j], "%u", &num) == 1) {
-	contentLength = num;
+    contentLength = num;
       }
     }
   }
@@ -209,9 +209,9 @@ Boolean parseRTSPRequestString(char const* reqStr,
 }
 
 Boolean parseRangeParam(char const* paramStr,
-			double& rangeStart, double& rangeEnd,
-			char*& absStartTime, char*& absEndTime,
-			Boolean& startTimeIsNow) {
+            double& rangeStart, double& rangeEnd,
+            char*& absStartTime, char*& absEndTime,
+            Boolean& startTimeIsNow) {
   delete[] absStartTime; delete[] absEndTime;
   absStartTime = absEndTime = NULL; // by default, unless "paramStr" is a "clock=..." string
   startTimeIsNow = False; // by default
@@ -264,9 +264,9 @@ Boolean parseRangeParam(char const* paramStr,
 }
 
 Boolean parseRangeHeader(char const* buf,
-			 double& rangeStart, double& rangeEnd,
-			 char*& absStartTime, char*& absEndTime,
-			 Boolean& startTimeIsNow) {
+             double& rangeStart, double& rangeEnd,
+             char*& absStartTime, char*& absEndTime,
+             Boolean& startTimeIsNow) {
   // First, find "Range:"
   while (1) {
     if (*buf == '\0') return False; // not found
@@ -321,9 +321,9 @@ Boolean RTSPOptionIsSupported(char const* commandName, char const* optionsRespon
 
       // At this point, "optionsResponseString" begins with a command name (with perhaps a separator afterwads).
       if (strncmp(commandName, optionsResponseString, commandNameLen) == 0) {
-	// We have at least a partial match here.
-	optionsResponseString += commandNameLen;
-	if (*optionsResponseString == '\0' || isSeparator(*optionsResponseString)) return True;
+    // We have at least a partial match here.
+    optionsResponseString += commandNameLen;
+    if (*optionsResponseString == '\0' || isSeparator(*optionsResponseString)) return True;
       }
 
       // No match.  Skip over the rest of the command name:

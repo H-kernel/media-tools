@@ -34,7 +34,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 class BasicHashTable: public HashTable {
 private:
-	class TableEntry; // forward
+    class TableEntry; // forward
 
 public:
   BasicHashTable(int keyType);

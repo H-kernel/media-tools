@@ -1,17 +1,17 @@
 /*
   eXosip - This is the eXtended osip library.
   Copyright (C) 2001-2015 Aymeric MOIZARD amoizard@antisip.com
-  
+
   eXosip is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
-  
+
   eXosip is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
-  
+
   You should have received a copy of the GNU General Public License
   along with this program; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -2015,7 +2015,7 @@ _eXosip_release_terminated_calls (struct eXosip_t *excontext)
     jc = jcnext;
   }
 
-  
+
   tr = (osip_transaction_t*)osip_list_get_first(&excontext->j_transactions, &it);
   while (tr != NULL) {
 
@@ -2032,7 +2032,7 @@ _eXosip_release_terminated_calls (struct eXosip_t *excontext)
       tr = (osip_transaction_t *)osip_list_iterator_remove(&it);
       continue;
     }
-    
+
     tr = (osip_transaction_t *)osip_list_get_next(&it);
   }
 }
@@ -2134,7 +2134,7 @@ _eXosip_release_finished_transactions_for_subscription (struct eXosip_t *exconte
     skip_first = 0;
 
     /* go through all outgoing transactions of this dialog */
-    
+
     out_tr = (osip_transaction_t*)osip_list_get_first(jd->d_out_trs, &it);
     while (out_tr != OSIP_SUCCESS) {
       /* remove, if transaction too old, independent of the state */
@@ -2261,24 +2261,24 @@ _eXosip_release_terminated_in_subscriptions (struct eXosip_t *excontext)
 
       /* if a SUBSCRIBE is rejected, the context will be released automatically */
       if (jn->n_inc_tr->state == NIST_TERMINATED) {
-	if (jn->n_inc_tr->last_response==NULL) {
-	  REMOVE_ELEMENT (excontext->j_notifies, jn);
-	  _eXosip_notify_free (excontext, jn);
-	  break;
-	} else if (jn->n_inc_tr->last_response->status_code >= 300) {
-	  REMOVE_ELEMENT (excontext->j_notifies, jn);
-	  _eXosip_notify_free (excontext, jn);
-	  break;
-	}
+    if (jn->n_inc_tr->last_response==NULL) {
+      REMOVE_ELEMENT (excontext->j_notifies, jn);
+      _eXosip_notify_free (excontext, jn);
+      break;
+    } else if (jn->n_inc_tr->last_response->status_code >= 300) {
+      REMOVE_ELEMENT (excontext->j_notifies, jn);
+      _eXosip_notify_free (excontext, jn);
+      break;
+    }
       }
-      
+
       _eXosip_release_finished_transactions_for_subscription (excontext, jd);
 
       transaction_notify =  _eXosip_find_last_out_notify(jn, jd);
       if (transaction_notify!=NULL && transaction_notify->state == NICT_TERMINATED && now > jn->n_ss_expires ) {
         REMOVE_ELEMENT (excontext->j_notifies, jn);
         _eXosip_notify_free (excontext, jn);
-	break;
+    break;
       }
 
       jd = jdnext;

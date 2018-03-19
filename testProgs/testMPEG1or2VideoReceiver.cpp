@@ -94,8 +94,8 @@ int main(int argc, char** argv) {
   CNAME[maxCNAMElen] = '\0'; // just in case
   sessionState.rtcpInstance
     = RTCPInstance::createNew(*env, &rtcpGroupsock,
-			      estimatedSessionBandwidth, CNAME,
-			      NULL /* we're a client */, sessionState.source);
+                  estimatedSessionBandwidth, CNAME,
+                  NULL /* we're a client */, sessionState.source);
   // Note: This starts RTCP running automatically
 
   // Finally, start receiving the multicast stream:

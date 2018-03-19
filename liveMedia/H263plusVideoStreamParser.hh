@@ -72,7 +72,7 @@ class H263plusVideoStreamParser : public StreamParser {
 
 public:
    H263plusVideoStreamParser( class H263plusVideoStreamFramer* usingSource,
-			                  FramedSource* inputSource);
+                              FramedSource* inputSource);
 
    virtual ~H263plusVideoStreamParser();
 

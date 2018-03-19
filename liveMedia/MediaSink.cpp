@@ -37,7 +37,7 @@ Boolean MediaSink::isSink() const {
 }
 
 Boolean MediaSink::lookupByName(UsageEnvironment& env, char const* sinkName,
-				MediaSink*& resultSink) {
+                MediaSink*& resultSink) {
   resultSink = NULL; // unless we succeed
 
   Medium* medium;
@@ -58,8 +58,8 @@ Boolean MediaSink::sourceIsCompatibleWithUs(MediaSource& source) {
 }
 
 Boolean MediaSink::startPlaying(MediaSource& source,
-				afterPlayingFunc* afterFunc,
-				void* afterClientData) {
+                afterPlayingFunc* afterFunc,
+                void* afterClientData) {
   // Make sure we're not already being played:
   if (fSource != NULL) {
     envir().setResultMsg("This sink is already being played");
@@ -147,7 +147,7 @@ void OutPacketBuffer::enqueueWord(u_int32_t word) {
 }
 
 void OutPacketBuffer::insert(unsigned char const* from, unsigned numBytes,
-			     unsigned toPosition) {
+                 unsigned toPosition) {
   unsigned realToPosition = fPacketStart + toPosition;
   if (realToPosition + numBytes > fLimit) {
     if (realToPosition > fLimit) return; // we can't do this
@@ -166,7 +166,7 @@ void OutPacketBuffer::insertWord(u_int32_t word, unsigned toPosition) {
 }
 
 void OutPacketBuffer::extract(unsigned char* to, unsigned numBytes,
-			      unsigned fromPosition) {
+                  unsigned fromPosition) {
   unsigned realFromPosition = fPacketStart + fromPosition;
   if (realFromPosition + numBytes > fLimit) { // sanity check
     if (realFromPosition > fLimit) return; // we can't do this
@@ -192,9 +192,9 @@ void OutPacketBuffer::skipBytes(unsigned numBytes) {
 
 void OutPacketBuffer
 ::setOverflowData(unsigned overflowDataOffset,
-		  unsigned overflowDataSize,
-		  struct timeval const& presentationTime,
-		  unsigned durationInMicroseconds) {
+          unsigned overflowDataSize,
+          struct timeval const& presentationTime,
+          unsigned durationInMicroseconds) {
   fOverflowDataOffset = overflowDataOffset;
   fOverflowDataSize = overflowDataSize;
   fOverflowPresentationTime = presentationTime;

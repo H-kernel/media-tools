@@ -38,14 +38,14 @@ static void initBase64DecodeTable() {
 }
 
 unsigned char* base64Decode(char const* in, unsigned& resultSize,
-			    Boolean trimTrailingZeros) {
+                Boolean trimTrailingZeros) {
   if (in == NULL) return NULL; // sanity check
   return base64Decode(in, strlen(in), resultSize, trimTrailingZeros);
 }
 
 unsigned char* base64Decode(char const* in, unsigned inSize,
-			    unsigned& resultSize,
-			    Boolean trimTrailingZeros) {
+                unsigned& resultSize,
+                Boolean trimTrailingZeros) {
   static Boolean haveInitializedBase64DecodeTable = False;
   if (!haveInitializedBase64DecodeTable) {
     initBase64DecodeTable();

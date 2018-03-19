@@ -53,7 +53,7 @@ int ares_fds(ares_channel channel, fd_set *read_fds, fd_set *write_fds)
            FD_SET(server->tcp_socket, write_fds);
          if (server->tcp_socket >= nfds)
            nfds = server->tcp_socket + 1;
-	}
+    }
     }
   return (int)nfds;
 }
