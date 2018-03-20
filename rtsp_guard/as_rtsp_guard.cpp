@@ -817,7 +817,6 @@ void ASRtspCheckTask::ReportTaskStatus()
     for(; iter != m_LensList.end();++iter)
     {
         pLenInfo = *iter;
-        pLenInfo->check();
         if(NULL == pLenInfo)
         {
             continue;
@@ -852,23 +851,11 @@ void ASRtspCheckTask::ReportTaskStatus()
 
 ASEvLiveHttpClient::ASEvLiveHttpClient()
 {
-    m_pReq    = NULL;
-    m_pBase   = NULL;
-    m_pConn   = NULL;
     m_reqPath = "/";
     m_strRespMsg = "";
 }
 ASEvLiveHttpClient::~ASEvLiveHttpClient()
 {
-    if (NULL != m_pConn)
-    {
-        evhttp_connection_free(m_pConn);
-    }
-    if (NULL != m_pBase)
-    {
-        event_base_free(m_pBase);
-    }
-    m_pReq = NULL;
 }
 int32_t ASEvLiveHttpClient::send_live_url_request(std::string& strCameraID,
                                                std::string& strStreamType,std::string& strRtspUrl)
@@ -879,7 +866,7 @@ int32_t ASEvLiveHttpClient::send_live_url_request(std::string& strCameraID,
     std::string strAppKey    = ASRtspGuardManager::instance().getAppKey();
 
 
-
+    AS_LOG(AS_LOG_INFO,"ASEvLiveHttpClient::send_live_url_request begin.");
 
     std::string strSign    = "all stream";
 
@@ -887,16 +874,16 @@ int32_t ASEvLiveHttpClient::send_live_url_request(std::string& strCameraID,
 
     cJSON* root = cJSON_CreateObject();
 
-    cJSON_AddItemToObject(root, "appID", cJSON_CreateString(strAppID.c_str()));
+    //cJSON_AddItemToObject(root, "appID", cJSON_CreateString(strAppID.c_str()));
     /* TODO : account ,how to set */
-    cJSON_AddItemToObject(root, "account", cJSON_CreateString(strAppID.c_str()));
+    //cJSON_AddItemToObject(root, "account", cJSON_CreateString(strAppID.c_str()));
     /* TODO : sign ,sign */
     cJSON_AddItemToObject(root, "sign", cJSON_CreateString(strSign.c_str()));
 
-    time_t ulTick = time(NULL);
-    char szTime[AC_MSS_SIGN_TIME_LEN] = { 0 };
-    as_strftime((char*)&szTime[0], AC_MSS_SIGN_TIME_LEN, "%Y%m%d%H%M%S", ulTick);
-    cJSON_AddItemToObject(root, "msgtimestamp", cJSON_CreateString((char*)&szTime[0]));
+    //time_t ulTick = time(NULL);
+    //char szTime[AC_MSS_SIGN_TIME_LEN] = { 0 };
+    //as_strftime((char*)&szTime[0], AC_MSS_SIGN_TIME_LEN, "%Y%m%d%H%M%S", ulTick);
+    //cJSON_AddItemToObject(root, "msgtimestamp", cJSON_CreateString((char*)&szTime[0]));
 
     cJSON_AddItemToObject(root, "cameraId", cJSON_CreateString(strCameraID.c_str()));
     cJSON_AddItemToObject(root, "streamType", cJSON_CreateString(strStreamType.c_str()));
@@ -905,38 +892,45 @@ int32_t ASEvLiveHttpClient::send_live_url_request(std::string& strCameraID,
     std::string strReqMSg = cJSON_PrintUnformatted(root);
     cJSON_Delete(root);
     /* sent the http request */
-    if(AS_ERROR_CODE_OK != send_http_request(strLiveUrl,strReqMSg,EVHTTP_REQ_GET)) {
+    if(AS_ERROR_CODE_OK != send_http_request(strLiveUrl,strReqMSg)) {
+        AS_LOG(AS_LOG_INFO,"ASEvLiveHttpClient::send_live_url_request fail.");
         return AS_ERROR_CODE_FAIL;
     }
 
     if(0 == m_strRespMsg.length()) {
+        AS_LOG(AS_LOG_INFO,"ASEvLiveHttpClient::send_live_url_request, message is empty.");
         return AS_ERROR_CODE_FAIL;
     }
 
     /* 2.parse the response */
     root = cJSON_Parse(m_strRespMsg.c_str());
     if (NULL == root) {
+        AS_LOG(AS_LOG_INFO,"ASEvLiveHttpClient::send_live_url_request, json message parser fail.");
         return AS_ERROR_CODE_FAIL;
     }
 
     cJSON *resultCode = cJSON_GetObjectItem(root, "resultCode");
     if(NULL == resultCode) {
         cJSON_Delete(root);
+        AS_LOG(AS_LOG_INFO,"ASEvLiveHttpClient::send_live_url_request, json message there is no resultCode.");
         return AS_ERROR_CODE_FAIL;
     }
 
     if(0 != strncmp(AC_MSS_ERROR_CODE_OK,resultCode->string,strlen(AC_MSS_ERROR_CODE_OK))) {
         cJSON_Delete(root);
+        AS_LOG(AS_LOG_INFO,"ASEvLiveHttpClient::send_live_url_request, resultCode is not success.");
         return AS_ERROR_CODE_FAIL;
     }
 
     cJSON *url = cJSON_GetObjectItem(root, "url");
     if(NULL == url) {
         cJSON_Delete(root);
+        AS_LOG(AS_LOG_INFO,"ASEvLiveHttpClient::send_live_url_request, json message there is no url.");
         return AS_ERROR_CODE_FAIL;
     }
     strRtspUrl = resultCode->string;
     cJSON_Delete(root);
+    AS_LOG(AS_LOG_INFO,"ASEvLiveHttpClient::send_live_url_request end.");
     return AS_ERROR_CODE_OK;
 }
 void    ASEvLiveHttpClient::report_check_msg(std::string& strUrl,std::string& strMsg)
@@ -955,7 +949,8 @@ void    ASEvLiveHttpClient::report_check_msg(std::string& strUrl,std::string& st
 void ASEvLiveHttpClient::handle_remote_read(struct evhttp_request* remote_rsp)
 {
     if (NULL == remote_rsp){
-        event_base_loopexit(m_pBase, NULL);
+        //event_base_loopexit(m_pBase, NULL);
+        //event_base_loopbreak(m_pBase);
         return;
     }
 
@@ -963,11 +958,12 @@ void ASEvLiveHttpClient::handle_remote_read(struct evhttp_request* remote_rsp)
     const char * str = (const char*)evbuffer_pullup(remote_rsp->input_buffer, len);
     if ((0 == len) || (NULL == str)) {
         m_strRespMsg = "";
-        event_base_loopexit(m_pBase, NULL);
+        //event_base_loopexit(m_pBase, NULL);
         return;
     }
     m_strRespMsg.append(str, 0, len);
-    event_base_loopexit(m_pBase, NULL);
+    //event_base_loopexit(m_pBase, NULL);
+    //event_base_loopbreak(m_pBase);
 }
 
 void ASEvLiveHttpClient::handle_readchunk(struct evhttp_request* remote_rsp)
@@ -977,7 +973,7 @@ void ASEvLiveHttpClient::handle_readchunk(struct evhttp_request* remote_rsp)
 
 void ASEvLiveHttpClient::handle_remote_connection_close(struct evhttp_connection* connection)
 {
-    event_base_loopexit(m_pBase, NULL);
+    //event_base_loopexit(m_pBase, NULL);
 }
 
 void ASEvLiveHttpClient::remote_read_cb(struct evhttp_request* remote_rsp, void* arg)
@@ -1004,10 +1000,20 @@ void ASEvLiveHttpClient::remote_connection_close_cb(struct evhttp_connection* co
 
 int32_t ASEvLiveHttpClient::send_http_request(std::string& strUrl,std::string& strMsg,evhttp_cmd_type type)
 {
+    AS_LOG(AS_LOG_INFO,"ASEvLiveHttpClient::send_http_request begin.");
+
     std::string strUserName  = ASRtspGuardManager::instance().getUserName();
     std::string strPassword  = ASRtspGuardManager::instance().getPassword();
 
-    m_Authen.setUsernameAndPassword(strUserName.c_str(),strPassword.c_str(),False);
+    struct evhttp_request   *pReq  = NULL;
+    struct event_base       *pBase = NULL;
+    struct evhttp_connection*pConn = NULL;
+    struct evdns_base       *pDnsbase = NULL;
+    char   Digest[HTTP_DIGEST_LENS_MAX] = {0};
+
+    if (-1 == as_digest_init(&m_Authen,0)) {
+        return AS_ERROR_CODE_FAIL;
+    }
 
     struct evhttp_uri* uri = evhttp_uri_parse(strUrl.c_str());
     if (!uri)
@@ -1037,13 +1043,9 @@ int32_t ASEvLiveHttpClient::send_http_request(std::string& strUrl,std::string& s
 
     int32_t nRet    = AS_ERROR_CODE_OK;
     Boolean bAuth   = False;
-    char lenbuf[33] = { 0 };
-    snprintf(lenbuf, 32, "%lu", strMsg.length());
-    evhttp_add_header(m_pReq->output_headers, "Content-Type", "text/plain; charset=UTF-8");
-    evhttp_add_header(m_pReq->output_headers, "Content-length", lenbuf); //content length
-    evhttp_add_header(m_pReq->output_headers, "Connection", "close");
-    m_pReq = evhttp_request_new(remote_read_cb, this);
-    evhttp_request_set_chunked_cb(m_pReq, readchunk_cb);
+    char lenbuf[RTSP_CHECK_TMP_BUF_SIZE] = { 0 };
+
+
 
     std::string strCmd = "POST";
     if(EVHTTP_REQ_GET == type)
@@ -1051,145 +1053,137 @@ int32_t ASEvLiveHttpClient::send_http_request(std::string& strUrl,std::string& s
         strCmd = "GET";
     }
 
-    do {
-        m_pBase = event_base_new();
-        if (!m_pBase)
-        {
+    int32_t nTryTime = 0;
 
+    do {
+        if(3 < nTryTime)
+        {
+            break;
+        }
+        nTryTime++;
+
+        pReq = evhttp_request_new(remote_read_cb, this);
+        evhttp_add_header(pReq->output_headers, "Content-Type", "text/plain; charset=UTF-8");
+        snprintf(lenbuf, 32, "%lu", strMsg.length());
+        evhttp_add_header(pReq->output_headers, "Content-length", lenbuf); //content length
+        snprintf(lenbuf, 32, "%s:%d", host,port);
+        evhttp_add_header(pReq->output_headers, "Host", lenbuf);
+        evhttp_add_header(pReq->output_headers, "Connection", "close");
+         evhttp_request_set_chunked_cb(pReq, readchunk_cb);
+        pBase = event_base_new();
+        if (!pBase)
+        {
             nRet = AS_ERROR_CODE_FAIL;
             break;
         }
 
         if(bAuth)
         {
+            as_digest_attr_value_t value;
+            value.string = (char*)strUserName.c_str();
+            as_digest_set_attr(&m_Authen, D_ATTR_USERNAME,value);
+            value.string = (char*)strPassword.c_str();
+            as_digest_set_attr(&m_Authen, D_ATTR_PASSWORD,value);
+            value.string = (char*)m_reqPath.c_str();
+            as_digest_set_attr(&m_Authen, D_ATTR_URI,value);
+            value.number = DIGEST_METHOD_POST;
+            as_digest_set_attr(&m_Authen, D_ATTR_METHOD, value);
 
-            std::string strAuth = createAuthenticatorString(strCmd.c_str(),path);
-            evhttp_add_header(m_pReq->output_headers, HTTP_AUTHENTICATE,strAuth.c_str());
+            if (-1 == as_digest_client_generate_header(&m_Authen, Digest, sizeof (Digest))) {
+                nRet = AS_ERROR_CODE_FAIL;
+                break;
+            }
+            AS_LOG(AS_LOG_INFO,"generate digest :[%s].",Digest);
+            evhttp_add_header(pReq->output_headers, HTTP_AUTHENTICATE,Digest);
+        }
+        else if(1 == nTryTime)
+        {
+            evhttp_add_header(pReq->output_headers, HTTP_AUTHENTICATE,"Authorization: Digest username=test,realm=test, nonce =0001,"
+                                                              "uri=/api/alarm/list,response=c76a6680f0f1c8e26723d81b44977df0,"
+                                                              "cnonce=00000001,opaque=000001,qop=auth,nc=00000001");
         }
 
-        m_pConn = evhttp_connection_new( host, port);
-        if (!m_pConn)
+        pDnsbase = evdns_base_new(pBase, 0);
+        if (NULL == pDnsbase)
         {
             nRet = AS_ERROR_CODE_FAIL;
             break;
         }
-        evhttp_connection_set_base(m_pConn, m_pBase);
-        evhttp_connection_set_closecb(m_pConn, remote_connection_close_cb, this);
 
-        struct evbuffer *buf = NULL;
-        buf = evbuffer_new();
-        if (NULL == buf)
+        pConn = evhttp_connection_base_new(pBase,pDnsbase, host, port);
+        //pConn = evhttp_connection_new( host, port);
+        if (!pConn)
+        {
+            nRet = AS_ERROR_CODE_FAIL;
+            break;
+        }
+        //evhttp_connection_set_base(pConn, pBase);
+        evhttp_connection_set_closecb(pConn, remote_connection_close_cb, this);
+
+        //struct evbuffer *buf = NULL;
+        //buf = evbuffer_new();
+        //if (NULL == buf)
+        //{
+        //    nRet = AS_ERROR_CODE_FAIL;
+        //    break;
+        //}
+        pReq->output_buffer = evbuffer_new();
+        if (NULL == pReq->output_buffer)
         {
             nRet = AS_ERROR_CODE_FAIL;
             break;
         }
 
 
-        evbuffer_add_printf(buf, "%s", strMsg.c_str());
-        evbuffer_add_buffer(m_pReq->output_buffer, buf);
-        evhttp_make_request(m_pConn, m_pReq, type, m_reqPath.c_str());
-        evhttp_connection_set_timeout(m_pReq->evcon, 600);
-        event_base_dispatch(m_pBase);
+        //evbuffer_add_printf(pReq->output_buffer, "%s", strMsg.c_str());
 
-        int32_t nRespCode = evhttp_request_get_response_code(m_pReq);
+        //evbuffer_add_printf(buf, "%s", strMsg.c_str());
+        //evbuffer_add_buffer(pReq->output_buffer, buf);
+        evbuffer_add(pReq->output_buffer,strMsg.c_str(),strMsg.length());
+        pReq->flags = EVHTTP_USER_OWNED;
+        evhttp_make_request(pConn, pReq, type, m_reqPath.c_str());
+        evhttp_connection_set_timeout(pReq->evcon, 600);
+        event_base_dispatch(pBase);
+
+        int32_t nRespCode = evhttp_request_get_response_code(pReq);
+        AS_LOG(AS_LOG_INFO,"ASEvLiveHttpClient::send_http_request,http result:[%d].",nRespCode);
         if(HTTP_CODE_OK == nRespCode) {
             break;
         }
         else if(HTTP_CODE_AUTH == nRespCode) {
-            const char* pszAuthInfo = evhttp_find_header(m_pReq->input_headers,HTTP_WWW_AUTH);
+            const char* pszAuthInfo = evhttp_find_header(pReq->input_headers,HTTP_WWW_AUTH);
             if(NULL == pszAuthInfo) {
                 nRet = AS_ERROR_CODE_FAIL;
+                AS_LOG(AS_LOG_WARNING,"find WWW-Authenticate header fail.");
                 break;
             }
-            if(!handleAuthenticationFailure(pszAuthInfo)) {
+            AS_LOG(AS_LOG_INFO,"ASEvLiveHttpClient::send_http_request,handle authInfo:[%s].",pszAuthInfo);
+            if (-1 == as_digest_is_digest(pszAuthInfo)) {
                 nRet = AS_ERROR_CODE_FAIL;
+                AS_LOG(AS_LOG_WARNING,"the WWW-Authenticate is not digest.");
                 break;
             }
+
+            if (0 == as_digest_client_parse(&m_Authen, pszAuthInfo)) {
+                nRet = AS_ERROR_CODE_FAIL;
+                AS_LOG(AS_LOG_WARNING,"parser WWW-Authenticate info fail.");
+                break;
+            }
+            AS_LOG(AS_LOG_INFO,"ASEvLiveHttpClient::send_http_request,parser authInfo ok try again.");
             bAuth = True;
-            continue;
         }
+        else {
+            nRet = AS_ERROR_CODE_FAIL;
+            break;
+        }
+
+        evhttp_connection_free(pConn);
+        event_base_free(pBase);
     }while(true);
 
     evhttp_uri_free(uri);
-
+    AS_LOG(AS_LOG_INFO,"ASEvLiveHttpClient::send_http_request end.");
     return nRet;
-}
-
-std::string ASEvLiveHttpClient::createAuthenticatorString(char const* cmd, char const* url)
-{
-
-  if (m_Authen.realm() != NULL && m_Authen.username() != NULL && m_Authen.password() != NULL) {
-    // We have a filled-in authenticator, so use it:
-    char* authenticatorStr;
-    if (m_Authen.nonce() != NULL) { // Digest authentication
-      char const* const authFmt =
-    "Digest username=\"%s\", realm=\"%s\", "
-    "nonce=\"%s\", uri=\"%s\", response=\"%s\"\r\n";
-      char const* response = m_Authen.computeDigestResponse(cmd, url);
-      unsigned authBufSize = strlen(authFmt)
-    + strlen(m_Authen.username()) + strlen(m_Authen.realm())
-    + strlen(m_Authen.nonce()) + strlen(url) + strlen(response);
-      authenticatorStr = new char[authBufSize];
-      sprintf(authenticatorStr, authFmt,
-          m_Authen.username(), m_Authen.realm(),
-          m_Authen.nonce(), url, response);
-      m_Authen.reclaimDigestResponse(response);
-    } else { // Basic authentication
-      char const* const authFmt = "Basic %s\r\n";
-
-      unsigned usernamePasswordLength = strlen(m_Authen.username()) + 1 + strlen(m_Authen.password());
-      char* usernamePassword = new char[usernamePasswordLength+1];
-      sprintf(usernamePassword, "%s:%s", m_Authen.username(), m_Authen.password());
-
-      char* response = base64Encode(usernamePassword, usernamePasswordLength);
-      unsigned const authBufSize = strlen(authFmt) + strlen(response) + 1;
-      authenticatorStr = new char[authBufSize];
-      sprintf(authenticatorStr, authFmt, response);
-      delete[] response; delete[] usernamePassword;
-    }
-
-    return authenticatorStr;
-  }
-
-  // We don't have a (filled-in) authenticator.
-  return strDup("");
-}
-
-Boolean ASEvLiveHttpClient::handleAuthenticationFailure(char const* paramsStr) {
-  if (paramsStr == NULL) return False; // There was no "WWW-Authenticate:" header; we can't proceed.
-
-  // Fill in "fCurrentAuthenticator" with the information from the "WWW-Authenticate:" header:
-  Boolean realmHasChanged = False; // by default
-  Boolean isStale = False; // by default
-  char* realm = strDupSize(paramsStr);
-  char* nonce = strDupSize(paramsStr);
-  char* stale = strDupSize(paramsStr);
-  Boolean success = True;
-  if (sscanf(paramsStr, "Digest realm=\"%[^\"]\", nonce=\"%[^\"]\", stale=%[a-zA-Z]", realm, nonce, stale) == 3) {
-    realmHasChanged = m_Authen.realm() == NULL || strcmp(m_Authen.realm(), realm) != 0;
-    isStale = _strncasecmp(stale, "true", 4) == 0;
-    m_Authen.setRealmAndNonce(realm, nonce);
-  } else if (sscanf(paramsStr, "Digest realm=\"%[^\"]\", nonce=\"%[^\"]\"", realm, nonce) == 2) {
-    realmHasChanged = m_Authen.realm() == NULL || strcmp(m_Authen.realm(), realm) != 0;
-    m_Authen.setRealmAndNonce(realm, nonce);
-  } else if (sscanf(paramsStr, "Basic realm=\"%[^\"]\"", realm) == 1) {
-    realmHasChanged = m_Authen.realm() == NULL || strcmp(m_Authen.realm(), realm) != 0;
-    m_Authen.setRealmAndNonce(realm, NULL); // Basic authentication
-  } else {
-    success = False; // bad "WWW-Authenticate:" header
-  }
-  delete[] realm; delete[] nonce; delete[] stale;
-
-  if (success) {
-    if ((!realmHasChanged && !isStale) || m_Authen.username() == NULL || m_Authen.password() == NULL) {
-      // We already tried with the same realm (and a non-stale nonce),
-      // or don't have a username and/or password, so the new "WWW-Authenticate:" header
-      // information won't help us.  We remain unauthenticated.
-      success = False;
-    }
-  }
-
-  return success;
 }
 
 
@@ -1202,6 +1196,7 @@ ASRtspGuardManager::ASRtspGuardManager()
     m_LoopWatchVar     = 0;
     m_ulRecvBufSize    = RTSP_SOCKET_RECV_BUFFER_SIZE_DEFAULT;
     m_HttpThreadHandle = NULL;
+    m_CheckThreadHandle= NULL;
     m_httpBase         = NULL;
     m_httpServer       = NULL;
     m_httpListenPort   = GW_SERVER_PORT_DEFAULT;
@@ -1229,6 +1224,8 @@ int32_t ASRtspGuardManager::init()
         AS_LOG(AS_LOG_ERROR,"ASRtspGuardManager::init ,read system conf fail");
         return AS_ERROR_CODE_FAIL;
     }
+
+    event_init();
 
     /* start the log module */
     ASSetLogLevel(m_ulLogLM);
@@ -1270,6 +1267,7 @@ int32_t ASRtspGuardManager::open()
         AS_LOG(AS_LOG_ERROR,"ASRtspGuardManager::open,create the http server thread fail.");
         return AS_ERROR_CODE_FAIL;
     }
+
     /* start the rtsp client deal thread */
     for(i = 0;i < RTSP_MANAGE_ENV_MAX_COUNT;i++) {
         m_envArray[i] = NULL;
@@ -1284,6 +1282,14 @@ int32_t ASRtspGuardManager::open()
         }
 
     }
+
+    /* start check task thread */
+    if (AS_ERROR_CODE_OK != as_create_thread((AS_THREAD_FUNC)check_task_invoke,
+        this, &m_CheckThreadHandle, AS_DEFAULT_STACK_SIZE)) {
+        AS_LOG(AS_LOG_ERROR,"ASRtspGuardManager::open,create the task check thread fail.");
+        return AS_ERROR_CODE_FAIL;
+    }
+
     AS_LOG(AS_LOG_INFO,"ASRtspGuardManager::open end.");
     return 0;
 }
@@ -1665,7 +1671,7 @@ int32_t ASRtspGuardManager::handle_check_task(const XMLElement *check)
    const XMLElement *report = check->FirstChildElement("report");
     if(NULL == report)
     {
-        AS_LOG(AS_LOG_INFO, "ASRtspGuardManager::add_session,get xml report node fail.");
+        AS_LOG(AS_LOG_INFO, "ASRtspGuardManager::handle_check_task,get xml report node fail.");
         return AS_ERROR_CODE_FAIL;
     }
     //const char* interval = report->Attribute("interval");
@@ -1682,14 +1688,14 @@ int32_t ASRtspGuardManager::handle_check_task(const XMLElement *check)
     const XMLElement *CameraList = check->FirstChildElement("cameralist");
     if(NULL == CameraList)
     {
-        AS_LOG(AS_LOG_INFO, "ASRtspGuardManager::add_session,get xml cameralist node fail.");
+        AS_LOG(AS_LOG_INFO, "ASRtspGuardManager::handle_check_task,get xml cameralist node fail.");
         return AS_ERROR_CODE_FAIL;
     }
 
     task = AS_NEW(task);
     if(NULL == task)
     {
-        AS_LOG(AS_LOG_INFO, "ASRtspGuardManager::add_session,create task fail.");
+        AS_LOG(AS_LOG_INFO, "ASRtspGuardManager::handle_check_task,create task fail.");
         return AS_ERROR_CODE_FAIL;
     }
 
@@ -1727,7 +1733,7 @@ int32_t ASRtspGuardManager::handle_check_task(const XMLElement *check)
     as_lock_guard locker(m_mutex);
     m_TaskList.push_back(task);
 
-    AS_LOG(AS_LOG_INFO, "ASRtspGuardManager::add_session,end");
+    AS_LOG(AS_LOG_INFO, "ASRtspGuardManager::handle_check_task,end");
     return AS_ERROR_CODE_OK;
 }
 

@@ -6,19 +6,29 @@
 #ifdef WIN32
 #include <time.h>
 #include <Winsock2.h>
+extern "C"{
 #include <http.h>
 #include <event2/event.h>
 #include <event2/buffer.h>
 #include <event2/keyvalq_struct.h>
 #include <event2/evhttp.h>
+#include "event2/dns.h"
+#include "event2/thread.h"
+
+}
 #else
 #include <unistd.h>     //for getopt, fork
 #include <sys/time.h>
+extern "C"{
 #include "event2/http.h"
 #include "event.h"
 #include "event2/buffer.h"
 #include "event2/keyvalq_struct.h"
 #include "evhttp.h"
+#include "event2/dns.h"
+#include "event2/thread.h"
+
+}
 #include <pthread.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -53,9 +63,11 @@
 #define HTTP_REQUEST_MAX               4096
 #define HTTP_CODE_OK                   200
 #define HTTP_CODE_AUTH                 401
+#define HTTP_DIGEST_LENS_MAX           4096
+
 
 #define HTTP_WWW_AUTH                   "WWW-Authenticate"
-#define HTTP_AUTHENTICATE               "Authenticate"
+#define HTTP_AUTHENTICATE               "Authorization"
 
 #define AC_MSS_PORT_DAFAULT            8080
 #define AC_MSS_SIGN_TIME_LEN           16
@@ -365,15 +377,10 @@ private:
     static void remote_connection_close_cb(struct evhttp_connection* connection, void* arg);
 private:
     int32_t send_http_request(std::string& strUrl,std::string& strMsg,evhttp_cmd_type type = EVHTTP_REQ_POST);
-    std::string createAuthenticatorString(char const* cmd, char const* url);
-    Boolean handleAuthenticationFailure(char const* paramsStr) ;
 private:
-    struct evhttp_request   *m_pReq;
-    struct event_base       *m_pBase;
-    struct evhttp_connection*m_pConn;
     std::string              m_reqPath;
     std::string              m_strRespMsg;
-    Authenticator            m_Authen;
+    as_digest_t              m_Authen;
 };
 
 
@@ -443,6 +450,7 @@ private:
     struct evhttp    *m_httpServer;
     as_thread_t      *m_HttpThreadHandle;
     u_int32_t         m_httpListenPort;
+    as_thread_t      *m_CheckThreadHandle;
     as_thread_t      *m_ThreadHandle[RTSP_MANAGE_ENV_MAX_COUNT];
     UsageEnvironment *m_envArray[RTSP_MANAGE_ENV_MAX_COUNT];
     u_int32_t         m_clCountArray[RTSP_MANAGE_ENV_MAX_COUNT];

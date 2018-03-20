@@ -8,7 +8,7 @@
 #include <windows.h>
 #endif
 
-#define  AS_DEFAULT_STACK_SIZE (128*1024)
+#define  AS_DEFAULT_STACK_SIZE (2*1024*1024)
 
 #if AS_APP_OS == AS_OS_LINUX
 typedef  void* ( * AS_THREAD_FUNC)(void *);

@@ -6,7 +6,7 @@ PREFIX = /usr/local
 ALL = $(AS_RTSP_GUARD)
 
 RTSP_LIBS      += -fPIC -Wunused-value -lpthread 
-RTSP_FLAGS     += -pipe -g -fPIC -Wall -O0 -DENV_LINUX
+RTSP_FLAGS     += -pipe -g -fPIC -Wall -O0 -DENV_LINUX -fstack-protector-all
 
 all: $(ALL)
 
@@ -30,13 +30,13 @@ GROUPSOCK_DIR = ../groupsock
 GROUPSOCK_LIB = $(GROUPSOCK_DIR)/libgroupsock.$(libgroupsock_LIB_SUFFIX)
 COMMON_DIR = ../common
 COMMON_LIB = $(COMMON_DIR)/libcommon.$(libcommon_LIB_SUFFIX)
-LIBEVENT_DIR     = ../extend/linux64/libevent/
-LIBEVENT_INCLUDE = $(LIBEVENT_DIR)include/
-LIBEVENT_LIB     = $(LIBEVENT_DIR)lib/libevent.a $(LIBEVENT_DIR)lib/libevent_core.a \
-                   $(LIBEVENT_DIR)lib/libevent_extra.a $(LIBEVENT_DIR)lib/libevent_pthreads.a
+EXTEND_DIR     = ../extend/
+EXTEND_INCLUDE = $(EXTEND_DIR)include/
+EXTEND_LIB     = $(EXTEND_DIR)lib/libevent.a $(EXTEND_DIR)lib/libevent_core.a \
+                 $(EXTEND_DIR)lib/libevent_extra.a $(EXTEND_DIR)lib/libevent_pthreads.a
 
 LOCAL_LIBS =    $(LIVEMEDIA_LIB) $(GROUPSOCK_LIB) \
-        $(BASIC_USAGE_ENVIRONMENT_LIB) $(USAGE_ENVIRONMENT_LIB) $(COMMON_LIB) $(LIBEVENT_LIB)
+        $(BASIC_USAGE_ENVIRONMENT_LIB) $(USAGE_ENVIRONMENT_LIB) $(COMMON_LIB) $(EXTEND_LIB)
 LIBS =            $(LOCAL_LIBS) $(LIBS_FOR_CONSOLE_APPLICATION)
 
 $(AS_RTSP_GUARD): $(AS_RTSP_GUARD_OBJS) $(LOCAL_LIBS) \
