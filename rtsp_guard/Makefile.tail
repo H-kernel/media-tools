@@ -5,7 +5,7 @@ AS_RTSP_GUARD = rtsp_guard
 PREFIX = /usr/local
 ALL = $(AS_RTSP_GUARD)
 
-RTSP_LIBS      += -fPIC -Wunused-value -lpthread 
+RTSP_LIBS      += -fPIC -Wunused-value -lpthread -lrt
 RTSP_FLAGS     += -pipe -g -fPIC -Wall -O0 -DENV_LINUX -fstack-protector-all
 
 all: $(ALL)

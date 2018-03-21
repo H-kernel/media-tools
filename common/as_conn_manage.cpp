@@ -17,7 +17,7 @@
 
 #ifndef WIN32
 #include <sys/epoll.h>
-#include <linux/tcp.h>
+#include <netinet/tcp.h>
 #endif
 
 #include "as_conn_manage.h"
