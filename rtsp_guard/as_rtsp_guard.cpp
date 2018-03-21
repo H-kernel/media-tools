@@ -57,7 +57,7 @@ ASRtspCheckChannel::~ASRtspCheckChannel() {
 
 int32_t ASRtspCheckChannel::open(uint32_t ulDuration,ASRtspStatusObervser* observer)
 {
-    AS_LOG(AS_LOG_INFO,"ASRtspCheckChannel::open,duration:[%d].",ulDuration);
+    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::open,duration:[%d].",ulDuration);
     m_bObervser = observer;
     m_ulDuration = ulDuration;
     m_ulStartTime= time(NULL);
@@ -65,15 +65,15 @@ int32_t ASRtspCheckChannel::open(uint32_t ulDuration,ASRtspStatusObervser* obser
 }
 void    ASRtspCheckChannel::close()
 {
-    AS_LOG(AS_LOG_INFO,"ASRtspCheckChannel::close,begin.");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::close,begin.");
     m_bStop = True;
-    AS_LOG(AS_LOG_INFO,"ASRtspCheckChannel::close,end.");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::close,end.");
 }
 
 
 void    ASRtspCheckChannel::handle_after_options(int resultCode, char* resultString)
 {
-    AS_LOG(AS_LOG_INFO,"ASRtspCheckChannel::handle_after_options begin.");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_after_options begin.");
 
     do {
         if (resultCode != 0) {
@@ -88,7 +88,7 @@ void    ASRtspCheckChannel::handle_after_options(int resultCode, char* resultStr
         delete[] resultString;
         SupportsGetParameter(serverSupportsGetParameter);
         sendDescribeCommand(continueAfterDESCRIBE);
-        AS_LOG(AS_LOG_INFO,"ASRtspCheckChannel::handle_after_options end.");
+        AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_after_options end.");
         return;
     } while (0);
 
@@ -99,7 +99,7 @@ void    ASRtspCheckChannel::handle_after_options(int resultCode, char* resultStr
 }
 void    ASRtspCheckChannel::handle_after_describe(int resultCode, char* resultString)
 {
-    AS_LOG(AS_LOG_INFO,"ASRtspCheckChannel::handle_after_describe begin.");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_after_describe begin.");
     do {
         if (resultCode != 0) {
             AS_LOG(AS_LOG_WARNING,"ASRtspCheckChannel::handle_after_describe,"
@@ -127,7 +127,7 @@ void    ASRtspCheckChannel::handle_after_describe(int resultCode, char* resultSt
         // (Each 'subsession' will have its own data source.)
         scs.iter = new MediaSubsessionIterator(*scs.session);
         setupNextSubsession();
-        AS_LOG(AS_LOG_INFO,"ASRtspCheckChannel::handle_after_describe end.");
+        AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_after_describe end.");
         return;
     } while (0);
 
@@ -140,7 +140,7 @@ void    ASRtspCheckChannel::handle_after_describe(int resultCode, char* resultSt
 
 void    ASRtspCheckChannel::handle_after_setup(int resultCode, char* resultString)
 {
-    AS_LOG(AS_LOG_INFO,"ASRtspCheckChannel::handle_after_setup begin.");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_after_setup begin.");
     if(0 != resultCode) {
         m_enCheckResult  = AS_RTSP_CHECK_RESULT_OPEN_URL;
         shutdownStream();
@@ -154,15 +154,15 @@ void    ASRtspCheckChannel::handle_after_setup(int resultCode, char* resultStrin
 
         while ((subsession = iter.next()) != NULL) {
            if (!strcmp(subsession->mediumName(), "video")) {
-                AS_LOG(AS_LOG_INFO,"ASRtspCheckChannel::handle_after_setup,create a video sink.");
+                AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_after_setup,create a video sink.");
                 subsession->sink = ASRtspCheckVideoSink::createNew(envir(), *subsession);
            }
             else if (!strcmp(subsession->mediumName(), "audio")){
-                AS_LOG(AS_LOG_INFO,"ASRtspCheckChannel::handle_after_setup,create a audio sink.");
+                AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_after_setup,create a audio sink.");
                 subsession->sink = ASRtspCheckAudioSink::createNew(envir(), *subsession);
            }
            else {
-               AS_LOG(AS_LOG_INFO,"ASRtspCheckChannel::handle_after_setup,this is not video and audio sink.");
+               AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_after_setup,this is not video and audio sink.");
                subsession->sink = NULL;
                continue;
            }
@@ -173,7 +173,7 @@ void    ASRtspCheckChannel::handle_after_setup(int resultCode, char* resultStrin
             }
 
             subsession->miscPtr = this; // a hack to let subsession handler functions get the "RTSPClient" from the subsession
-            AS_LOG(AS_LOG_INFO,"ASRtspCheckChannel::handle_after_setup,the sink start playing.");
+            AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_after_setup,the sink start playing.");
             subsession->sink->startPlaying(*(subsession->readSource()),
                              subsessionAfterPlaying, subsession);
             // Also set a handler to be called if a RTCP "BYE" arrives for this subsession:
@@ -188,12 +188,12 @@ void    ASRtspCheckChannel::handle_after_setup(int resultCode, char* resultStrin
     }
     // Set up the next subsession, if any:
     setupNextSubsession();
-    AS_LOG(AS_LOG_INFO,"ASRtspCheckChannel::handle_after_setup end.");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_after_setup end.");
     return;
 }
 void    ASRtspCheckChannel::handle_after_play(int resultCode, char* resultString)
 {
-    AS_LOG(AS_LOG_INFO,"ASRtspCheckChannel::handle_after_play begin.");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_after_play begin.");
     Boolean success = False;
 
     do {
@@ -207,13 +207,13 @@ void    ASRtspCheckChannel::handle_after_play(int resultCode, char* resultString
         // using a RTCP "BYE").  This is optional.  If, instead, you want to keep the stream active - e.g., so you can later
         // 'seek' back within it and do another RTSP "PLAY" - then you can omit this code.
         // (Alternatively, if you don't want to receive the entire stream, you could set this timer for some shorter value.)
-        if (scs.duration > 0) {
+        //if (scs.duration > 0) {
             //unsigned const delaySlop = 2; // number of seconds extra to delay, after the stream's expected duration.  (This is optional.)
             //scs.duration += delaySlop;
             //unsigned uSecsToDelay = (unsigned)(scs.duration*1000000);
-            unsigned uSecsToDelay = (unsigned)(GW_TIMER_CHECK_TASK*1000000);
+            unsigned uSecsToDelay = (unsigned)(GW_TIMER_CHECK_TASK*1000);
             scs.streamTimerTask = envir().taskScheduler().scheduleDelayedTask(uSecsToDelay, (TaskFunc*)streamTimerHandler, this);
-        }
+        //}
 
         success = True;
         if(SupportsGetParameter()) {
@@ -235,20 +235,20 @@ void    ASRtspCheckChannel::handle_after_play(int resultCode, char* resultString
             m_bObervser->NotifyStatus(AS_RTSP_STATUS_PLAY);
         }
     }
-    AS_LOG(AS_LOG_INFO,"ASRtspCheckChannel::handle_after_play end.");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_after_play end.");
     return;
 }
 void    ASRtspCheckChannel::handle_after_teardown(int resultCode, char* resultString)
 {
-    AS_LOG(AS_LOG_INFO,"ASRtspCheckChannel::handle_after_teardown begin.");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_after_teardown begin.");
     shutdownStream();
-    AS_LOG(AS_LOG_INFO,"ASRtspCheckChannel::handle_after_teardown end.");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_after_teardown end.");
     return;
 }
 void    ASRtspCheckChannel::handle_subsession_after_playing(MediaSubsession* subsession)
 {
     // Begin by closing this subsession's stream:
-    AS_LOG(AS_LOG_INFO,"ASRtspCheckChannel::handle_subsession_after_playing begin.");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_subsession_after_playing begin.");
     Medium::close(subsession->sink);
     subsession->sink = NULL;
 
@@ -257,7 +257,7 @@ void    ASRtspCheckChannel::handle_subsession_after_playing(MediaSubsession* sub
     MediaSubsessionIterator iter(session);
     while ((subsession = iter.next()) != NULL) {
         if (subsession->sink != NULL) {
-            AS_LOG(AS_LOG_INFO,"ASRtspCheckChannel::handle_subsession_after_playing end.");
+            AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_subsession_after_playing end.");
             return; // this subsession is still active
         }
     }
@@ -265,13 +265,13 @@ void    ASRtspCheckChannel::handle_subsession_after_playing(MediaSubsession* sub
     // All subsessions' streams have now been closed, so shutdown the client:
     m_enCheckResult  = AS_RTSP_CHECK_RESULT_OPEN_URL;
     shutdownStream();
-    AS_LOG(AS_LOG_INFO,"ASRtspCheckChannel::handle_subsession_after_playing exit.");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_subsession_after_playing exit.");
 }
 
 void    ASRtspCheckChannel::handle_after_timeout()
 {
 
-    AS_LOG(AS_LOG_INFO,"ASRtspCheckChannel::streamTimerHandler.");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::streamTimerHandler.");
     scs.streamTimerTask = NULL;
 
     time_t now = time(NULL);
@@ -309,7 +309,7 @@ void    ASRtspCheckChannel::handle_after_timeout()
     }
 
 
-    unsigned uSecsToDelay = (unsigned)(GW_TIMER_CHECK_TASK*1000000);
+    unsigned uSecsToDelay = (unsigned)(GW_TIMER_CHECK_TASK*1000);
     scs.streamTimerTask
        = envir().taskScheduler().scheduleDelayedTask(uSecsToDelay,
                                                  (TaskFunc*)streamTimerHandler, this);
@@ -319,7 +319,7 @@ void    ASRtspCheckChannel::handle_after_timeout()
 
 void ASRtspCheckChannel::setupNextSubsession() {
 
-    AS_LOG(AS_LOG_INFO,"ASRtspCheckChannel::setupNextSubsession begin.");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::setupNextSubsession begin.");
     scs.subsession = scs.iter->next();
     if (scs.subsession != NULL) {
         if (!scs.subsession->initiate()) {
@@ -348,7 +348,7 @@ void ASRtspCheckChannel::setupNextSubsession() {
             // Continue setting up this subsession, by sending a RTSP "SETUP" command:
             sendSetupCommand(*scs.subsession, continueAfterSETUP, False, REQUEST_STREAMING_OVER_TCP);
         }
-        AS_LOG(AS_LOG_INFO,"ASRtspCheckChannel::setupNextSubsession end.");
+        AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::setupNextSubsession end.");
         return;
     }
 
@@ -360,20 +360,20 @@ void ASRtspCheckChannel::setupNextSubsession() {
     // We've finished setting up all of the subsessions.  Now, send a RTSP "PLAY" command to start the streaming:
     if (scs.session->absStartTime() != NULL) {
         // Special case: The stream is indexed by 'absolute' time, so send an appropriate "PLAY" command:
-        AS_LOG(AS_LOG_INFO,"ASRtspCheckChannel::setupNextSubsession,send play message,startime:[%s] endtime:[%s].",
+        AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::setupNextSubsession,send play message,startime:[%s] endtime:[%s].",
                                                scs.session->absStartTime(),scs.session->absEndTime());
         sendPlayCommand(*scs.session, continueAfterPLAY, scs.session->absStartTime(), scs.session->absEndTime());
     } else {
         scs.duration = scs.session->playEndTime() - scs.session->playStartTime();
-        AS_LOG(AS_LOG_INFO,"ASRtspCheckChannel::setupNextSubsession,send play message,duration:[%f].",scs.duration);
+        AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::setupNextSubsession,send play message,duration:[%f].",scs.duration);
         sendPlayCommand(*scs.session, continueAfterPLAY);
     }
-    AS_LOG(AS_LOG_INFO,"ASRtspCheckChannel::setupNextSubsession exit.");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::setupNextSubsession exit.");
     return;
 }
 
 void ASRtspCheckChannel::shutdownStream() {
-    AS_LOG(AS_LOG_INFO,"ASRtspCheckChannel::shutdownStream begin.");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::shutdownStream begin.");
     // First, check whether any subsessions have still to be closed:
     uint32_t ulDuration  = time(NULL) - m_ulStartTime;
     uint64_t ulVideoRecv = 0;
@@ -409,7 +409,7 @@ void ASRtspCheckChannel::shutdownStream() {
         if (someSubsessionsWereActive) {
           // Send a RTSP "TEARDOWN" command, to tell the server to shutdown the stream.
           // Don't bother handling the response to the "TEARDOWN".
-          AS_LOG(AS_LOG_INFO,"ASRtspCheckChannel::shutdownStream,send teardown command.");
+          AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::shutdownStream,send teardown command.");
           sendTeardownCommand(*scs.session, NULL);
         }
     }
@@ -421,7 +421,7 @@ void ASRtspCheckChannel::shutdownStream() {
         m_bObervser->NotifyRecvData(m_enCheckResult,ulDuration, ulVideoRecv, ulAudioRecv);
         m_bObervser->NotifyStatus(AS_RTSP_STATUS_TEARDOWN);
     }
-    AS_LOG(AS_LOG_INFO,"ASRtspCheckChannel::shutdownStream end.");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::shutdownStream end.");
 
     /* not close here ,it will be closed by the close URL */
     //Medium::close(rtspClient);
@@ -481,7 +481,7 @@ void ASRtspCheckChannel::subsessionAfterPlaying(void* clientData) {
 void ASRtspCheckChannel::subsessionByeHandler(void* clientData) {
     MediaSubsession* subsession = (MediaSubsession*)clientData;
     // Now act as if the subsession had closed:
-    AS_LOG(AS_LOG_INFO,"ASRtspCheckChannel::subsessionByeHandler.");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::subsessionByeHandler.");
     subsessionAfterPlaying(subsession);
 }
 
@@ -601,7 +601,7 @@ ASLensInfo::~ASLensInfo()
 }
 void ASLensInfo::setLensInfo(std::string& strCameraID,std::string& strStreamType)
 {
-    AS_LOG(AS_LOG_INFO,"ASLensInfo::setLensInfo,cameraID:[%s],streamType:[%s].",
+    AS_LOG(AS_LOG_DEBUG,"ASLensInfo::setLensInfo,cameraID:[%s],streamType:[%s].",
                                                 strCameraID.c_str(),strStreamType.c_str());
     m_strCameraID = strCameraID;
     m_strStreamType = strStreamType;
@@ -609,7 +609,7 @@ void ASLensInfo::setLensInfo(std::string& strCameraID,std::string& strStreamType
 
 void ASLensInfo::check()
 {
-    AS_LOG(AS_LOG_INFO,"ASLensInfo::check,status:[%d].",m_Status);
+    AS_LOG(AS_LOG_DEBUG,"ASLensInfo::check,status:[%d].",m_Status);
     if(AS_RTSP_CHECK_STATUS_END == m_Status )
     {
         return;
@@ -620,7 +620,7 @@ void ASLensInfo::check()
         time_t cur = time(NULL);
         if(cur > (m_time + RTSP_CLINET_RUN_DURATION))
         {
-            AS_LOG(AS_LOG_INFO,"ASLensInfo::check,the run timeout,so stop the task.");
+            AS_LOG(AS_LOG_DEBUG,"ASLensInfo::check,the run timeout,so stop the task.");
             stopRtspCheck();
         }
         return;
@@ -628,17 +628,17 @@ void ASLensInfo::check()
 
     if(RTSP_CLINET_HANDLE_MAX <= ASRtspGuardManager::instance().getRtspHandleCount())
     {
-        AS_LOG(AS_LOG_INFO,"ASLensInfo::check,the run task is so big ,so wait ......");
+        AS_LOG(AS_LOG_DEBUG,"ASLensInfo::check,the run task is so big ,so wait ......");
         return;
     }
 
     /* start the lens check */
-    AS_LOG(AS_LOG_INFO,"ASLensInfo::check,start the new rtsp .");
+    AS_LOG(AS_LOG_DEBUG,"ASLensInfo::check,start the new rtsp .");
 
     if(AS_ERROR_CODE_OK != StartRtspCheck())
     {
         /* start fail */
-        AS_LOG(AS_LOG_WARNING,"ASLensInfo::check,start the new rtsp fail .");
+        AS_LOG(AS_LOG_DEBUG,"ASLensInfo::check,start the new rtsp fail .");
         m_Status = AS_RTSP_CHECK_STATUS_END;
         return ;
     }
@@ -653,7 +653,7 @@ CHECK_STATUS ASLensInfo::Status()
 }
 void ASLensInfo::NotifyStatus(AS_RTSP_STATUS status)
 {
-    AS_LOG(AS_LOG_INFO,"ASLensInfo::NotifyStatus,rtsp status:[%d].",status);
+    AS_LOG(AS_LOG_DEBUG,"ASLensInfo::NotifyStatus,rtsp status:[%d].",status);
     if(AS_RTSP_STATUS_TEARDOWN == status)
     {
          m_Status = AS_RTSP_CHECK_STATUS_END;
@@ -671,7 +671,7 @@ void ASLensInfo::NotifyRecvData(AS_RTSP_CHECK_RESULT enResult,uint32_t ulDuratio
 
 int32_t ASLensInfo::StartRtspCheck()
 {
-    AS_LOG(AS_LOG_INFO,"ASLensInfo::StartRtspCheck begin.");
+    AS_LOG(AS_LOG_DEBUG,"ASLensInfo::StartRtspCheck begin.");
     ASEvLiveHttpClient httpHandle;
     std::string strRtspUrl;
     int32_t nRet = httpHandle.send_live_url_request(m_strCameraID,m_strStreamType,strRtspUrl);
@@ -689,18 +689,18 @@ int32_t ASLensInfo::StartRtspCheck()
         m_enCheckResult = AS_RTSP_CHECK_RESULT_OPEN_URL;
         return AS_ERROR_CODE_FAIL;
     }
-    AS_LOG(AS_LOG_INFO,"ASLensInfo::StartRtspCheck end.");
+    AS_LOG(AS_LOG_DEBUG,"ASLensInfo::StartRtspCheck end.");
     return AS_ERROR_CODE_OK;
 }
 void    ASLensInfo::stopRtspCheck()
 {
-    AS_LOG(AS_LOG_INFO,"ASLensInfo::stopRtspCheck begin.");
+    AS_LOG(AS_LOG_DEBUG,"ASLensInfo::stopRtspCheck begin.");
     if(NULL != m_handle)
     {
         ASRtspGuardManager::instance().closeURL(m_handle);
         m_handle = NULL;
     }
-    AS_LOG(AS_LOG_INFO,"ASLensInfo::stopRtspCheck end.");
+    AS_LOG(AS_LOG_DEBUG,"ASLensInfo::stopRtspCheck end.");
     return;
 }
 
@@ -734,7 +734,7 @@ void ASRtspCheckTask::setTaskInfo(std::string& strCheckID,std::string& strReport
 }
 void ASRtspCheckTask::addCamera(std::string& strCameraID,std::string& strStreamTye)
 {
-    AS_LOG(AS_LOG_INFO,"ASRtspCheckTask::addCamera begin.");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckTask::addCamera begin.");
     ASLensInfo* pLenInfo = NULL;
     pLenInfo = AS_NEW(pLenInfo);
     if(NULL == pLenInfo)
@@ -743,14 +743,14 @@ void ASRtspCheckTask::addCamera(std::string& strCameraID,std::string& strStreamT
     }
     pLenInfo->setLensInfo(strCameraID, strStreamTye);
     m_LensList.push_back(pLenInfo);
-    AS_LOG(AS_LOG_INFO,"ASRtspCheckTask::addCamera end.");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckTask::addCamera end.");
 }
 void ASRtspCheckTask::checkTask()
 {
-    AS_LOG(AS_LOG_INFO,"ASRtspCheckTask::checkTask begin.");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckTask::checkTask begin.");
     if(AS_RTSP_CHECK_STATUS_END == m_Status )
     {
-        AS_LOG(AS_LOG_INFO,"ASRtspCheckTask::checkTask,task is end.");
+        AS_LOG(AS_LOG_DEBUG,"ASRtspCheckTask::checkTask,task is end.");
         return;
     }
 
@@ -771,14 +771,14 @@ void ASRtspCheckTask::checkTask()
 
     if(bRunning)
     {
-        AS_LOG(AS_LOG_INFO,"ASRtspCheckTask::checkTask,task is go running now.");
+        AS_LOG(AS_LOG_DEBUG,"ASRtspCheckTask::checkTask,task is go running now.");
         return;
     }
 
     //report the task info to the server,and end eth task
     ReportTaskStatus();
 
-    AS_LOG(AS_LOG_INFO,"ASRtspCheckTask::checkTask,task is stop ,so report to server.");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckTask::checkTask,task is stop ,so report to server.");
     m_Status = AS_RTSP_CHECK_STATUS_END;
 }
 CHECK_STATUS ASRtspCheckTask::TaskStatus()
@@ -787,7 +787,7 @@ CHECK_STATUS ASRtspCheckTask::TaskStatus()
 }
 void ASRtspCheckTask::ReportTaskStatus()
 {
-    AS_LOG(AS_LOG_INFO,"ASRtspCheckTask::ReportTaskStatus begin.");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckTask::ReportTaskStatus begin.");
     ASEvLiveHttpClient httpHandle;
 
     /* 1.build the request xml message */
@@ -845,7 +845,7 @@ void ASRtspCheckTask::ReportTaskStatus()
     std::string strRespMsg = printer.CStr();
     /* sent the http request */
     httpHandle.report_check_msg(m_strReportUrl,strRespMsg);
-    AS_LOG(AS_LOG_INFO,"ASRtspCheckTask::ReportTaskStatus end.");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckTask::ReportTaskStatus end.");
 }
 
 
@@ -866,7 +866,7 @@ int32_t ASEvLiveHttpClient::send_live_url_request(std::string& strCameraID,
     std::string strAppKey    = ASRtspGuardManager::instance().getAppKey();
 
 
-    AS_LOG(AS_LOG_INFO,"ASEvLiveHttpClient::send_live_url_request begin.");
+    AS_LOG(AS_LOG_DEBUG,"ASEvLiveHttpClient::send_live_url_request begin.");
 
     std::string strSign    = "all stream";
 
@@ -893,57 +893,57 @@ int32_t ASEvLiveHttpClient::send_live_url_request(std::string& strCameraID,
     cJSON_Delete(root);
     /* sent the http request */
     if(AS_ERROR_CODE_OK != send_http_request(strLiveUrl,strReqMSg)) {
-        AS_LOG(AS_LOG_INFO,"ASEvLiveHttpClient::send_live_url_request fail.");
+        AS_LOG(AS_LOG_WARNING,"ASEvLiveHttpClient::send_live_url_request fail.");
         return AS_ERROR_CODE_FAIL;
     }
 
     if(0 == m_strRespMsg.length()) {
-        AS_LOG(AS_LOG_INFO,"ASEvLiveHttpClient::send_live_url_request, message is empty.");
+        AS_LOG(AS_LOG_WARNING,"ASEvLiveHttpClient::send_live_url_request, message is empty.");
         return AS_ERROR_CODE_FAIL;
     }
 
     /* 2.parse the response */
     root = cJSON_Parse(m_strRespMsg.c_str());
     if (NULL == root) {
-        AS_LOG(AS_LOG_INFO,"ASEvLiveHttpClient::send_live_url_request, json message parser fail.");
+        AS_LOG(AS_LOG_WARNING,"ASEvLiveHttpClient::send_live_url_request, json message parser fail.");
         return AS_ERROR_CODE_FAIL;
     }
 
     cJSON *resultCode = cJSON_GetObjectItem(root, "resultCode");
     if(NULL == resultCode) {
         cJSON_Delete(root);
-        AS_LOG(AS_LOG_INFO,"ASEvLiveHttpClient::send_live_url_request, json message there is no resultCode.");
+        AS_LOG(AS_LOG_WARNING,"ASEvLiveHttpClient::send_live_url_request, json message there is no resultCode.");
         return AS_ERROR_CODE_FAIL;
     }
 
-    if(0 != strncmp(AC_MSS_ERROR_CODE_OK,resultCode->string,strlen(AC_MSS_ERROR_CODE_OK))) {
+    if(0 != strncmp(AC_MSS_ERROR_CODE_OK,resultCode->valuestring,strlen(AC_MSS_ERROR_CODE_OK))) {
         cJSON_Delete(root);
-        AS_LOG(AS_LOG_INFO,"ASEvLiveHttpClient::send_live_url_request, resultCode is not success.");
+        AS_LOG(AS_LOG_WARNING,"ASEvLiveHttpClient::send_live_url_request, resultCode:[%s] is not success.",resultCode->valuestring);
         return AS_ERROR_CODE_FAIL;
     }
 
     cJSON *url = cJSON_GetObjectItem(root, "url");
     if(NULL == url) {
         cJSON_Delete(root);
-        AS_LOG(AS_LOG_INFO,"ASEvLiveHttpClient::send_live_url_request, json message there is no url.");
+        AS_LOG(AS_LOG_WARNING,"ASEvLiveHttpClient::send_live_url_request, json message there is no url.");
         return AS_ERROR_CODE_FAIL;
     }
-    strRtspUrl = resultCode->string;
+    strRtspUrl = url->valuestring;
     cJSON_Delete(root);
-    AS_LOG(AS_LOG_INFO,"ASEvLiveHttpClient::send_live_url_request end.");
+    AS_LOG(AS_LOG_DEBUG,"ASEvLiveHttpClient::send_live_url_request end,url:[%s].",strRtspUrl.c_str());
     return AS_ERROR_CODE_OK;
 }
 void    ASEvLiveHttpClient::report_check_msg(std::string& strUrl,std::string& strMsg)
 {
-    AS_LOG(AS_LOG_INFO,"ASEvLiveHttpClient::report_check_msg begin.");
+    AS_LOG(AS_LOG_DEBUG,"ASEvLiveHttpClient::report_check_msg begin.");
     AS_LOG(AS_LOG_DEBUG,"ASEvLiveHttpClient::report_check_msg,url:[%s],msg:[%s].",
                                             strUrl.c_str(),strMsg.c_str());
-    if (AS_ERROR_CODE_OK != send_http_request(strUrl,strMsg)) {
+    if (AS_ERROR_CODE_OK != send_http_request(strUrl,strMsg,EVHTTP_REQ_POST,HTTP_CONTENT_TYPE_JSON)) {
         AS_LOG(AS_LOG_WARNING,"ASEvLiveHttpClient::report_check_msg,send msg fail.url:[%s],msg:[%s].",
                                             strUrl.c_str(),strMsg.c_str());
         return ;
     }
-    AS_LOG(AS_LOG_INFO,"ASEvLiveHttpClient::report_check_msg end.");
+    AS_LOG(AS_LOG_DEBUG,"ASEvLiveHttpClient::report_check_msg end.");
     return;
 }
 void ASEvLiveHttpClient::handle_remote_read(struct evhttp_request* remote_rsp)
@@ -957,18 +957,32 @@ void ASEvLiveHttpClient::handle_remote_read(struct evhttp_request* remote_rsp)
     size_t len = evbuffer_get_length(remote_rsp->input_buffer);
     const char * str = (const char*)evbuffer_pullup(remote_rsp->input_buffer, len);
     if ((0 == len) || (NULL == str)) {
-        m_strRespMsg = "";
+        //m_strRespMsg = "";
         //event_base_loopexit(m_pBase, NULL);
         return;
     }
     m_strRespMsg.append(str, 0, len);
+    AS_LOG(AS_LOG_INFO,"ASEvLiveHttpClient::handle_remote_read,msg:[%s] .",m_strRespMsg.c_str());
     //event_base_loopexit(m_pBase, NULL);
     //event_base_loopbreak(m_pBase);
 }
 
 void ASEvLiveHttpClient::handle_readchunk(struct evhttp_request* remote_rsp)
 {
-    return;
+    if (NULL == remote_rsp){
+        //event_base_loopexit(m_pBase, NULL);
+        //event_base_loopbreak(m_pBase);
+        return;
+    }
+
+    size_t len = evbuffer_get_length(remote_rsp->input_buffer);
+    const char * str = (const char*)evbuffer_pullup(remote_rsp->input_buffer, len);
+    if ((0 == len) || (NULL == str)) {
+        //event_base_loopexit(m_pBase, NULL);
+        return;
+    }
+    m_strRespMsg.append(str, len);
+    AS_LOG(AS_LOG_INFO,"ASEvLiveHttpClient::handle_readchunk,msg:[%s] .",m_strRespMsg.c_str());
 }
 
 void ASEvLiveHttpClient::handle_remote_connection_close(struct evhttp_connection* connection)
@@ -998,22 +1012,34 @@ void ASEvLiveHttpClient::remote_connection_close_cb(struct evhttp_connection* co
 }
 
 
-int32_t ASEvLiveHttpClient::send_http_request(std::string& strUrl,std::string& strMsg,evhttp_cmd_type type)
+int32_t ASEvLiveHttpClient::send_http_request(std::string& strUrl,std::string& strMsg,
+                                           evhttp_cmd_type type,std::string strContentType)
 {
-    AS_LOG(AS_LOG_INFO,"ASEvLiveHttpClient::send_http_request begin.");
-
-    std::string strUserName  = ASRtspGuardManager::instance().getUserName();
-    std::string strPassword  = ASRtspGuardManager::instance().getPassword();
+    AS_LOG(AS_LOG_DEBUG,"ASEvLiveHttpClient::send_http_request begin.");
 
     struct evhttp_request   *pReq  = NULL;
     struct event_base       *pBase = NULL;
     struct evhttp_connection*pConn = NULL;
     struct evdns_base       *pDnsbase = NULL;
     char   Digest[HTTP_DIGEST_LENS_MAX] = {0};
+    unsigned char Password[RTSP_CHECK_TMP_BUF_SIZE] = {0};
 
     if (-1 == as_digest_init(&m_Authen,0)) {
         return AS_ERROR_CODE_FAIL;
     }
+    std::string strUserName  = ASRtspGuardManager::instance().getUserName();
+    std::string strPassword  = ASRtspGuardManager::instance().getPassword();
+
+    if(BASE64_OK != as_base64_decode(strPassword.c_str(), strPassword.length(), Password)) {
+        AS_LOG(AS_LOG_DEBUG,"ASEvLiveHttpClient::send_http_request username:[%s] password:[%s]"
+                            " base64 decode fail.",
+                            strUserName.c_str(),strPassword.c_str());
+        return AS_ERROR_CODE_FAIL;
+    }
+
+    AS_LOG(AS_LOG_DEBUG,"ASEvLiveHttpClient::send_http_request username:[%s] password:[%s]"
+                        " base64 decode password:[%s].",
+                        strUserName.c_str(),strPassword.c_str(),Password);
 
     struct evhttp_uri* uri = evhttp_uri_parse(strUrl.c_str());
     if (!uri)
@@ -1046,11 +1072,13 @@ int32_t ASEvLiveHttpClient::send_http_request(std::string& strUrl,std::string& s
     char lenbuf[RTSP_CHECK_TMP_BUF_SIZE] = { 0 };
 
 
+   int nMethod = DIGEST_METHOD_POST;
 
     std::string strCmd = "POST";
     if(EVHTTP_REQ_GET == type)
     {
         strCmd = "GET";
+        nMethod = DIGEST_METHOD_GET;
     }
 
     int32_t nTryTime = 0;
@@ -1063,13 +1091,13 @@ int32_t ASEvLiveHttpClient::send_http_request(std::string& strUrl,std::string& s
         nTryTime++;
 
         pReq = evhttp_request_new(remote_read_cb, this);
-        evhttp_add_header(pReq->output_headers, "Content-Type", "text/plain; charset=UTF-8");
+        evhttp_add_header(pReq->output_headers, "Content-Type", strContentType.c_str());
         snprintf(lenbuf, 32, "%lu", strMsg.length());
         evhttp_add_header(pReq->output_headers, "Content-length", lenbuf); //content length
         snprintf(lenbuf, 32, "%s:%d", host,port);
         evhttp_add_header(pReq->output_headers, "Host", lenbuf);
         evhttp_add_header(pReq->output_headers, "Connection", "close");
-         evhttp_request_set_chunked_cb(pReq, readchunk_cb);
+        evhttp_request_set_chunked_cb(pReq, readchunk_cb);
         pBase = event_base_new();
         if (!pBase)
         {
@@ -1082,11 +1110,11 @@ int32_t ASEvLiveHttpClient::send_http_request(std::string& strUrl,std::string& s
             as_digest_attr_value_t value;
             value.string = (char*)strUserName.c_str();
             as_digest_set_attr(&m_Authen, D_ATTR_USERNAME,value);
-            value.string = (char*)strPassword.c_str();
+            value.string = (char*)&Password[0];
             as_digest_set_attr(&m_Authen, D_ATTR_PASSWORD,value);
             value.string = (char*)m_reqPath.c_str();
             as_digest_set_attr(&m_Authen, D_ATTR_URI,value);
-            value.number = DIGEST_METHOD_POST;
+            value.number = nMethod;
             as_digest_set_attr(&m_Authen, D_ATTR_METHOD, value);
 
             if (-1 == as_digest_client_generate_header(&m_Authen, Digest, sizeof (Digest))) {
@@ -1146,7 +1174,7 @@ int32_t ASEvLiveHttpClient::send_http_request(std::string& strUrl,std::string& s
         event_base_dispatch(pBase);
 
         int32_t nRespCode = evhttp_request_get_response_code(pReq);
-        AS_LOG(AS_LOG_INFO,"ASEvLiveHttpClient::send_http_request,http result:[%d].",nRespCode);
+        AS_LOG(AS_LOG_DEBUG,"ASEvLiveHttpClient::send_http_request,http result:[%d].",nRespCode);
         if(HTTP_CODE_OK == nRespCode) {
             break;
         }
@@ -1170,6 +1198,7 @@ int32_t ASEvLiveHttpClient::send_http_request(std::string& strUrl,std::string& s
                 break;
             }
             AS_LOG(AS_LOG_INFO,"ASEvLiveHttpClient::send_http_request,parser authInfo ok try again.");
+            m_strRespMsg =""; //reset the response message
             bAuth = True;
         }
         else {
@@ -1182,7 +1211,7 @@ int32_t ASEvLiveHttpClient::send_http_request(std::string& strUrl,std::string& s
     }while(true);
 
     evhttp_uri_free(uri);
-    AS_LOG(AS_LOG_INFO,"ASEvLiveHttpClient::send_http_request end.");
+    AS_LOG(AS_LOG_DEBUG,"ASEvLiveHttpClient::send_http_request end.");
     return nRet;
 }
 
@@ -1218,7 +1247,7 @@ ASRtspGuardManager::~ASRtspGuardManager()
 
 int32_t ASRtspGuardManager::init()
 {
-    AS_LOG(AS_LOG_INFO,"ASRtspGuardManager::init begin");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspGuardManager::init begin");
     /* read the system config file */
     if (AS_ERROR_CODE_OK != read_system_conf()) {
         AS_LOG(AS_LOG_ERROR,"ASRtspGuardManager::init ,read system conf fail");
@@ -1239,18 +1268,18 @@ int32_t ASRtspGuardManager::init()
         return AS_ERROR_CODE_FAIL;
     }
 
-    AS_LOG(AS_LOG_INFO,"ASRtspGuardManager::init end");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspGuardManager::init end");
 
     return AS_ERROR_CODE_OK;
 }
 void    ASRtspGuardManager::release()
 {
-    AS_LOG(AS_LOG_INFO,"ASRtspGuardManager::release begin");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspGuardManager::release begin");
     m_LoopWatchVar = 1;
     as_destroy_mutex(m_mutex);
     m_mutex = NULL;
     ASStopLog();
-    AS_LOG(AS_LOG_INFO,"ASRtspGuardManager::release end");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspGuardManager::release end");
 }
 
 int32_t ASRtspGuardManager::open()
@@ -1258,7 +1287,7 @@ int32_t ASRtspGuardManager::open()
     // Begin by setting up our usage environment:
     u_int32_t i = 0;
 
-    AS_LOG(AS_LOG_INFO,"ASRtspGuardManager::open begin.");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspGuardManager::open begin.");
 
     m_LoopWatchVar = 0;
     /* start the http server deal thread */
@@ -1290,13 +1319,13 @@ int32_t ASRtspGuardManager::open()
         return AS_ERROR_CODE_FAIL;
     }
 
-    AS_LOG(AS_LOG_INFO,"ASRtspGuardManager::open end.");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspGuardManager::open end.");
     return 0;
 }
 
 void ASRtspGuardManager::close()
 {
-    AS_LOG(AS_LOG_INFO,"ASRtspGuardManager::close.");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspGuardManager::close.");
     m_LoopWatchVar = 1;
 
     return;
@@ -1315,7 +1344,7 @@ AS_HANDLE ASRtspGuardManager::openURL(char const* rtspURL,ASRtspStatusObervser* 
     ASRtspCheckChannel* rtspClient = ASRtspCheckChannel::createNew(index,*env, rtspURL,
                                     RTSP_CLIENT_VERBOSITY_LEVEL, RTSP_AGENT_NAME);
     if (rtspClient == NULL) {
-        AS_LOG(AS_LOG_INFO,"ASRtspGuardManager::openURL,create new client fail,url:[%s].",rtspURL);
+        AS_LOG(AS_LOG_WARNING,"ASRtspGuardManager::openURL,create new client fail,url:[%s].",rtspURL);
         as_mutex_unlock(m_mutex);
         return NULL;
     }
@@ -1326,7 +1355,7 @@ AS_HANDLE ASRtspGuardManager::openURL(char const* rtspURL,ASRtspStatusObervser* 
     ASRtspCheckChannel* AsRtspClient = (ASRtspCheckChannel*)rtspClient;
     AsRtspClient->open(RTSP_CLINET_RUN_DURATION,observer);
     as_mutex_unlock(m_mutex);
-    AS_LOG(AS_LOG_INFO,"ASRtspGuardManager::openURL end.");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspGuardManager::openURL end.");
     return (AS_HANDLE)AsRtspClient;
 }
 void      ASRtspGuardManager::closeURL(AS_HANDLE handle)
@@ -1338,7 +1367,7 @@ void      ASRtspGuardManager::closeURL(AS_HANDLE handle)
     m_clCountArray[index]--;
     m_ulRtspHandlCount--;
     pAsRtspClient->close();
-    AS_LOG(AS_LOG_INFO,"ASRtspGuardManager::closeURL,envIndex:[%d].",index);
+    AS_LOG(AS_LOG_DEBUG,"ASRtspGuardManager::closeURL,envIndex:[%d].",index);
     as_mutex_unlock(m_mutex);
 }
 
@@ -1426,7 +1455,7 @@ void *ASRtspGuardManager::check_task_invoke(void *arg)
 
 void ASRtspGuardManager::http_env_thread()
 {
-    AS_LOG(AS_LOG_INFO,"ASRtspGuardManager::http_env_thread begin.");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspGuardManager::http_env_thread begin.");
     m_httpBase = event_base_new();
     if (NULL == m_httpBase)
     {
@@ -1451,13 +1480,13 @@ void ASRtspGuardManager::http_env_thread()
     evhttp_set_gencb(m_httpServer, http_callback, this);
     event_base_dispatch(m_httpBase);
 
-    AS_LOG(AS_LOG_INFO,"ASRtspGuardManager::http_env_thread end.");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspGuardManager::http_env_thread end.");
     return;
 }
 void ASRtspGuardManager::rtsp_env_thread()
 {
     u_int32_t index = thread_index();
-    AS_LOG(AS_LOG_INFO,"ASRtspGuardManager::rtsp_env_thread,index:[%d] begin.",index);
+    AS_LOG(AS_LOG_DEBUG,"ASRtspGuardManager::rtsp_env_thread,index:[%d] begin.",index);
 
     TaskScheduler* scheduler = NULL;
     UsageEnvironment* env = NULL;
@@ -1488,7 +1517,7 @@ void ASRtspGuardManager::rtsp_env_thread()
 
 void ASRtspGuardManager::check_task_thread()
 {
-    AS_LOG(AS_LOG_INFO,"ASRtspGuardManager::check_task_thread begin.");
+    AS_LOG(AS_LOG_DEBUG,"ASRtspGuardManager::check_task_thread begin.");
     while(0 == m_LoopWatchVar)
     {
         as_sleep(GW_TIMER_CHECK_TASK);
@@ -1649,7 +1678,7 @@ int32_t ASRtspGuardManager::handle_check(std::string &strReqMsg,std::string &str
     resp.Accept(&printer);
     strRespMsg = printer.CStr();
 
-    AS_LOG(AS_LOG_INFO, "ASRtspGuardManager::handle_session,end");
+    AS_LOG(AS_LOG_DEBUG, "ASRtspGuardManager::handle_session,end");
     return AS_ERROR_CODE_OK;
 }
 int32_t ASRtspGuardManager::handle_check_task(const XMLElement *check)
@@ -1688,14 +1717,14 @@ int32_t ASRtspGuardManager::handle_check_task(const XMLElement *check)
     const XMLElement *CameraList = check->FirstChildElement("cameralist");
     if(NULL == CameraList)
     {
-        AS_LOG(AS_LOG_INFO, "ASRtspGuardManager::handle_check_task,get xml cameralist node fail.");
+        AS_LOG(AS_LOG_WARNING, "ASRtspGuardManager::handle_check_task,get xml cameralist node fail.");
         return AS_ERROR_CODE_FAIL;
     }
 
     task = AS_NEW(task);
     if(NULL == task)
     {
-        AS_LOG(AS_LOG_INFO, "ASRtspGuardManager::handle_check_task,create task fail.");
+        AS_LOG(AS_LOG_WARNING, "ASRtspGuardManager::handle_check_task,create task fail.");
         return AS_ERROR_CODE_FAIL;
     }
 
@@ -1733,7 +1762,7 @@ int32_t ASRtspGuardManager::handle_check_task(const XMLElement *check)
     as_lock_guard locker(m_mutex);
     m_TaskList.push_back(task);
 
-    AS_LOG(AS_LOG_INFO, "ASRtspGuardManager::handle_check_task,end");
+    AS_LOG(AS_LOG_DEBUG, "ASRtspGuardManager::handle_check_task,end");
     return AS_ERROR_CODE_OK;
 }
 
@@ -1759,7 +1788,7 @@ void  ASRtspGuardManager::check_task_status()
             ++iter;
         }
     }
-    AS_LOG(AS_LOG_INFO, "ASRtspGuardManager::check_task_status,end");
+    AS_LOG(AS_LOG_DEBUG, "ASRtspGuardManager::check_task_status,end");
 }
 
 

@@ -53,6 +53,10 @@ extern "C"{
 #endif
 #define HTTP_SERVER_URI    "/check/req"
 
+#define HTTP_CONTENT_TYPE_JSON   std::string("application/json")
+#define HTTP_CONTENT_TYPE_XML    std::string("application/xml")
+
+
 #define GW_SERVER_ADDR                 "0.0.0.0"
 #define GW_SERVER_PORT_DEFAULT         8000
 #define GW_SIP_PORT_DEFAULT            5060
@@ -376,7 +380,8 @@ private:
     static void readchunk_cb(struct evhttp_request* remote_rsp, void* arg);
     static void remote_connection_close_cb(struct evhttp_connection* connection, void* arg);
 private:
-    int32_t send_http_request(std::string& strUrl,std::string& strMsg,evhttp_cmd_type type = EVHTTP_REQ_POST);
+    int32_t send_http_request(std::string& strUrl,std::string& strMsg,evhttp_cmd_type type = EVHTTP_REQ_POST,
+                              std::string strContentType = HTTP_CONTENT_TYPE_JSON);
 private:
     std::string              m_reqPath;
     std::string              m_strRespMsg;

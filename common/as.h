@@ -11,6 +11,7 @@ extern "C"{
 #include "as_time.h"
 #include "as_json.h"
 #include "as_http_digest.h"
+#include "as_base64.h"
 }
 #include "as_ini_config.h"
 #include "as_lock_guard.h"
