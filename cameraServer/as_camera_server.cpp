@@ -1129,6 +1129,11 @@ int32_t ASCameraSvrManager::reg_lens_dev_map(std::string& strLensID,std::string&
 
     if(iter != m_LensDevMap.end())
     {
+
+        if(strDevID == iter->second)
+        {
+            return AS_ERROR_CODE_OK;
+        }
         m_LensDevMap.erase(iter);
     }
     m_LensDevMap.insert(LENS_DEV_MAP::value_type(strLensID,strDevID));
