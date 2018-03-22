@@ -37,15 +37,17 @@ ASDevice::ASDevice()
     m_strDevID = "";
     m_Status = AS_DEV_STATUS_OFFLIEN;
 }
-ASDevice::ASDevice(std::string& strDveID)
-{
-    m_strDevID = strDveID;
-}
+
 
 ASDevice::~ASDevice()
 {
 
 }
+void ASDevice::DevID(std::string& strDveID)
+{
+    m_strDevID = strDveID;
+}
+
 void ASDevice::setDevInfo(std::string& strHost,std::string& strPort)
 {
     m_stHost   = strHost;
@@ -233,23 +235,29 @@ int32_t ASDevice::parseDeviceItem(const XMLElement &rItem)
         AS_LOG(AS_LOG_ERROR, "Parse response failed. Can't find 'Status' of 'Item'.");
         return AS_ERROR_CODE_FAIL;
     }
-    /*
-    SVS_DEVICE_INFO stDeviceInfo;
-    stDeviceInfo.eDeviceType = SVS_DEV_TYPE_GB28181;
-    stDeviceInfo.eDeviceStatus = (0 == strcmp(pStatus->GetText(), "ON"))
-                                ? SVS_DEV_STATUS_ONLINE
-                                : SVS_DEV_STATUS_OFFLINE;
-    strncpy(stDeviceInfo.szDeviceID, pDeviceID->GetText(), sizeof(stDeviceInfo.szDeviceID) - 1);
-    strncpy(stDeviceInfo.szDeviceName, pName->GetText(), sizeof(stDeviceInfo.szDeviceName) - 1);
 
-    int32_t nResult = IAccessControlManager::instance().notifyDeviceInfo(stDeviceInfo);
-    if (0 != nResult)
+    std::string strLensId = pDeviceID->GetText();
+
+    ASLens* pLens = NULL;
+
+    LENSINFOMAPITRT iter = m_LensMap.find(strLensId);
+    if(iter != m_LensMap.end())
     {
-        AS_LOG(AS_LOG_ERROR, "Notfiy device info failed.");
-        return -1;
-    }*/
+        pLens = iter->second;
+    }
+    else
+    {
+        pLens = AS_NEW(pLens);
+        m_LensMap.insert(LENSINFOMAP::value_type(strLensId,pLens));
+    }
+    pLens->m_strCameraID =  strLensId;
+    pLens->m_enDeviceType = AS_DEV_TYPE_GB28181;
+    pLens->m_Status = (0 == strcmp(pStatus->GetText(), "ON"))
+                                ? AS_DEV_STATUS_ONLINE
+                                : AS_DEV_STATUS_OFFLIEN;
+    pLens->m_strCameraName = pName->GetText();
 
-    return AS_ERROR_CODE_OK;
+    return ASCameraSvrManager::instance().reg_lens_dev_map(strLensId,m_strDevID);
 }
 
 std::string ASDevice::createQueryCatalog()
@@ -1115,6 +1123,19 @@ u_int32_t ASCameraSvrManager::getRecvBufSize()
 {
     return m_ulRecvBufSize;
 }
+int32_t ASCameraSvrManager::reg_lens_dev_map(std::string& strLensID,std::string& strDevID)
+{
+    LENS_DEV_MAP::iterator iter = m_LensDevMap.find(strLensID);
+
+    if(iter != m_LensDevMap.end())
+    {
+        m_LensDevMap.erase(iter);
+    }
+    m_LensDevMap.insert(LENS_DEV_MAP::value_type(strLensID,strDevID));
+
+    return AS_ERROR_CODE_OK;
+}
+
 
 /*************************************SIP**********************************************************/
 int32_t ASCameraSvrManager::read_sip_conf()

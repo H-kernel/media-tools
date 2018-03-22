@@ -1,6 +1,6 @@
 ##### End of variables to change
 
-AS_CAMERA_SERVER = camera_server
+AS_CAMERA_SERVER = cameraSvr
 
 PREFIX = /usr/local
 ALL = $(AS_CAMERA_SERVER)

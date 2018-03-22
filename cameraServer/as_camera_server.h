@@ -151,14 +151,24 @@ typedef enum AS_DEV_STATUS
     AS_DEV_STATUS_MAX
 }DEV_STATUS;
 
+typedef enum AS_DEV_TYPE
+{
+    AS_DEV_TYPE_GB28181    = 1,
+    AS_DEV_TYPE_VMS        = 2,
+    AS_DEV_TYPE_MAX
+}DEV_TYPE;
+
+
 class ASLens
 {
 public:
     ASLens();
     virtual ~ASLens();
-private:
+public:
     std::string    m_strCameraID;
+    std::string    m_strCameraName;
     DEV_STATUS     m_Status;
+    DEV_TYPE       m_enDeviceType;
 };
 
 typedef std::map<std::string,ASLens*>        LENSINFOMAP;
@@ -168,8 +178,8 @@ class ASDevice
 {
 public:
     ASDevice();
-    ASDevice(std::string& strDveID);
     virtual ~ASDevice();
+    void DevID(std::string& strDveID);
     void setDevInfo(std::string& strHost,std::string& strPort);
     std::string getSendTo(){return m_strTo;};
     std::string getDevId(){return m_strDevID;};
@@ -234,6 +244,7 @@ public:
     void    close();
     void      setRecvBufSize(u_int32_t ulSize);
     u_int32_t getRecvBufSize();
+    int32_t reg_lens_dev_map(std::string& strLensID,std::string& strDevID);
 public:
     void http_env_thread();
     void rtsp_env_thread();
@@ -289,6 +300,8 @@ private:
     typedef std::map<std::string, ASDevice*> DEV_MAP;
     DEV_MAP           m_devMap;
     as_mutex_t       *m_devMutex;
+    typedef std::map<std::string, std::string> LENS_DEV_MAP;
+    LENS_DEV_MAP      m_LensDevMap;
 private:
     //GB28181 SIP Service
     struct eXosip_t  *m_pEXosipCtx;
