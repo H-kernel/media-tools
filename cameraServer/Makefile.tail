@@ -1,0 +1,55 @@
+##### End of variables to change
+
+AS_CAMERA_SERVER = camera_server
+
+PREFIX = /usr/local
+ALL = $(AS_CAMERA_SERVER)
+
+RTSP_LIBS      += -fPIC -Wunused-value -lpthread -lrt -lresolv
+RTSP_FLAGS     += -pipe -g -fPIC -Wall -O0 -DENV_LINUX -fstack-protector-all
+
+all: $(ALL)
+
+.$(C).$(OBJ):
+	$(C_COMPILER) -c $(C_FLAGS) $(RTSP_FLAGS) $<
+.$(CPP).$(OBJ):
+	$(CPLUSPLUS_COMPILER) -c $(CPLUSPLUS_FLAGS) $(RTSP_FLAGS) $<
+
+AS_CAMERA_SERVER_OBJS = as_camera_server.$(OBJ) main.$(OBJ)
+
+as_camera_server.$(CPP):as_camera_server.h as_def.h 
+main.$(CPP):as_camera_server.h as_def.h
+
+USAGE_ENVIRONMENT_DIR = ../UsageEnvironment
+USAGE_ENVIRONMENT_LIB = $(USAGE_ENVIRONMENT_DIR)/libUsageEnvironment.$(libUsageEnvironment_LIB_SUFFIX)
+BASIC_USAGE_ENVIRONMENT_DIR = ../BasicUsageEnvironment
+BASIC_USAGE_ENVIRONMENT_LIB = $(BASIC_USAGE_ENVIRONMENT_DIR)/libBasicUsageEnvironment.$(libBasicUsageEnvironment_LIB_SUFFIX)
+LIVEMEDIA_DIR = ../liveMedia
+LIVEMEDIA_LIB = $(LIVEMEDIA_DIR)/libliveMedia.$(libliveMedia_LIB_SUFFIX)
+GROUPSOCK_DIR = ../groupsock
+GROUPSOCK_LIB = $(GROUPSOCK_DIR)/libgroupsock.$(libgroupsock_LIB_SUFFIX)
+COMMON_DIR = ../common
+COMMON_LIB = $(COMMON_DIR)/libcommon.$(libcommon_LIB_SUFFIX)
+EXTEND_DIR     = ../extend/
+EXTEND_INCLUDE = $(EXTEND_DIR)include/
+EXTEND_LIB     = $(EXTEND_DIR)lib/libevent.a $(EXTEND_DIR)lib/libevent_core.a \
+                 $(EXTEND_DIR)lib/libevent_extra.a $(EXTEND_DIR)lib/libevent_pthreads.a \
+                 $(EXTEND_DIR)lib/libeXosip2.a $(EXTEND_DIR)lib/libosip2.a $(EXTEND_DIR)lib/libosipparser2.a
+
+LOCAL_LIBS =    $(LIVEMEDIA_LIB) $(GROUPSOCK_LIB) \
+        $(BASIC_USAGE_ENVIRONMENT_LIB) $(USAGE_ENVIRONMENT_LIB) $(COMMON_LIB) $(EXTEND_LIB)
+LIBS =            $(LOCAL_LIBS) $(LIBS_FOR_CONSOLE_APPLICATION)
+
+$(AS_CAMERA_SERVER): $(AS_CAMERA_SERVER_OBJS) $(LOCAL_LIBS) \
+	$(PLATFORM_SPECIFIC_LIB_OBJS)
+	$(CPLUSPLUS_COMPILER) $(CPLUSPLUS_FLAGS) -o $@ \
+		$(AS_CAMERA_SERVER_OBJS) $(LIBS) $(RTSP_LIBS)
+
+clean:
+	-rm -rf *.$(OBJ) $(ALL) core *.core *~ include/*~
+
+install: $(PROXY_SERVER)
+		install -d $(DESTDIR)$(PREFIX)/bin
+		install -m 755 $(PROXY_SERVER) $(DESTDIR)$(PREFIX)/bin
+
+##### Any additional, platform-specific rules come here:

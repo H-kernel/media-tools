@@ -5,7 +5,7 @@
 #include "GroupsockHelper.hh"
 #include "BasicUsageEnvironment.hh"
 #include "GroupsockHelper.hh"
-#include "as_rtsp_guard.h"
+#include "as_camera_server.h"
 #include "RTSPCommon.hh"
 #include "as_log.h"
 #include "as_lock_guard.h"
@@ -339,7 +339,7 @@ void ASRtspCheckChannel::setupNextSubsession() {
             // then the input data rate may be large enough to justify increasing the OS socket buffer size also.)
             int socketNum = scs.subsession->rtpSource()->RTPgs()->socketNum();
             unsigned curBufferSize = getReceiveBufferSize(envir(), socketNum);
-            unsigned ulRecvBufSize = ASRtspGuardManager::instance().getRecvBufSize();
+            unsigned ulRecvBufSize = ASCameraSvrManager::instance().getRecvBufSize();
             if (ulRecvBufSize > curBufferSize) {
                 (void)setReceiveBufferTo(envir(), socketNum, ulRecvBufSize);
               }
@@ -626,12 +626,6 @@ void ASLensInfo::check()
         return;
     }
 
-    if(RTSP_CLINET_HANDLE_MAX <= ASRtspGuardManager::instance().getRtspHandleCount())
-    {
-        AS_LOG(AS_LOG_DEBUG,"ASLensInfo::check,the run task is so big ,so wait ......");
-        return;
-    }
-
     /* start the lens check */
     AS_LOG(AS_LOG_DEBUG,"ASLensInfo::check,start the new rtsp .");
 
@@ -682,24 +676,14 @@ int32_t ASLensInfo::StartRtspCheck()
         return AS_ERROR_CODE_FAIL;
     }
     AS_LOG(AS_LOG_INFO,"ASLensInfo::StartRtspCheck,get the rtsp url:[%s].",strRtspUrl.c_str());
-    m_handle = ASRtspGuardManager::instance().openURL(strRtspUrl.c_str(),this);
-    if(NULL == m_handle)
-    {
-        AS_LOG(AS_LOG_WARNING,"ASLensInfo::StartRtspCheck,open the rtsp url:[%s] fail.",strRtspUrl.c_str());
-        m_enCheckResult = AS_RTSP_CHECK_RESULT_OPEN_URL;
-        return AS_ERROR_CODE_FAIL;
-    }
+
     AS_LOG(AS_LOG_DEBUG,"ASLensInfo::StartRtspCheck end.");
     return AS_ERROR_CODE_OK;
 }
 void    ASLensInfo::stopRtspCheck()
 {
     AS_LOG(AS_LOG_DEBUG,"ASLensInfo::stopRtspCheck begin.");
-    if(NULL != m_handle)
-    {
-        ASRtspGuardManager::instance().closeURL(m_handle);
-        m_handle = NULL;
-    }
+
     AS_LOG(AS_LOG_DEBUG,"ASLensInfo::stopRtspCheck end.");
     return;
 }
@@ -829,6 +813,7 @@ void ASRtspCheckTask::ReportTaskStatus()
         XMLElement *Camera = msg.NewElement("camera");
         CameraList->InsertEndChild(Camera);
 
+        /*
         Camera->SetAttribute("ID", strCameraID.c_str());
         snprintf(szbuf,RTSP_CHECK_TMP_BUF_SIZE,"%d",ulCheckResult);
         Camera->SetAttribute("result", szbuf);
@@ -838,6 +823,7 @@ void ASRtspCheckTask::ReportTaskStatus()
         Camera->SetAttribute("video_recv", szbuf);
         snprintf(szbuf,RTSP_CHECK_TMP_BUF_SIZE,"%lld",ulAudioRecv);
         Camera->SetAttribute("audio_recv", szbuf);
+        */
     }
 
 
@@ -860,11 +846,7 @@ ASEvLiveHttpClient::~ASEvLiveHttpClient()
 int32_t ASEvLiveHttpClient::send_live_url_request(std::string& strCameraID,
                                                std::string& strStreamType,std::string& strRtspUrl)
 {
-    std::string strLiveUrl   = ASRtspGuardManager::instance().getLiveUrl();
-    std::string strAppID     = ASRtspGuardManager::instance().getAppID();
-    std::string strAppSecr   = ASRtspGuardManager::instance().getAppSecret();
-    std::string strAppKey    = ASRtspGuardManager::instance().getAppKey();
-
+    std::string strLiveUrl;//   = ASCameraSvrManager::instance().getLiveUrl();
 
     AS_LOG(AS_LOG_DEBUG,"ASEvLiveHttpClient::send_live_url_request begin.");
 
@@ -1027,8 +1009,8 @@ int32_t ASEvLiveHttpClient::send_http_request(std::string& strUrl,std::string& s
     if (-1 == as_digest_init(&m_Authen,0)) {
         return AS_ERROR_CODE_FAIL;
     }
-    std::string strUserName  = ASRtspGuardManager::instance().getUserName();
-    std::string strPassword  = ASRtspGuardManager::instance().getPassword();
+    std::string strUserName;//  = ASCameraSvrManager::instance().getUserName();
+    std::string strPassword;//  = ASCameraSvrManager::instance().getPassword();
 
     if(BASE64_OK != as_base64_decode(strPassword.c_str(), strPassword.length(), Password)) {
         AS_LOG(AS_LOG_DEBUG,"ASEvLiveHttpClient::send_http_request username:[%s] password:[%s]"
@@ -1216,16 +1198,238 @@ int32_t ASEvLiveHttpClient::send_http_request(std::string& strUrl,std::string& s
 }
 
 
+int32_t CManscdp::parse(const char* pszXML)
+{
+    XMLDocument doc;
+    XMLError xmlerr = doc.Parse(pszXML,strlen(pszXML));
+    if(XML_SUCCESS != xmlerr)
+    {
+        AS_LOG(AS_LOG_WARNING, "CManscdp::parse,parse xml msg:[%s] fail.",pszXML);
+        return AS_ERROR_CODE_FAIL;
+    }
+
+
+    XMLElement *req = doc.RootElement();
+    if (NULL == req)
+    {
+        AS_LOG(AS_LOG_ERROR, "Parse XML failed, content is %s.", pszXML);
+        return AS_ERROR_CODE_FAIL;
+    }
+
+    int32_t nResult = AS_ERROR_CODE_OK;
+
+    do
+    {
+        if (0 == strcmp(req->Name(), "Notify"))
+        {
+            nResult = parseNotify(*req);
+            break;
+        }
+        else if (0 == strcmp(req->Name(), "Response"))
+        {
+            nResult = parseResponse(*req);
+            break;
+        }
+    }while(0);
+
+    if (0 != nResult)
+    {
+        AS_LOG(AS_LOG_ERROR, "Parse XML failed, content is %s.", pszXML);
+        return AS_ERROR_CODE_FAIL;
+    }
+
+    return AS_ERROR_CODE_OK;
+}
+
+int32_t CManscdp::parseNotify(const XMLElement &rRoot)
+{
+    const XMLElement* pCmdType = rRoot.FirstChildElement("CmdType");
+    if (NULL == pCmdType)
+    {
+        AS_LOG(AS_LOG_ERROR, "Parse notify failed. Can't find 'CmdType'.");
+        return AS_ERROR_CODE_FAIL;
+    }
+
+    AS_LOG(AS_LOG_INFO, "Receive notify %s.", pCmdType->GetText());
+
+    if (0 == strcmp(pCmdType->GetText(), "Keepalive"))
+    {
+        AS_LOG(AS_LOG_INFO, "Receive Notify Keepalive.");
+    }
+
+    return AS_ERROR_CODE_OK;
+}
+
+int32_t CManscdp::parseResponse(const XMLElement &rRoot)
+{
+    const XMLElement* pCmdType = rRoot.FirstChildElement("CmdType");
+    if (NULL == pCmdType)
+    {
+        AS_LOG(AS_LOG_ERROR, "Parse response failed. Can't find 'CmdType'.");
+        return AS_ERROR_CODE_FAIL;
+    }
+
+    AS_LOG(AS_LOG_INFO, "Receive response %s.", pCmdType->GetText());
+
+    int32_t nResult = 0;
+    if (0 == strcmp(pCmdType->GetText(), "Catalog"))
+    {
+        nResult = parseQueryCatalog(rRoot);
+    }
+
+    if (0 != nResult)
+    {
+        AS_LOG(AS_LOG_ERROR, "Parse response %s failed.", pCmdType->GetText());
+        return -1;
+    }
+
+    return AS_ERROR_CODE_OK;
+}
+
+int32_t CManscdp::parseQueryCatalog(const XMLElement &rRoot)
+{
+    const XMLElement* pDeviceList = rRoot.FirstChildElement("DeviceList");
+    if (NULL == pDeviceList)
+    {
+        AS_LOG(AS_LOG_ERROR, "Parse response failed. Can't find 'DeviceList'.");
+        return AS_ERROR_CODE_FAIL;
+    }
+
+    int32_t nDeviceNum = 0;
+    int32_t nReulst = pDeviceList->QueryIntAttribute("Num", &nDeviceNum);
+    if (XML_SUCCESS != nReulst)
+    {
+        AS_LOG(AS_LOG_ERROR, "Parse Num of DeviceList failed, error code is %d.", nReulst);
+        return AS_ERROR_CODE_FAIL;
+    }
+
+    if (0 >= nDeviceNum)
+    {
+        AS_LOG(AS_LOG_INFO, "Num of DeviceList is 0.");
+        return AS_ERROR_CODE_OK;
+    }
+
+    int32_t nItemNum = 0;
+    const XMLElement* pItem = pDeviceList->FirstChildElement("Item");
+    while (NULL != pItem)
+    {
+        nReulst = parseDeviceItem(*pItem);
+        if (0 != nReulst)
+        {
+            AS_LOG(AS_LOG_ERROR, "Parse item of device list failed.");
+            return AS_ERROR_CODE_FAIL;
+        }
+
+        nItemNum++;
+        pItem = pItem->NextSiblingElement();
+    }
+
+    if (nDeviceNum != nItemNum)
+    {
+        AS_LOG(AS_LOG_ERROR, "Real item num(%d) of device list is not the same as num(%d) of device list.",
+            nItemNum, nDeviceNum);
+        return AS_ERROR_CODE_FAIL;
+    }
+
+    return AS_ERROR_CODE_OK;
+}
+
+int32_t CManscdp::parseDeviceItem(const XMLElement &rItem)
+{
+    const XMLElement* pDeviceID = rItem.FirstChildElement("DeviceID");
+    if (NULL == pDeviceID)
+    {
+        AS_LOG(AS_LOG_ERROR, "Parse response failed. Can't find 'DeviceID' of 'Item'.");
+        return AS_ERROR_CODE_FAIL;
+    }
+
+    const XMLElement* pName = rItem.FirstChildElement("Name");
+    if (NULL == pName)
+    {
+        AS_LOG(AS_LOG_ERROR, "Parse response failed. Can't find 'Name' of 'Item'.");
+        return AS_ERROR_CODE_FAIL;
+    }
+
+    const XMLElement* pManufacturer = rItem.FirstChildElement("Manufacturer");
+    if (NULL == pManufacturer)
+    {
+        AS_LOG(AS_LOG_ERROR, "Parse response failed. Can't find 'Manufacturer' of 'Item'.");
+        return AS_ERROR_CODE_FAIL;
+    }
+
+    const XMLElement* pModel = rItem.FirstChildElement("Model");
+    if (NULL == pModel)
+    {
+        AS_LOG(AS_LOG_ERROR, "Parse response failed. Can't find 'Model' of 'Item'.");
+        return AS_ERROR_CODE_FAIL;
+    }
+
+    const XMLElement* pStatus = rItem.FirstChildElement("Status");
+    if (NULL == pStatus)
+    {
+        AS_LOG(AS_LOG_ERROR, "Parse response failed. Can't find 'Status' of 'Item'.");
+        return AS_ERROR_CODE_FAIL;
+    }
+    /*
+    SVS_DEVICE_INFO stDeviceInfo;
+    stDeviceInfo.eDeviceType = SVS_DEV_TYPE_GB28181;
+    stDeviceInfo.eDeviceStatus = (0 == strcmp(pStatus->GetText(), "ON"))
+                                ? SVS_DEV_STATUS_ONLINE
+                                : SVS_DEV_STATUS_OFFLINE;
+    strncpy(stDeviceInfo.szDeviceID, pDeviceID->GetText(), sizeof(stDeviceInfo.szDeviceID) - 1);
+    strncpy(stDeviceInfo.szDeviceName, pName->GetText(), sizeof(stDeviceInfo.szDeviceName) - 1);
+
+    int32_t nResult = IAccessControlManager::instance().notifyDeviceInfo(stDeviceInfo);
+    if (0 != nResult)
+    {
+        AS_LOG(AS_LOG_ERROR, "Notfiy device info failed.");
+        return -1;
+    }*/
+
+    return AS_ERROR_CODE_OK;
+}
+
+int32_t CManscdp::createQueryCatalog()
+{
+    try
+    {
+        XMLDeclaration *declare = m_objXmlDoc.NewDeclaration();
+        m_objXmlDoc.LinkEndChild(declare);
+
+        XMLElement *xmlQuery = m_objXmlDoc.NewElement("Query");
+        m_objXmlDoc.LinkEndChild(xmlQuery);
+
+        XMLElement *xmlCmdType = m_objXmlDoc.NewElement("CmdType");
+        xmlCmdType->SetText("Catalog");
+        xmlQuery->LinkEndChild(xmlCmdType);
+
+        XMLElement *xmlSN = m_objXmlDoc.NewElement("SN");
+        xmlSN->SetText("17430");
+        xmlQuery->LinkEndChild(xmlSN);
+
+        XMLElement *xmlDeviceID = m_objXmlDoc.NewElement("DeviceID");
+        xmlSN->SetText("34020000001320000001");
+        xmlQuery->LinkEndChild(xmlDeviceID);
+    }
+    catch(...)
+    {
+        AS_LOG(AS_LOG_ERROR, "Create query catalog xml failed.");
+        return -1;
+    }
+
+    return 0;
+}
 
 
 
-ASRtspGuardManager::ASRtspGuardManager()
+
+ASCameraSvrManager::ASCameraSvrManager()
 {
     m_ulTdIndex        = 0;
     m_LoopWatchVar     = 0;
     m_ulRecvBufSize    = RTSP_SOCKET_RECV_BUFFER_SIZE_DEFAULT;
     m_HttpThreadHandle = NULL;
-    m_CheckThreadHandle= NULL;
+    m_SipThreadHandle  = NULL;
     m_httpBase         = NULL;
     m_httpServer       = NULL;
     m_httpListenPort   = GW_SERVER_PORT_DEFAULT;
@@ -1234,66 +1438,67 @@ ASRtspGuardManager::ASRtspGuardManager()
     memset(m_envArray,0,sizeof(UsageEnvironment*)*RTSP_MANAGE_ENV_MAX_COUNT);
     memset(m_clCountArray,0,sizeof(u_int32_t)*RTSP_MANAGE_ENV_MAX_COUNT);
     m_ulLogLM          = AS_LOG_WARNING;
-    m_strAppID         = "";
-    m_strAppSecret     = "";
-    m_strAppKey        = "";
-    m_strAppKey        = "";
-    m_ulRtspHandlCount = 0;
 }
 
-ASRtspGuardManager::~ASRtspGuardManager()
+ASCameraSvrManager::~ASCameraSvrManager()
 {
 }
 
-int32_t ASRtspGuardManager::init()
+int32_t ASCameraSvrManager::init()
 {
-    AS_LOG(AS_LOG_DEBUG,"ASRtspGuardManager::init begin");
-    /* read the system config file */
-    if (AS_ERROR_CODE_OK != read_system_conf()) {
-        AS_LOG(AS_LOG_ERROR,"ASRtspGuardManager::init ,read system conf fail");
+    AS_LOG(AS_LOG_DEBUG,"ASCameraSvrManager::init begin");
+    /* read the config file */
+    if (AS_ERROR_CODE_OK != read_conf()) {
+        AS_LOG(AS_LOG_ERROR,"ASCameraSvrManager::init ,read conf fail");
+        return AS_ERROR_CODE_FAIL;
+    }
+
+    /* start the log module */
+    ASSetLogLevel(m_ulLogLM);
+    ASSetLogFilePathName(CAMERASVR_LOG_FILE);
+    ASStartLog();
+
+    /* init the sip service */
+    if (AS_ERROR_CODE_OK != init_Exosip()) {
+        AS_LOG(AS_LOG_ERROR,"ASCameraSvrManager::init ,init sip fail");
         return AS_ERROR_CODE_FAIL;
     }
 
     event_init();
 
-    /* start the log module */
-    ASSetLogLevel(m_ulLogLM);
-    ASSetLogFilePathName(RTSPGUARS_LOG_FILE);
-    ASStartLog();
-
 
     m_mutex = as_create_mutex();
     if(NULL == m_mutex) {
-        AS_LOG(AS_LOG_ERROR,"ASRtspGuardManager::init ,create mutex fail");
+        AS_LOG(AS_LOG_ERROR,"ASCameraSvrManager::init ,create mutex fail");
         return AS_ERROR_CODE_FAIL;
     }
 
-    AS_LOG(AS_LOG_DEBUG,"ASRtspGuardManager::init end");
+    AS_LOG(AS_LOG_DEBUG,"ASCameraSvrManager::init end");
 
     return AS_ERROR_CODE_OK;
 }
-void    ASRtspGuardManager::release()
+void    ASCameraSvrManager::release()
 {
-    AS_LOG(AS_LOG_DEBUG,"ASRtspGuardManager::release begin");
+    AS_LOG(AS_LOG_DEBUG,"ASCameraSvrManager::release begin");
     m_LoopWatchVar = 1;
     as_destroy_mutex(m_mutex);
     m_mutex = NULL;
     ASStopLog();
-    AS_LOG(AS_LOG_DEBUG,"ASRtspGuardManager::release end");
+    AS_LOG(AS_LOG_DEBUG,"ASCameraSvrManager::release end");
 }
 
-int32_t ASRtspGuardManager::open()
+int32_t ASCameraSvrManager::open()
 {
     // Begin by setting up our usage environment:
     u_int32_t i = 0;
 
-    AS_LOG(AS_LOG_DEBUG,"ASRtspGuardManager::open begin.");
+    AS_LOG(AS_LOG_DEBUG,"ASCameraSvrManager::open begin.");
 
     m_LoopWatchVar = 0;
     /* start the http server deal thread */
     if (AS_ERROR_CODE_OK != as_create_thread((AS_THREAD_FUNC)http_env_invoke,
         this, &m_HttpThreadHandle, AS_DEFAULT_STACK_SIZE)) {
-        AS_LOG(AS_LOG_ERROR,"ASRtspGuardManager::open,create the http server thread fail.");
+        AS_LOG(AS_LOG_ERROR,"ASCameraSvrManager::open,create the http server thread fail.");
         return AS_ERROR_CODE_FAIL;
     }
 
@@ -1306,79 +1511,58 @@ int32_t ASRtspGuardManager::open()
     for(i = 0;i < RTSP_MANAGE_ENV_MAX_COUNT;i++) {
         if( AS_ERROR_CODE_OK != as_create_thread((AS_THREAD_FUNC)rtsp_env_invoke,
                                                  this,&m_ThreadHandle[i],AS_DEFAULT_STACK_SIZE)) {
-            AS_LOG(AS_LOG_ERROR,"ASRtspGuardManager::open,create the rtsp server thread fail.");
+            AS_LOG(AS_LOG_ERROR,"ASCameraSvrManager::open,create the rtsp server thread fail.");
             return AS_ERROR_CODE_FAIL;
         }
 
     }
 
-    /* start check task thread */
-    if (AS_ERROR_CODE_OK != as_create_thread((AS_THREAD_FUNC)check_task_invoke,
-        this, &m_CheckThreadHandle, AS_DEFAULT_STACK_SIZE)) {
-        AS_LOG(AS_LOG_ERROR,"ASRtspGuardManager::open,create the task check thread fail.");
+    /* start the notify deal thread */
+    if (AS_ERROR_CODE_OK != as_create_thread((AS_THREAD_FUNC)notify_evn_invoke,
+        this, &m_notifyThreadHandle, AS_DEFAULT_STACK_SIZE)) {
+        AS_LOG(AS_LOG_ERROR,"ASCameraSvrManager::open,create the notify deal thread fail.");
         return AS_ERROR_CODE_FAIL;
     }
 
-    AS_LOG(AS_LOG_DEBUG,"ASRtspGuardManager::open end.");
+    /* start sip deal thread */
+    if (AS_ERROR_CODE_OK != as_create_thread((AS_THREAD_FUNC)sip_evn_invoke,
+        this, &m_SipThreadHandle, AS_DEFAULT_STACK_SIZE)) {
+        AS_LOG(AS_LOG_ERROR,"ASCameraSvrManager::open,create the sip deal thread fail.");
+        return AS_ERROR_CODE_FAIL;
+    }
+
+    AS_LOG(AS_LOG_DEBUG,"ASCameraSvrManager::open end.");
     return 0;
 }
 
-void ASRtspGuardManager::close()
+void ASCameraSvrManager::close()
 {
-    AS_LOG(AS_LOG_DEBUG,"ASRtspGuardManager::close.");
+    AS_LOG(AS_LOG_DEBUG,"ASCameraSvrManager::close.");
     m_LoopWatchVar = 1;
 
     return;
 }
-AS_HANDLE ASRtspGuardManager::openURL(char const* rtspURL,ASRtspStatusObervser* observer)
+
+int32_t ASCameraSvrManager::read_conf()
 {
-    as_mutex_lock(m_mutex);
-    UsageEnvironment* env = NULL;
-    u_int32_t index =  0;
-
-
-    index = find_beast_thread();
-    env = m_envArray[index];
-    AS_LOG(AS_LOG_INFO,"ASRtspGuardManager::openURL:[%s],envIndex:[%d].",rtspURL,index);
-
-    ASRtspCheckChannel* rtspClient = ASRtspCheckChannel::createNew(index,*env, rtspURL,
-                                    RTSP_CLIENT_VERBOSITY_LEVEL, RTSP_AGENT_NAME);
-    if (rtspClient == NULL) {
-        AS_LOG(AS_LOG_WARNING,"ASRtspGuardManager::openURL,create new client fail,url:[%s].",rtspURL);
-        as_mutex_unlock(m_mutex);
-        return NULL;
+    if(AS_ERROR_CODE_OK != read_system_conf()) {
+        return AS_ERROR_CODE_FAIL;
+    }
+     if(AS_ERROR_CODE_OK != read_sip_conf()) {
+        return AS_ERROR_CODE_FAIL;
     }
 
-    m_clCountArray[index]++;
-    m_ulRtspHandlCount++;
-
-    ASRtspCheckChannel* AsRtspClient = (ASRtspCheckChannel*)rtspClient;
-    AsRtspClient->open(RTSP_CLINET_RUN_DURATION,observer);
-    as_mutex_unlock(m_mutex);
-    AS_LOG(AS_LOG_DEBUG,"ASRtspGuardManager::openURL end.");
-    return (AS_HANDLE)AsRtspClient;
-}
-void      ASRtspGuardManager::closeURL(AS_HANDLE handle)
-{
-    as_mutex_lock(m_mutex);
-    ASRtspCheckChannel* pAsRtspClient = (ASRtspCheckChannel*)handle;
-
-    u_int32_t index = pAsRtspClient->index();
-    m_clCountArray[index]--;
-    m_ulRtspHandlCount--;
-    pAsRtspClient->close();
-    AS_LOG(AS_LOG_DEBUG,"ASRtspGuardManager::closeURL,envIndex:[%d].",index);
-    as_mutex_unlock(m_mutex);
+    return AS_ERROR_CODE_OK;
 }
 
 
-int32_t ASRtspGuardManager::read_system_conf()
+int32_t ASCameraSvrManager::read_system_conf()
 {
     as_ini_config config;
     std::string   strValue="";
-    if(INI_SUCCESS != config.ReadIniFile(RTSPGUARS_CONF_FILE))
+    if(INI_SUCCESS != config.ReadIniFile(CAMERASVR_CONF_FILE))
     {
-        AS_LOG(AS_LOG_ERROR,"ASRtspGuardManager::read_system_conf,load conf file fail.");
+        AS_LOG(AS_LOG_ERROR,"ASCameraSvrManager::read_system_conf,load conf file fail.");
         return AS_ERROR_CODE_FAIL;
     }
 
@@ -1387,92 +1571,62 @@ int32_t ASRtspGuardManager::read_system_conf()
     {
         m_ulLogLM = atoi(strValue.c_str());
     }
-
-    /* http listen port */
-    if(INI_SUCCESS == config.GetValue("LISTEN_PORT","ListenPort",strValue))
-    {
-        m_httpListenPort = atoi(strValue.c_str());
-    }
-
-    /* ACS AppID */
-    if(INI_SUCCESS == config.GetValue("ACS_CFG","AppID",strValue))
-    {
-        m_strAppID = strValue;
-    }
-    /* ACS AppSecret */
-    if(INI_SUCCESS == config.GetValue("ACS_CFG","AppSecret",strValue))
-    {
-        m_strAppSecret = strValue;
-    }
-    /* ACS AppKey */
-    if(INI_SUCCESS == config.GetValue("ACS_CFG","AppKey",strValue))
-    {
-        m_strAppKey = strValue;
-    }
-    /* ACS UserName */
-    if(INI_SUCCESS == config.GetValue("ACS_CFG","UserName",strValue))
-    {
-        m_strUserName = strValue;
-    }
-    /* ACS Password */
-    if(INI_SUCCESS == config.GetValue("ACS_CFG","Password",strValue))
-    {
-        m_strPassword = strValue;
-    }
-    /* ACS CallUrl */
-    if(INI_SUCCESS == config.GetValue("ACS_CFG","CallUrl",strValue))
-    {
-        m_strLiveUrl = strValue;
-    }
     return AS_ERROR_CODE_OK;
 }
 
-void  ASRtspGuardManager::http_callback(struct evhttp_request *req, void *arg)
+void  ASCameraSvrManager::http_callback(struct evhttp_request *req, void *arg)
 {
-    ASRtspGuardManager* pManage = (ASRtspGuardManager*)arg;
+    ASCameraSvrManager* pManage = (ASCameraSvrManager*)arg;
     pManage->handle_http_req(req);
 }
 
-void *ASRtspGuardManager::http_env_invoke(void *arg)
+void *ASCameraSvrManager::http_env_invoke(void *arg)
 {
-    ASRtspGuardManager* manager = (ASRtspGuardManager*)(void*)arg;
+    ASCameraSvrManager* manager = (ASCameraSvrManager*)(void*)arg;
     manager->http_env_thread();
     return NULL;
 }
 
-void *ASRtspGuardManager::rtsp_env_invoke(void *arg)
+void *ASCameraSvrManager::rtsp_env_invoke(void *arg)
 {
-    ASRtspGuardManager* manager = (ASRtspGuardManager*)(void*)arg;
+    ASCameraSvrManager* manager = (ASCameraSvrManager*)(void*)arg;
     manager->rtsp_env_thread();
     return NULL;
 }
-void *ASRtspGuardManager::check_task_invoke(void *arg)
+void *ASCameraSvrManager::sip_evn_invoke(void *arg)
 {
-    ASRtspGuardManager* manager = (ASRtspGuardManager*)(void*)arg;
-    manager->check_task_thread();
+    ASCameraSvrManager* manager = (ASCameraSvrManager*)(void*)arg;
+    manager->sip_env_thread();
+    return NULL;
+}
+void *ASCameraSvrManager::notify_evn_invoke(void *arg)
+{
+    ASCameraSvrManager* manager = (ASCameraSvrManager*)(void*)arg;
+    manager->notify_env_thread();
     return NULL;
 }
 
-void ASRtspGuardManager::http_env_thread()
+
+void ASCameraSvrManager::http_env_thread()
 {
-    AS_LOG(AS_LOG_DEBUG,"ASRtspGuardManager::http_env_thread begin.");
+    AS_LOG(AS_LOG_DEBUG,"ASCameraSvrManager::http_env_thread begin.");
     m_httpBase = event_base_new();
     if (NULL == m_httpBase)
     {
-        AS_LOG(AS_LOG_CRITICAL,"ASRtspGuardManager::http_env_thread,create the event base fail.");
+        AS_LOG(AS_LOG_CRITICAL,"ASCameraSvrManager::http_env_thread,create the event base fail.");
         return;
     }
     m_httpServer = evhttp_new(m_httpBase);
     if (NULL == m_httpServer)
     {
-        AS_LOG(AS_LOG_CRITICAL,"ASRtspGuardManager::http_env_thread,create the http base fail.");
+        AS_LOG(AS_LOG_CRITICAL,"ASCameraSvrManager::http_env_thread,create the http base fail.");
         return;
     }
 
     int ret = evhttp_bind_socket(m_httpServer, GW_SERVER_ADDR, m_httpListenPort);
     if (0 != ret)
     {
-        AS_LOG(AS_LOG_CRITICAL,"ASRtspGuardManager::http_env_thread,bind the http socket fail.");
+        AS_LOG(AS_LOG_CRITICAL,"ASCameraSvrManager::http_env_thread,bind the http socket fail.");
         return;
     }
 
@@ -1480,13 +1634,13 @@ void ASRtspGuardManager::http_env_thread()
     evhttp_set_gencb(m_httpServer, http_callback, this);
     event_base_dispatch(m_httpBase);
 
-    AS_LOG(AS_LOG_DEBUG,"ASRtspGuardManager::http_env_thread end.");
+    AS_LOG(AS_LOG_DEBUG,"ASCameraSvrManager::http_env_thread end.");
     return;
 }
-void ASRtspGuardManager::rtsp_env_thread()
+void ASCameraSvrManager::rtsp_env_thread()
 {
     u_int32_t index = thread_index();
-    AS_LOG(AS_LOG_DEBUG,"ASRtspGuardManager::rtsp_env_thread,index:[%d] begin.",index);
+    AS_LOG(AS_LOG_DEBUG,"ASCameraSvrManager::rtsp_env_thread,index:[%d] begin.",index);
 
     TaskScheduler* scheduler = NULL;
     UsageEnvironment* env = NULL;
@@ -1511,23 +1665,67 @@ void ASRtspGuardManager::rtsp_env_thread()
     scheduler = NULL;
     m_envArray[index] = NULL;
     m_clCountArray[index] = 0;
-    AS_LOG(AS_LOG_ERROR,"ASRtspGuardManager::rtsp_env_thread,index:[%d] end.",index);
+    AS_LOG(AS_LOG_ERROR,"ASCameraSvrManager::rtsp_env_thread,index:[%d] end.",index);
     return;
 }
 
-void ASRtspGuardManager::check_task_thread()
+void ASCameraSvrManager::sip_env_thread()
 {
-    AS_LOG(AS_LOG_DEBUG,"ASRtspGuardManager::check_task_thread begin.");
+    AS_LOG(AS_LOG_DEBUG,"ASCameraSvrManager::sip_env_thread begin.");
+
+    eXosip_event_t *pEvent = NULL;
+
+    while (0 == m_LoopWatchVar)
+    {
+        pEvent = eXosip_event_wait(m_pEXosipCtx, 0, 100);
+        if (NULL == pEvent)
+        {
+            continue;
+        }
+
+        int32_t nResult = 0;
+
+        switch (pEvent->type)
+        {
+        case EXOSIP_MESSAGE_NEW:
+            AS_LOG(AS_LOG_INFO, "receivce message %s.", pEvent->request->sip_method);
+
+            if (MSG_IS_REGISTER(pEvent->request))
+            {
+                nResult = handleRegisterReq(*pEvent);
+            }
+            else if (MSG_IS_MESSAGE(pEvent->request))
+            {
+                nResult = handleMessageReq(*pEvent);
+            }
+            break;
+        default:
+            AS_LOG(AS_LOG_INFO, "eXosip_event_wait OK. type is %d.", pEvent->type);
+            break;
+        }
+
+        if (0 != nResult)
+        {
+            AS_LOG(AS_LOG_ERROR, "Handle %s failed.", pEvent->request->sip_method);
+        }
+
+        eXosip_event_free(pEvent);
+    }
+    AS_LOG(AS_LOG_ERROR,"ASCameraSvrManager::sip_env_thread end.");
+}
+void ASCameraSvrManager::notify_env_thread()
+{
+    AS_LOG(AS_LOG_DEBUG,"ASCameraSvrManager::notify_env_thread begin.");
     while(0 == m_LoopWatchVar)
     {
         as_sleep(GW_TIMER_CHECK_TASK);
-        check_task_status();
     }
-    AS_LOG(AS_LOG_ERROR,"ASRtspGuardManager::check_task_thread end.");
+    AS_LOG(AS_LOG_ERROR,"ASCameraSvrManager::notify_env_thread end.");
 }
 
 
-u_int32_t ASRtspGuardManager::find_beast_thread()
+
+u_int32_t ASCameraSvrManager::find_beast_thread()
 {
     as_mutex_lock(m_mutex);
     u_int32_t index = 0;
@@ -1541,13 +1739,13 @@ u_int32_t ASRtspGuardManager::find_beast_thread()
     as_mutex_unlock(m_mutex);
     return index;
 }
-UsageEnvironment* ASRtspGuardManager::get_env(u_int32_t index)
+UsageEnvironment* ASCameraSvrManager::get_env(u_int32_t index)
 {
     UsageEnvironment* env = m_envArray[index];
     m_clCountArray[index]++;
     return env;
 }
-void ASRtspGuardManager::releas_env(u_int32_t index)
+void ASCameraSvrManager::releas_env(u_int32_t index)
 {
     if (0 == m_clCountArray[index])
     {
@@ -1557,9 +1755,9 @@ void ASRtspGuardManager::releas_env(u_int32_t index)
 }
 
 
-void ASRtspGuardManager::handle_http_req(struct evhttp_request *req)
+void ASCameraSvrManager::handle_http_req(struct evhttp_request *req)
 {
-    AS_LOG(AS_LOG_DEBUG, "ASRtspGuardManager::handle_http_req begin");
+    AS_LOG(AS_LOG_DEBUG, "ASCameraSvrManager::handle_http_req begin");
 
     if (NULL == req)
     {
@@ -1573,7 +1771,7 @@ void ASRtspGuardManager::handle_http_req(struct evhttp_request *req)
          evhttp_send_error(req, 404, "service was not found!");
          return;
     }
-    AS_LOG(AS_LOG_DEBUG, "ASRtspGuardManager::handle_http_req request path[%s].", uri_str.c_str());
+    AS_LOG(AS_LOG_DEBUG, "ASCameraSvrManager::handle_http_req request path[%s].", uri_str.c_str());
 
     evbuffer *pbuffer = req->input_buffer;
     string post_str;
@@ -1585,7 +1783,7 @@ void ASRtspGuardManager::handle_http_req(struct evhttp_request *req)
         post_str.append(szBuf, n);
     }
 
-    AS_LOG(AS_LOG_INFO, "ASRtspGuardManager::handle_http_req, msg[%s]", post_str.c_str());
+    AS_LOG(AS_LOG_INFO, "ASCameraSvrManager::handle_http_req, msg[%s]", post_str.c_str());
 
     std::string strResp = "";
     if(AS_ERROR_CODE_OK != handle_check(post_str,strResp))
@@ -1603,17 +1801,17 @@ void ASRtspGuardManager::handle_http_req(struct evhttp_request *req)
 
     evhttp_send_reply(req, HTTP_OK, "OK", evbuf);
     evbuffer_free(evbuf);
-    AS_LOG(AS_LOG_DEBUG, "ASRtspGuardManager::handle_http_req end");
+    AS_LOG(AS_LOG_DEBUG, "ASCameraSvrManager::handle_http_req end");
 }
 
 
-int32_t ASRtspGuardManager::handle_check(std::string &strReqMsg,std::string &strRespMsg)
+int32_t ASCameraSvrManager::handle_check(std::string &strReqMsg,std::string &strRespMsg)
 {
     std::string strCheckID  = "";
 
     int32_t ret = AS_ERROR_CODE_OK;
 
-    AS_LOG(AS_LOG_INFO, "ASRtspGuardManager::handle_check,msg:[%s].",strReqMsg.c_str());
+    AS_LOG(AS_LOG_INFO, "ASCameraSvrManager::handle_check,msg:[%s].",strReqMsg.c_str());
 
 
 
@@ -1621,29 +1819,31 @@ int32_t ASRtspGuardManager::handle_check(std::string &strReqMsg,std::string &str
     XMLError xmlerr = doc.Parse(strReqMsg.c_str(),strReqMsg.length());
     if(XML_SUCCESS != xmlerr)
     {
-        AS_LOG(AS_LOG_WARNING, "ASRtspGuardManager::handle_check,parse xml msg:[%s] fail.",strReqMsg.c_str());
+        AS_LOG(AS_LOG_WARNING, "ASCameraSvrManager::handle_check,parse xml msg:[%s] fail.",strReqMsg.c_str());
         return AS_ERROR_CODE_FAIL;
     }
 
     XMLElement *req = doc.RootElement();
     if(NULL == req)
     {
-        AS_LOG(AS_LOG_WARNING, "ASRtspGuardManager::handle_check,get xml req node fail.");
+        AS_LOG(AS_LOG_WARNING, "ASCameraSvrManager::handle_check,get xml req node fail.");
         return AS_ERROR_CODE_FAIL;
     }
 
     XMLElement *check = req->FirstChildElement("check");
     if(NULL == check)
     {
-        AS_LOG(AS_LOG_WARNING, "ASRtspGuardManager::handle_check,get xml session node fail.");
+        AS_LOG(AS_LOG_WARNING, "ASCameraSvrManager::handle_check,get xml session node fail.");
         return AS_ERROR_CODE_FAIL;
     }
+
+
 
 
     const char* checkid = check->Attribute("checkid");
     if(NULL == checkid)
     {
-        AS_LOG(AS_LOG_WARNING, "ASRtspGuardManager::handle_check,get xml check id fail.");
+        AS_LOG(AS_LOG_WARNING, "ASCameraSvrManager::handle_check,get xml check id fail.");
         return AS_ERROR_CODE_FAIL;
     }
     strCheckID = checkid;
@@ -1676,10 +1876,10 @@ int32_t ASRtspGuardManager::handle_check(std::string &strReqMsg,std::string &str
     resp.Accept(&printer);
     strRespMsg = printer.CStr();
 
-    AS_LOG(AS_LOG_DEBUG, "ASRtspGuardManager::handle_session,end");
+    AS_LOG(AS_LOG_DEBUG, "ASCameraSvrManager::handle_session,end");
     return AS_ERROR_CODE_OK;
 }
-int32_t ASRtspGuardManager::handle_check_task(const XMLElement *check)
+int32_t ASCameraSvrManager::handle_check_task(const XMLElement *check)
 {
     std::string strReportURL  = "";
     std::string strCheckID    = "";
@@ -1698,7 +1898,7 @@ int32_t ASRtspGuardManager::handle_check_task(const XMLElement *check)
    const XMLElement *report = check->FirstChildElement("report");
     if(NULL == report)
     {
-        AS_LOG(AS_LOG_INFO, "ASRtspGuardManager::handle_check_task,get xml report node fail.");
+        AS_LOG(AS_LOG_INFO, "ASCameraSvrManager::handle_check_task,get xml report node fail.");
         return AS_ERROR_CODE_FAIL;
     }
     //const char* interval = report->Attribute("interval");
@@ -1715,14 +1915,14 @@ int32_t ASRtspGuardManager::handle_check_task(const XMLElement *check)
     const XMLElement *CameraList = check->FirstChildElement("cameralist");
     if(NULL == CameraList)
     {
-        AS_LOG(AS_LOG_WARNING, "ASRtspGuardManager::handle_check_task,get xml cameralist node fail.");
+        AS_LOG(AS_LOG_WARNING, "ASCameraSvrManager::handle_check_task,get xml cameralist node fail.");
         return AS_ERROR_CODE_FAIL;
     }
 
     task = AS_NEW(task);
     if(NULL == task)
     {
-        AS_LOG(AS_LOG_WARNING, "ASRtspGuardManager::handle_check_task,create task fail.");
+        AS_LOG(AS_LOG_WARNING, "ASCameraSvrManager::handle_check_task,create task fail.");
         return AS_ERROR_CODE_FAIL;
     }
 
@@ -1754,49 +1954,420 @@ int32_t ASRtspGuardManager::handle_check_task(const XMLElement *check)
     }
 
 
-    AS_LOG(AS_LOG_INFO, "ASRtspGuardManager::handle_check_task,CheckID:[%s],camera count:[%d].",
+    AS_LOG(AS_LOG_INFO, "ASCameraSvrManager::handle_check_task,CheckID:[%s],camera count:[%d].",
         strCheckID.c_str(), count);
 
     as_lock_guard locker(m_mutex);
-    m_TaskList.push_back(task);
 
-    AS_LOG(AS_LOG_DEBUG, "ASRtspGuardManager::handle_check_task,end");
+    AS_LOG(AS_LOG_DEBUG, "ASCameraSvrManager::handle_check_task,end");
     return AS_ERROR_CODE_OK;
 }
 
-void  ASRtspGuardManager::check_task_status()
+void  ASCameraSvrManager::check_task_status()
 {
     ASRtspCheckTask* task     = NULL;
 
     as_lock_guard locker(m_mutex);
-    AS_LOG(AS_LOG_INFO, "ASRtspGuardManager::check_task_status,size:[%d] begin.",m_TaskList.size());
-    ASCHECKTASKLISTITER iter = m_TaskList.begin();
-    for(; iter != m_TaskList.end();)
-    {
-        task = *iter;
-        task->checkTask();
+    AS_LOG(AS_LOG_INFO, "ASCameraSvrManager::check_task_status begin.");
 
-        if(AS_RTSP_CHECK_STATUS_END == task->TaskStatus())
-        {
-            iter = m_TaskList.erase(iter);
-            AS_DELETE(task);
-        }
-        else
-        {
-            ++iter;
-        }
-    }
-    AS_LOG(AS_LOG_DEBUG, "ASRtspGuardManager::check_task_status,end");
+    AS_LOG(AS_LOG_DEBUG, "ASCameraSvrManager::check_task_status,end");
 }
 
 
-void ASRtspGuardManager::setRecvBufSize(u_int32_t ulSize)
+void ASCameraSvrManager::setRecvBufSize(u_int32_t ulSize)
 {
     m_ulRecvBufSize = ulSize;
 }
-u_int32_t ASRtspGuardManager::getRecvBufSize()
+u_int32_t ASCameraSvrManager::getRecvBufSize()
 {
     return m_ulRecvBufSize;
+}
+
+/*************************************SIP**********************************************************/
+int32_t ASCameraSvrManager::read_sip_conf()
+{
+    as_ini_config config;
+    std::string   strValue="";
+    if(INI_SUCCESS != config.ReadIniFile(CAMERASVR_CONF_FILE))
+    {
+        return AS_ERROR_CODE_FAIL;
+    }
+
+    /* Sip LocalIP */
+    if(INI_SUCCESS == config.GetValue("SIP_CFG","LocalIP",strValue))
+    {
+        m_strLocalIP = strValue;
+    }
+    /* Sip SipPort */
+    if(INI_SUCCESS == config.GetValue("SIP_CFG","SipPort",strValue))
+    {
+        m_usPort = atoi(strValue.c_str());
+    }
+    /* Sip FireWallIP */
+    if(INI_SUCCESS == config.GetValue("SIP_CFG","FireWallIP",strValue))
+    {
+        m_strFireWallIP = strValue;
+    }
+    /* Sip Transport */
+    if(INI_SUCCESS == config.GetValue("SIP_CFG","Transport",strValue))
+    {
+        m_strTransPort = strValue;
+    }
+    /* Sip ProxyAddress */
+    if(INI_SUCCESS == config.GetValue("SIP_CFG","ProxyAddress",strValue))
+    {
+        m_strProxyAddr = strValue;
+    }
+    /* Sip ProxyPort */
+    if(INI_SUCCESS == config.GetValue("SIP_CFG","ProxyPort",strValue))
+    {
+        m_usProxyPort = atoi(strValue.c_str());
+    }
+    return AS_ERROR_CODE_OK;
+}
+
+void ASCameraSvrManager::osip_trace_log_callback(char *fi, int li, osip_trace_level_t level, char *chfr, va_list ap)
+{
+    char szLogTmp[ORTP_LOG_LENS_MAX] = { 0 };
+#if AS_APP_OS == AS_OS_LINUX
+    (void)::vsnprintf(szLogTmp, ORTP_LOG_LENS_MAX, chfr, ap);
+#elif AS_APP_OS == AS_OS_WIN32
+    (void)::_vsnprintf(szLogTmp, ORTP_LOG_LENS_MAX, chfr, ap);
+#endif
+    if (OSIP_BUG == level || OSIP_INFO1 == level || OSIP_INFO2 == level
+        || OSIP_INFO3 == level || OSIP_INFO4 == level) {
+        AS_LOG(AS_LOG_DEBUG, "osip:[%s:%d][%s]", fi, li,szLogTmp);
+    }
+    else if (OSIP_WARNING == level) {
+        AS_LOG(AS_LOG_WARNING, "osip:[%s:%d][%s]", fi, li, szLogTmp);
+    }
+    else if (OSIP_ERROR == level) {
+        AS_LOG(AS_LOG_ERROR, "osip:[%s:%d][%s]", fi, li, szLogTmp);
+    }
+    else if (OSIP_FATAL == level) {
+        AS_LOG(AS_LOG_CRITICAL, "osip:[%s:%d][%s]", fi, li, szLogTmp);
+    }
+    else {
+        AS_LOG(AS_LOG_DEBUG, "osip:[%s:%d][%s]", fi, li, szLogTmp);
+    }
+}
+
+
+int32_t ASCameraSvrManager::init_Exosip()
+{
+    osip_trace_level_t oSipLogLevel = OSIP_WARNING;
+
+    if (AS_LOG_DEBUG == m_ulLogLM) {
+        oSipLogLevel = OSIP_INFO4;
+    }
+    else if (AS_LOG_INFO == m_ulLogLM) {
+        oSipLogLevel = OSIP_INFO3;
+    }
+    else if (AS_LOG_NOTICE == m_ulLogLM) {
+        oSipLogLevel = OSIP_INFO1;
+    }
+    else if (AS_LOG_WARNING == m_ulLogLM) {
+        oSipLogLevel = OSIP_WARNING;
+    }
+    else if (AS_LOG_ERROR == m_ulLogLM) {
+        oSipLogLevel = OSIP_ERROR;
+    }
+    else if (AS_LOG_CRITICAL == m_ulLogLM) {
+        oSipLogLevel = OSIP_BUG;
+    }
+    else if (AS_LOG_ALERT == m_ulLogLM) {
+        oSipLogLevel = OSIP_FATAL;
+    }
+    else if (AS_LOG_EMERGENCY == m_ulLogLM) {
+        oSipLogLevel = OSIP_FATAL;
+    }
+    /* init the sip context */
+    m_pEXosipCtx = eXosip_malloc();
+    TRACE_ENABLE_LEVEL(oSipLogLevel);
+    osip_trace_initialize_func(oSipLogLevel, osip_trace_log_callback);
+    if (eXosip_init (m_pEXosipCtx)) {
+        return AS_ERROR_CODE_FAIL;
+    }
+    int32_t lResult = AS_ERROR_CODE_OK;
+    if (osip_strcasecmp (m_strTransPort.c_str(), "UDP") == 0) {
+        lResult = eXosip_listen_addr (m_pEXosipCtx, IPPROTO_UDP, NULL, m_usPort, AF_INET, 0);
+    }
+    else if (osip_strcasecmp (m_strTransPort.c_str(), "TCP") == 0) {
+        lResult = eXosip_listen_addr (m_pEXosipCtx, IPPROTO_TCP, NULL, m_usPort, AF_INET, 0);
+    }
+    else if (osip_strcasecmp (m_strTransPort.c_str(), "TLS") == 0) {
+        lResult = eXosip_listen_addr (m_pEXosipCtx, IPPROTO_TCP, NULL, m_usPort, AF_INET, 1);
+    }
+    else if (osip_strcasecmp (m_strTransPort.c_str(), "DTLS") == 0) {
+        lResult = eXosip_listen_addr (m_pEXosipCtx, IPPROTO_UDP, NULL, m_usPort, AF_INET, 1);
+    }
+
+    if (lResult) {
+        AS_LOG(AS_LOG_ERROR, "ASCameraSvrManager::Init,sip listens fail.");
+        return AS_ERROR_CODE_FAIL;
+    }
+
+    if (0 < m_strLocalIP.length()) {
+        eXosip_masquerade_contact (m_pEXosipCtx, m_strLocalIP.c_str(), m_usPort);
+    }
+
+    if (0 < m_strFireWallIP.length()) {
+        eXosip_masquerade_contact (m_pEXosipCtx, m_strFireWallIP.c_str(), m_usPort);
+    }
+
+    eXosip_set_user_agent(m_pEXosipCtx, ALLCAM_AGENT_NAME);
+
+    //eXosip_set_proxy_addr(m_pEXosipCtx,(char*)m_strProxyAddr.c_str(), m_usProxyPort);
+    return AS_ERROR_CODE_OK;
+}
+
+int32_t ASCameraSvrManager::send_sip_response(eXosip_event_t& rEvent, int32_t nRespCode)
+{
+    osip_message_t *pAnswer = NULL;
+    int32_t nResult = OSIP_SUCCESS;
+    /*若对pAnswer无特殊处理，eXosip_message_send_answer中会自动调用eXosip_message_build_answer
+    nResult = eXosip_message_build_answer(m_pEXosipCtx, rEvent.tid, nRespCode, &pAnswer);
+    if (OSIP_SUCCESS != nResult)
+    {
+        SVS_LOG((SVS_LM_ERROR, "Build %s response failed, error code is %d.",
+            rEvent.request->sip_method, nResult));
+        return -1;
+    }
+    */
+
+    nResult = eXosip_message_send_answer(m_pEXosipCtx, rEvent.tid, nRespCode, pAnswer);
+    if (OSIP_SUCCESS != nResult)
+    {
+        AS_LOG(AS_LOG_ERROR, "Send %s response failed, error code is %d.",
+            rEvent.request->sip_method, nResult);
+        return -1;
+    }
+
+    AS_LOG(AS_LOG_INFO, "Send %s response success, response code is %d.",
+            rEvent.request->sip_method, nRespCode);
+    return AS_ERROR_CODE_OK;
+}
+
+int32_t ASCameraSvrManager::handleRegisterReq(eXosip_event_t& rEvent)
+{
+    int32_t nResult = 0;
+    int32_t nRespCode = SIP_OK;
+    bool bRegister = false;
+
+    do
+    {
+        //expires字段
+        osip_header_t* pExpires = NULL;
+        osip_message_get_expires(rEvent.request, 0, &pExpires);
+        if (NULL == pExpires)
+        {
+            AS_LOG(AS_LOG_ERROR, "Parse %s expires failed.", rEvent.request->sip_method);
+            nRespCode = SIP_BAD_REQUEST;
+            break;
+        }
+
+        if (pExpires->hvalue[0] != '0') //注册
+        {
+            nResult = handleDeviceRegister(rEvent);
+            bRegister = true;
+        }
+        else    //注销
+        {
+            nResult = handleDeviceUnRegister(rEvent);
+        }
+
+        if (0 != nResult)
+        {
+            nRespCode = SIP_BAD_REQUEST;
+        }
+
+    }while(0);
+
+
+    return AS_ERROR_CODE_OK;
+}
+int32_t ASCameraSvrManager::handleDeviceRegister(eXosip_event_t& rEvent)
+{
+    //contact字段
+    osip_contact_t* pContact = NULL;
+    osip_message_get_contact(rEvent.request, 0, &pContact);
+    if (NULL == pContact)
+    {
+        AS_LOG(AS_LOG_ERROR, "Parse %s contact failed.", rEvent.request->sip_method);
+        send_sip_response(rEvent,SIP_BAD_REQUEST);
+        return AS_ERROR_CODE_FAIL;
+    }
+
+    osip_via_t *pVia = (osip_via_t *)osip_list_get (&rEvent.request->vias, 0);
+    if (NULL == pVia)
+    {
+        AS_LOG(AS_LOG_ERROR, "Parse %s via failed.", rEvent.request->sip_method);
+        send_sip_response(rEvent,SIP_BAD_REQUEST);
+        return AS_ERROR_CODE_FAIL;
+    }
+
+    osip_generic_param_t *pReceived = NULL;
+    osip_generic_param_t *pRport = NULL;
+    osip_via_param_get_byname (pVia, "received", &pReceived);
+    if (NULL != pReceived)
+    {
+        osip_via_param_get_byname (pVia, "rport", &pRport);
+        if (NULL == pRport)
+        {
+            AS_LOG(AS_LOG_ERROR, "Parse %s rport failed.", rEvent.request->sip_method);
+            send_sip_response(rEvent,SIP_BAD_REQUEST);
+            return AS_ERROR_CODE_FAIL;
+        }
+    }
+
+    DEVICE_INFO szDeviceInfo;
+    if (NULL != pReceived)
+    {
+        strncpy(szDeviceInfo.szHost, pReceived->gvalue, sizeof(szDeviceInfo.szHost) - 1);
+        strncpy(szDeviceInfo.szPort, pRport->gvalue, sizeof(szDeviceInfo.szPort) - 1);
+    }
+    else
+    {
+        strncpy(szDeviceInfo.szHost, pContact->url->host, sizeof(szDeviceInfo.szHost) - 1);
+        strncpy(szDeviceInfo.szPort, pContact->url->port, sizeof(szDeviceInfo.szPort) - 1);
+    }
+    strncpy(szDeviceInfo.szUserName, pContact->url->username, sizeof(szDeviceInfo.szUserName) - 1);
+    szDeviceInfo.strTo = szDeviceInfo.strTo + szDeviceInfo.szUserName + "@" + szDeviceInfo.szHost + ":" + szDeviceInfo.szPort;
+
+    {
+        m_devMap[szDeviceInfo.szUserName] = szDeviceInfo;
+    }
+    send_sip_response(rEvent,SIP_OK);
+    AS_LOG(AS_LOG_INFO, "Register new user \"%s\", host is %s, port is %s.",
+            szDeviceInfo.szUserName, szDeviceInfo.szHost, szDeviceInfo.szPort);
+
+    /* send the catalog req */
+    return send_catalog_Req(szDeviceInfo);
+}
+
+int32_t ASCameraSvrManager::handleDeviceUnRegister(eXosip_event_t& rEvent)
+{
+    //contact字段
+    osip_contact_t* pContact = NULL;
+    osip_message_get_contact(rEvent.request, 0, &pContact);
+    if (NULL == pContact)
+    {
+        AS_LOG(AS_LOG_ERROR, "Parse %s contact failed.", rEvent.request->sip_method);
+        return -1;
+    }
+
+    {
+        m_devMap.erase(pContact->url->username);
+    }
+
+    AS_LOG(AS_LOG_INFO, "Unregister user \"%s\".", pContact->url->username);
+    return 0;
+}
+
+int32_t ASCameraSvrManager::handleMessageReq(eXosip_event_t& rEvent)
+{
+
+    int32_t nResult = 0;
+    int32_t nRespCode = SIP_OK;
+
+    do
+    {
+        osip_from_t *pFrom = osip_message_get_from(rEvent.request);
+        if (NULL == pFrom)
+        {
+            AS_LOG(AS_LOG_ERROR, "Parse %s from failed.", rEvent.request->sip_method);
+            nRespCode = SIP_BAD_REQUEST;
+            break;
+        }
+
+        {
+            if (m_devMap.find(pFrom->url->username) == m_devMap.end())
+            {
+                AS_LOG(AS_LOG_INFO, "User \"%s\" hasn't register.", pFrom->url->username);
+                nRespCode = SIP_NOT_FOUND;
+                break;
+            }
+        }
+
+        osip_body_t *pBody = NULL;
+        osip_message_get_body(rEvent.request, 0, &pBody);
+        if (NULL == pBody)
+        {
+            AS_LOG(AS_LOG_ERROR, "Parse %s body failed.", rEvent.request->sip_method);
+            nRespCode = SIP_BAD_REQUEST;
+            break;
+        }
+
+        CManscdp objManscdp;
+        nResult = objManscdp.parse(pBody->body);
+        if (0 != nResult)
+        {
+            AS_LOG(AS_LOG_INFO, "Parse %s body failed, content is %s.", rEvent.request->sip_method, pBody->body);
+            nRespCode = SIP_BAD_REQUEST;
+            break;
+        }
+
+        AS_LOG(AS_LOG_INFO, "Parse %s body OK, content is %s.", rEvent.request->sip_method, pBody->body);
+    }while(0);
+
+
+    nResult = send_sip_response(rEvent, nRespCode);
+    if (0 != nResult)
+    {
+        AS_LOG(AS_LOG_ERROR, "Response %s failed.", rEvent.request->sip_method);
+        return -1;
+    }
+
+    return 0;
+}
+
+int32_t ASCameraSvrManager::send_catalog_Req(DEVICE_INFO& devInfo)
+{
+    osip_message_t *pRequest = NULL;
+    std::string strFrom = "sip:" + m_strServerID+ "@" + m_strLocalIP;
+    if(0 <  m_strFireWallIP.length())
+    {
+        strFrom = "sip:" + m_strServerID+ "@" + m_strFireWallIP;
+    }
+    int32_t nResult = eXosip_message_build_request(m_pEXosipCtx, &pRequest,
+                                                  "MESSAGE", devInfo.strTo.c_str(),
+                                                  strFrom.c_str(),NULL);
+    if (OSIP_SUCCESS != nResult)
+    {
+        AS_LOG(AS_LOG_ERROR, "eXosip_message_build_request Message failed, error code is %d.", nResult);
+        return -1;
+    }
+
+    char szBody[1024] = {0};
+    snprintf(szBody, sizeof(szBody), "<?xml version=\"1.0\"?>\
+                                     <Query>\
+                                       <CmdType>Catalog</CmdType>\
+                                       <SN>17430</SN>\
+                                       <DeviceID>%s</DeviceID>\
+                                     </Query>",devInfo.szUserName);
+
+    nResult = osip_message_set_body(pRequest, szBody, strlen(szBody));
+    if (OSIP_SUCCESS != nResult)
+    {
+        AS_LOG(AS_LOG_ERROR, "osip_message_set_body Message failed, error code is %d.", nResult);
+        return -1;
+    }
+    nResult = osip_message_set_content_type (pRequest, "Application/MANSCDP+xml");
+    if (OSIP_SUCCESS != nResult)
+    {
+        AS_LOG(AS_LOG_ERROR, "osip_message_set_body Message failed, error code is %d.", nResult);
+        return -1;
+    }
+
+    nResult = eXosip_message_send_request(m_pEXosipCtx, pRequest);
+    if (OSIP_SUCCESS >= nResult)    //大于0表示成功
+    {
+        AS_LOG(AS_LOG_ERROR, "eXosip_message_send_request Message failed, error code is %d.", nResult);
+        return -1;
+    }
+
+    AS_LOG(AS_LOG_INFO, "eXosip_message_send_request Message success, tid is %d.", nResult);
+    return 0;
 }
 
 
