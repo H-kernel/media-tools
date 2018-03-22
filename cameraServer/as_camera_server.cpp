@@ -20,818 +20,272 @@ using namespace tinyxml2;
 extern "C" int initializeWinsockIfNecessary();
 #endif
 
-// A function that outputs a string that identifies each stream (for debugging output).  Modify this if you wish:
-UsageEnvironment& operator<<(UsageEnvironment& env, const RTSPClient& rtspClient) {
-  return env << "[URL:\"" << rtspClient.url() << "\"]: ";
-}
-
-// A function that outputs a string that identifies each subsession (for debugging output).  Modify this if you wish:
-UsageEnvironment& operator<<(UsageEnvironment& env, const MediaSubsession& subsession) {
-  return env << subsession.mediumName() << "/" << subsession.codecName();
-}
 
 
-// Implementation of "ASRtsp2SipClient":
-
-ASRtspCheckChannel* ASRtspCheckChannel::createNew(u_int32_t ulEnvIndex,UsageEnvironment& env, char const* rtspURL,
-                    int verbosityLevel, char const* applicationName, portNumBits tunnelOverHTTPPortNum) {
-    AS_LOG(AS_LOG_INFO,"ASRtspCheckChannel::createNew,url:[%s].",rtspURL);
-    return new ASRtspCheckChannel(ulEnvIndex,env, rtspURL, verbosityLevel, applicationName, tunnelOverHTTPPortNum);
-}
-
-ASRtspCheckChannel::ASRtspCheckChannel(u_int32_t ulEnvIndex,UsageEnvironment& env, char const* rtspURL,
-                 int verbosityLevel, char const* applicationName, portNumBits tunnelOverHTTPPortNum)
-  : RTSPClient(env,rtspURL, verbosityLevel, applicationName, tunnelOverHTTPPortNum, -1) {
-  m_ulEnvIndex     = ulEnvIndex;
-  m_bSupportsGetParameter = False;
-  m_enStatus       = AS_RTSP_STATUS_INIT;
-  m_bObervser      = NULL;
-  m_bStop          = False;
-  m_ulDuration     = 0;
-  m_ulStartTime    = time(NULL);
-  m_enCheckResult  = AS_RTSP_CHECK_RESULT_SUCCESS;
-}
-
-ASRtspCheckChannel::~ASRtspCheckChannel() {
-}
-
-int32_t ASRtspCheckChannel::open(uint32_t ulDuration,ASRtspStatusObervser* observer)
+ASLens::ASLens()
 {
-    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::open,duration:[%d].",ulDuration);
-    m_bObervser = observer;
-    m_ulDuration = ulDuration;
-    m_ulStartTime= time(NULL);
-    return sendOptionsCommand(&ASRtspCheckChannel::continueAfterOPTIONS);
-}
-void    ASRtspCheckChannel::close()
-{
-    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::close,begin.");
-    m_bStop = True;
-    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::close,end.");
-}
-
-
-void    ASRtspCheckChannel::handle_after_options(int resultCode, char* resultString)
-{
-    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_after_options begin.");
-
-    do {
-        if (resultCode != 0) {
-            AS_LOG(AS_LOG_WARNING,"ASRtspCheckChannel::handle_after_options,"
-                                  "this result:[%d] is not right.",resultCode);
-            m_enCheckResult  = AS_RTSP_CHECK_RESULT_OPEN_URL;
-            delete[] resultString;
-            break;
-        }
-
-        Boolean serverSupportsGetParameter = RTSPOptionIsSupported("GET_PARAMETER", resultString);
-        delete[] resultString;
-        SupportsGetParameter(serverSupportsGetParameter);
-        sendDescribeCommand(continueAfterDESCRIBE);
-        AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_after_options end.");
-        return;
-    } while (0);
-
-    // An unrecoverable error occurred with this stream.
-    shutdownStream();
-    AS_LOG(AS_LOG_WARNING,"ASRtspCheckChannel::handle_after_options exit.");
-    return;
-}
-void    ASRtspCheckChannel::handle_after_describe(int resultCode, char* resultString)
-{
-    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_after_describe begin.");
-    do {
-        if (resultCode != 0) {
-            AS_LOG(AS_LOG_WARNING,"ASRtspCheckChannel::handle_after_describe,"
-                                  "this result:[%d] is not right.",resultCode);
-            m_enCheckResult  = AS_RTSP_CHECK_RESULT_OPEN_URL;
-            delete[] resultString;
-            break;
-        }
-
-        // Create a media session object from this SDP description:
-        scs.session = MediaSession::createNew(envir(), resultString);
-        delete[] resultString; // because we don't need it anymore
-        if (scs.session == NULL) {
-            AS_LOG(AS_LOG_WARNING,"ASRtspCheckChannel::handle_after_describe,"
-                                  "create the session fail.");
-            break;
-        } else if (!scs.session->hasSubsessions()) {
-            AS_LOG(AS_LOG_WARNING,"ASRtspCheckChannel::handle_after_describe,"
-                                  "this is no sub session.");
-            break;
-        }
-
-        // Then, create and set up our data source objects for the session.  We do this by iterating over the session's 'subsessions',
-        // calling "MediaSubsession::initiate()", and then sending a RTSP "SETUP" command, on each one.
-        // (Each 'subsession' will have its own data source.)
-        scs.iter = new MediaSubsessionIterator(*scs.session);
-        setupNextSubsession();
-        AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_after_describe end.");
-        return;
-    } while (0);
-
-    // An unrecoverable error occurred with this stream.
-    shutdownStream();
-    AS_LOG(AS_LOG_WARNING,"ASRtspCheckChannel::handle_after_describe exit.");
-    return;
-}
-
-
-void    ASRtspCheckChannel::handle_after_setup(int resultCode, char* resultString)
-{
-    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_after_setup begin.");
-    if(0 != resultCode) {
-        m_enCheckResult  = AS_RTSP_CHECK_RESULT_OPEN_URL;
-        shutdownStream();
-        return;
-    }
-
-    if(scs.session != NULL) {
-        /* open the send rtp sik */
-        MediaSubsessionIterator iter(*scs.session);
-        MediaSubsession* subsession;
-
-        while ((subsession = iter.next()) != NULL) {
-           if (!strcmp(subsession->mediumName(), "video")) {
-                AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_after_setup,create a video sink.");
-                subsession->sink = ASRtspCheckVideoSink::createNew(envir(), *subsession);
-           }
-            else if (!strcmp(subsession->mediumName(), "audio")){
-                AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_after_setup,create a audio sink.");
-                subsession->sink = ASRtspCheckAudioSink::createNew(envir(), *subsession);
-           }
-           else {
-               AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_after_setup,this is not video and audio sink.");
-               subsession->sink = NULL;
-               continue;
-           }
-
-            // perhaps use your own custom "MediaSink" subclass instead
-            if (subsession->sink == NULL) {
-                continue;
-            }
-
-            subsession->miscPtr = this; // a hack to let subsession handler functions get the "RTSPClient" from the subsession
-            AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_after_setup,the sink start playing.");
-            subsession->sink->startPlaying(*(subsession->readSource()),
-                             subsessionAfterPlaying, subsession);
-            // Also set a handler to be called if a RTCP "BYE" arrives for this subsession:
-            if (subsession->rtcpInstance() != NULL) {
-              subsession->rtcpInstance()->setByeHandler(subsessionByeHandler, subsession);
-            }
-        }
-
-    }
-    if(NULL != resultString) {
-        delete[] resultString;
-    }
-    // Set up the next subsession, if any:
-    setupNextSubsession();
-    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_after_setup end.");
-    return;
-}
-void    ASRtspCheckChannel::handle_after_play(int resultCode, char* resultString)
-{
-    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_after_play begin.");
-    Boolean success = False;
-
-    do {
-
-        if (resultCode != 0) {
-            m_enCheckResult  = AS_RTSP_CHECK_RESULT_OPEN_URL;
-            break;
-        }
-
-        // Set a timer to be handled at the end of the stream's expected duration (if the stream does not already signal its end
-        // using a RTCP "BYE").  This is optional.  If, instead, you want to keep the stream active - e.g., so you can later
-        // 'seek' back within it and do another RTSP "PLAY" - then you can omit this code.
-        // (Alternatively, if you don't want to receive the entire stream, you could set this timer for some shorter value.)
-        //if (scs.duration > 0) {
-            //unsigned const delaySlop = 2; // number of seconds extra to delay, after the stream's expected duration.  (This is optional.)
-            //scs.duration += delaySlop;
-            //unsigned uSecsToDelay = (unsigned)(scs.duration*1000000);
-            unsigned uSecsToDelay = (unsigned)(GW_TIMER_CHECK_TASK*1000);
-            scs.streamTimerTask = envir().taskScheduler().scheduleDelayedTask(uSecsToDelay, (TaskFunc*)streamTimerHandler, this);
-        //}
-
-        success = True;
-        if(SupportsGetParameter()) {
-            sendGetParameterCommand(*scs.session,continueAfterGET_PARAMETE, "", NULL);
-        }
-
-    } while (0);
-    delete[] resultString;
-
-
-    if (!success) {
-        // An unrecoverable error occurred with this stream.
-        AS_LOG(AS_LOG_WARNING,"ASRtspCheckChannel::handle_after_play,play not success.");
-        shutdownStream();
-    }
-    else {
-        m_enStatus = AS_RTSP_STATUS_PLAY;
-        if( NULL != m_bObervser) {
-            m_bObervser->NotifyStatus(AS_RTSP_STATUS_PLAY);
-        }
-    }
-    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_after_play end.");
-    return;
-}
-void    ASRtspCheckChannel::handle_after_teardown(int resultCode, char* resultString)
-{
-    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_after_teardown begin.");
-    shutdownStream();
-    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_after_teardown end.");
-    return;
-}
-void    ASRtspCheckChannel::handle_subsession_after_playing(MediaSubsession* subsession)
-{
-    // Begin by closing this subsession's stream:
-    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_subsession_after_playing begin.");
-    Medium::close(subsession->sink);
-    subsession->sink = NULL;
-
-    // Next, check whether *all* subsessions' streams have now been closed:
-    MediaSession& session = subsession->parentSession();
-    MediaSubsessionIterator iter(session);
-    while ((subsession = iter.next()) != NULL) {
-        if (subsession->sink != NULL) {
-            AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_subsession_after_playing end.");
-            return; // this subsession is still active
-        }
-    }
-
-    // All subsessions' streams have now been closed, so shutdown the client:
-    m_enCheckResult  = AS_RTSP_CHECK_RESULT_OPEN_URL;
-    shutdownStream();
-    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_subsession_after_playing exit.");
-}
-
-void    ASRtspCheckChannel::handle_after_timeout()
-{
-
-    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::streamTimerHandler.");
-    scs.streamTimerTask = NULL;
-
-    time_t now = time(NULL);
-
-    uint32_t ulPass = (uint32_t)(now - m_ulStartTime);
-
-    // Shut down the stream:
-    if((m_bStop)||(ulPass > m_ulDuration)) {
-        shutdownStream();
-        return;
-    }
-
-
-    // Check the Stream recv Status
-    if (scs.session != NULL) {
-        MediaSubsessionIterator iter(*scs.session);
-        MediaSubsession*        subsession;
-
-        while ((subsession = iter.next()) != NULL) {
-            if (strcmp(subsession->mediumName(), "video")) {
-                continue;
-            }
-            ASRtspCheckVideoSink* pVideoSink = (ASRtspCheckVideoSink*)subsession->sink;
-            if(NULL == pVideoSink) {
-                continue;
-            }
-            if(0 == pVideoSink->getRecvVideoSize())
-            {
-                AS_LOG(AS_LOG_WARNING,"ASRtspCheckChannel::streamTimerHandler,there is not recv video data.");
-                m_enCheckResult  = AS_RTSP_CHECK_RESULT_RECV_DATA;
-                shutdownStream();
-                return;
-            }
-        }
-    }
-
-
-    unsigned uSecsToDelay = (unsigned)(GW_TIMER_CHECK_TASK*1000);
-    scs.streamTimerTask
-       = envir().taskScheduler().scheduleDelayedTask(uSecsToDelay,
-                                                 (TaskFunc*)streamTimerHandler, this);
-    return;
-}
-
-
-void ASRtspCheckChannel::setupNextSubsession() {
-
-    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::setupNextSubsession begin.");
-    scs.subsession = scs.iter->next();
-    if (scs.subsession != NULL) {
-        if (!scs.subsession->initiate()) {
-            setupNextSubsession(); // give up on this subsession; go to the next one
-        } else {
-
-            if (scs.subsession->rtpSource() != NULL) {
-            // Because we're saving the incoming data, rather than playing
-            // it in real time, allow an especially large time threshold
-            // (1 second) for reordering misordered incoming packets:
-            unsigned const thresh = 1000000; // 1 second
-            scs.subsession->rtpSource()->setPacketReorderingThresholdTime(thresh);
-
-            // Set the RTP source's OS socket buffer size as appropriate - either if we were explicitly asked (using -B),
-            // or if the desired FileSink buffer size happens to be larger than the current OS socket buffer size.
-            // (The latter case is a heuristic, on the assumption that if the user asked for a large FileSink buffer size,
-            // then the input data rate may be large enough to justify increasing the OS socket buffer size also.)
-            int socketNum = scs.subsession->rtpSource()->RTPgs()->socketNum();
-            unsigned curBufferSize = getReceiveBufferSize(envir(), socketNum);
-            unsigned ulRecvBufSize = ASCameraSvrManager::instance().getRecvBufSize();
-            if (ulRecvBufSize > curBufferSize) {
-                (void)setReceiveBufferTo(envir(), socketNum, ulRecvBufSize);
-              }
-            }
-
-            // Continue setting up this subsession, by sending a RTSP "SETUP" command:
-            sendSetupCommand(*scs.subsession, continueAfterSETUP, False, REQUEST_STREAMING_OVER_TCP);
-        }
-        AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::setupNextSubsession end.");
-        return;
-    }
-
-    /* send the play by the control */
-    m_enStatus = AS_RTSP_STATUS_SETUP;
-    if( NULL != m_bObervser) {
-        m_bObervser->NotifyStatus(AS_RTSP_STATUS_SETUP);
-    }
-    // We've finished setting up all of the subsessions.  Now, send a RTSP "PLAY" command to start the streaming:
-    if (scs.session->absStartTime() != NULL) {
-        // Special case: The stream is indexed by 'absolute' time, so send an appropriate "PLAY" command:
-        AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::setupNextSubsession,send play message,startime:[%s] endtime:[%s].",
-                                               scs.session->absStartTime(),scs.session->absEndTime());
-        sendPlayCommand(*scs.session, continueAfterPLAY, scs.session->absStartTime(), scs.session->absEndTime());
-    } else {
-        scs.duration = scs.session->playEndTime() - scs.session->playStartTime();
-        AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::setupNextSubsession,send play message,duration:[%f].",scs.duration);
-        sendPlayCommand(*scs.session, continueAfterPLAY);
-    }
-    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::setupNextSubsession exit.");
-    return;
-}
-
-void ASRtspCheckChannel::shutdownStream() {
-    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::shutdownStream begin.");
-    // First, check whether any subsessions have still to be closed:
-    uint32_t ulDuration  = time(NULL) - m_ulStartTime;
-    uint64_t ulVideoRecv = 0;
-    uint64_t ulAudioRecv = 0;
-    if (scs.session != NULL) {
-        Boolean someSubsessionsWereActive = False;
-        MediaSubsessionIterator iter(*scs.session);
-        MediaSubsession* subsession;
-
-        while ((subsession = iter.next()) != NULL) {
-            if (!strcmp(subsession->mediumName(), "video")) {
-                ASRtspCheckVideoSink* pVideoSink = (ASRtspCheckVideoSink*)subsession->sink;
-                if(NULL != pVideoSink) {
-                    ulVideoRecv = pVideoSink->getRecvVideoSize();
-                }
-            }
-            else if (!strcmp(subsession->mediumName(), "audio")){
-                ASRtspCheckAudioSink* pAudioSink = (ASRtspCheckAudioSink*)subsession->sink;
-                if(NULL != pAudioSink) {
-                    ulAudioRecv = pAudioSink->getRecvAudioSize();
-                }
-            }
-            if (subsession->sink != NULL) {
-                Medium::close(subsession->sink);
-                subsession->sink = NULL;
-                if (subsession->rtcpInstance() != NULL) {
-                    subsession->rtcpInstance()->setByeHandler(NULL, NULL); // in case the server sends a RTCP "BYE" while handling "TEARDOWN"
-                }
-                someSubsessionsWereActive = True;
-            }
-        }
-
-        if (someSubsessionsWereActive) {
-          // Send a RTSP "TEARDOWN" command, to tell the server to shutdown the stream.
-          // Don't bother handling the response to the "TEARDOWN".
-          AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::shutdownStream,send teardown command.");
-          sendTeardownCommand(*scs.session, NULL);
-        }
-    }
-
-    /* report the status */
-    if (NULL != m_bObervser)
-    {
-        m_enStatus = AS_RTSP_STATUS_TEARDOWN;
-        m_bObervser->NotifyRecvData(m_enCheckResult,ulDuration, ulVideoRecv, ulAudioRecv);
-        m_bObervser->NotifyStatus(AS_RTSP_STATUS_TEARDOWN);
-    }
-    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::shutdownStream end.");
-
-    /* not close here ,it will be closed by the close URL */
-    //Medium::close(rtspClient);
-    // Note that this will also cause this stream's "ASRtsp2SipStreamState" structure to get reclaimed.
-
-}
-
-
-
-// Implementation of the RTSP 'response handlers':
-void ASRtspCheckChannel::continueAfterOPTIONS(RTSPClient* rtspClient, int resultCode, char* resultString) {
-
-    ASRtspCheckChannel* pAsRtspClient = (ASRtspCheckChannel*)rtspClient;
-    pAsRtspClient->handle_after_options(resultCode,resultString);
-}
-
-void ASRtspCheckChannel::continueAfterDESCRIBE(RTSPClient* rtspClient, int resultCode, char* resultString) {
-
-    ASRtspCheckChannel* pAsRtspClient = (ASRtspCheckChannel*)rtspClient;
-    pAsRtspClient->handle_after_describe(resultCode,resultString);
-
-}
-
-
-void ASRtspCheckChannel::continueAfterSETUP(RTSPClient* rtspClient, int resultCode, char* resultString) {
-
-    ASRtspCheckChannel* pAsRtspClient = (ASRtspCheckChannel*)rtspClient;
-    pAsRtspClient->handle_after_setup(resultCode,resultString);
-}
-
-void ASRtspCheckChannel::continueAfterPLAY(RTSPClient* rtspClient, int resultCode, char* resultString) {
-    ASRtspCheckChannel* pAsRtspClient = (ASRtspCheckChannel*)rtspClient;
-    pAsRtspClient->handle_after_play(resultCode,resultString);
-}
-
-void ASRtspCheckChannel::continueAfterGET_PARAMETE(RTSPClient* rtspClient, int resultCode, char* resultString) {
-    delete[] resultString;
-}
-
-void ASRtspCheckChannel::continueAfterTeardown(RTSPClient* rtspClient, int resultCode, char* resultString)
-{
-    ASRtspCheckChannel* pAsRtspClient = (ASRtspCheckChannel*)rtspClient;
-
-    pAsRtspClient->handle_after_teardown(resultCode, resultString);
-    delete[] resultString;
-}
-// Implementation of the other event handlers:
-
-void ASRtspCheckChannel::subsessionAfterPlaying(void* clientData) {
-    MediaSubsession* subsession = (MediaSubsession*)clientData;
-    RTSPClient* rtspClient = (RTSPClient*)(subsession->miscPtr);
-    ASRtspCheckChannel* pAsRtspClient = (ASRtspCheckChannel*)rtspClient;
-
-    pAsRtspClient->handle_subsession_after_playing(subsession);
-}
-
-void ASRtspCheckChannel::subsessionByeHandler(void* clientData) {
-    MediaSubsession* subsession = (MediaSubsession*)clientData;
-    // Now act as if the subsession had closed:
-    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::subsessionByeHandler.");
-    subsessionAfterPlaying(subsession);
-}
-
-void ASRtspCheckChannel::streamTimerHandler(void* clientData) {
-    ASRtspCheckChannel* rtspClient = (ASRtspCheckChannel*)clientData;
-    rtspClient->handle_after_timeout();
-}
-
-
-
-
-// Implementation of "ASRtsp2SipStreamState":
-
-ASRtspCheckStreamState::ASRtspCheckStreamState()
-  : iter(NULL), session(NULL), subsession(NULL),
-    streamTimerTask(NULL), duration(0.0){
-}
-
-ASRtspCheckStreamState::~ASRtspCheckStreamState() {
-  delete iter;
-  if (session != NULL) {
-    // We also need to delete "session", and unschedule "streamTimerTask" (if set)
-    UsageEnvironment& env = session->envir(); // alias
-
-    env.taskScheduler().unscheduleDelayedTask(streamTimerTask);
-    Medium::close(session);
-  }
-}
-
-
-ASRtspCheckVideoSink* ASRtspCheckVideoSink::createNew(UsageEnvironment& env, MediaSubsession& subsession) {
-    return new ASRtspCheckVideoSink(env, subsession);
-}
-
-ASRtspCheckVideoSink::ASRtspCheckVideoSink(UsageEnvironment& env, MediaSubsession& subsession)
-  : MediaSink(env),fSubsession(subsession) {
-    m_ulRecvSize = 0;
-}
-
-ASRtspCheckVideoSink::~ASRtspCheckVideoSink() {
-}
-
-void ASRtspCheckVideoSink::afterGettingFrame(void* clientData, unsigned frameSize, unsigned numTruncatedBytes,
-                  struct timeval presentationTime, unsigned durationInMicroseconds) {
-    ASRtspCheckVideoSink* sink = (ASRtspCheckVideoSink*)clientData;
-    sink->afterGettingFrame(frameSize, numTruncatedBytes, presentationTime, durationInMicroseconds);
-}
-
-void ASRtspCheckVideoSink::afterGettingFrame(unsigned frameSize, unsigned numTruncatedBytes,
-                  struct timeval presentationTime, unsigned /*durationInMicroseconds*/) {
-
-    m_ulRecvSize += frameSize;
-    continuePlaying();
-}
-
-Boolean ASRtspCheckVideoSink::continuePlaying() {
-  if (fSource == NULL) return False; // sanity check (should not happen)
-
-  // Request the next frame of data from our input source.  "afterGettingFrame()" will get called later, when it arrives:
-  fSource->getNextFrame((u_int8_t*)&fMediaBuffer[0], DUMMY_SINK_RECEIVE_BUFFER_SIZE,
-                        afterGettingFrame, this,
-                        onSourceClosure, this);
-  return True;
-}
-
-ASRtspCheckAudioSink* ASRtspCheckAudioSink::createNew(UsageEnvironment& env, MediaSubsession& subsession) {
-  return new ASRtspCheckAudioSink(env, subsession);
-}
-
-ASRtspCheckAudioSink::ASRtspCheckAudioSink(UsageEnvironment& env, MediaSubsession& subsession)
-  : MediaSink(env),fSubsession(subsession) {
-    m_ulRecvSize = 0;
-}
-
-ASRtspCheckAudioSink::~ASRtspCheckAudioSink() {
-}
-
-void ASRtspCheckAudioSink::afterGettingFrame(void* clientData, unsigned frameSize, unsigned numTruncatedBytes,
-                  struct timeval presentationTime, unsigned durationInMicroseconds) {
-    ASRtspCheckAudioSink* sink = (ASRtspCheckAudioSink*)clientData;
-    sink->afterGettingFrame(frameSize, numTruncatedBytes, presentationTime, durationInMicroseconds);
-}
-
-void ASRtspCheckAudioSink::afterGettingFrame(unsigned frameSize, unsigned numTruncatedBytes,
-                  struct timeval presentationTime, unsigned /*durationInMicroseconds*/) {
-    m_ulRecvSize += frameSize;
-
-    continuePlaying();
-}
-
-Boolean ASRtspCheckAudioSink::continuePlaying() {
-  if (fSource == NULL) return False; // sanity check (should not happen)
-
-  // Request the next frame of data from our input source.  "afterGettingFrame()" will get called later, when it arrives:
-  fSource->getNextFrame((u_int8_t*)&fMediaBuffer[0], DUMMY_SINK_RECEIVE_BUFFER_SIZE,
-                        afterGettingFrame, this,
-                        onSourceClosure, this);
-  return True;
-}
-
-
-
-ASLensInfo::ASLensInfo()
-{
-    m_Status = AS_RTSP_CHECK_STATUS_WAIT;
+    m_Status = AS_DEV_STATUS_OFFLIEN;
     m_strCameraID = "";
-    m_strStreamType = "";
-    m_handle = NULL;
-    m_time = 0;
-    m_ulDuration  = 0;
-    m_ulVideoRecv = 0;
-    m_ulAudioRecv = 0;
-    m_enCheckResult = AS_RTSP_CHECK_RESULT_SUCCESS;
 }
-ASLensInfo::~ASLensInfo()
+ASLens::~ASLens()
 {
 }
-void ASLensInfo::setLensInfo(std::string& strCameraID,std::string& strStreamType)
+
+
+ASDevice::ASDevice()
 {
-    AS_LOG(AS_LOG_DEBUG,"ASLensInfo::setLensInfo,cameraID:[%s],streamType:[%s].",
-                                                strCameraID.c_str(),strStreamType.c_str());
-    m_strCameraID = strCameraID;
-    m_strStreamType = strStreamType;
+    m_strDevID = "";
+    m_Status = AS_DEV_STATUS_OFFLIEN;
+}
+ASDevice::ASDevice(std::string& strDveID)
+{
+    m_strDevID = strDveID;
 }
 
-void ASLensInfo::check()
+ASDevice::~ASDevice()
 {
-    AS_LOG(AS_LOG_DEBUG,"ASLensInfo::check,status:[%d].",m_Status);
-    if(AS_RTSP_CHECK_STATUS_END == m_Status )
-    {
-        return;
-    }
-    if(AS_RTSP_CHECK_STATUS_RUN == m_Status)
-    {
-        /* check the run time and break */
-        time_t cur = time(NULL);
-        if(cur > (m_time + RTSP_CLINET_RUN_DURATION))
-        {
-            AS_LOG(AS_LOG_DEBUG,"ASLensInfo::check,the run timeout,so stop the task.");
-            stopRtspCheck();
-        }
-        return;
-    }
 
-    /* start the lens check */
-    AS_LOG(AS_LOG_DEBUG,"ASLensInfo::check,start the new rtsp .");
-
-    if(AS_ERROR_CODE_OK != StartRtspCheck())
+}
+void ASDevice::setDevInfo(std::string& strHost,std::string& strPort)
+{
+    m_stHost   = strHost;
+    m_strPort = strPort;
+    m_strTo = "sip:" + m_strDevID + "@" + m_stHost + ":" + m_strPort;
+    AS_LOG(AS_LOG_INFO,"ASDevice::setDevInfo,host:[%s],port:[%s].",
+                                          m_stHost.c_str(),m_strPort.c_str());
+}
+void ASDevice::handleMessage(std::string& strMsg)
+{
+    AS_LOG(AS_LOG_DEBUG,"ASDevice::handleMessage begin.");
+    XMLDocument doc;
+    XMLError xmlerr = doc.Parse(strMsg.c_str(),strMsg.length());
+    if(XML_SUCCESS != xmlerr)
     {
-        /* start fail */
-        AS_LOG(AS_LOG_DEBUG,"ASLensInfo::check,start the new rtsp fail .");
-        m_Status = AS_RTSP_CHECK_STATUS_END;
+        AS_LOG(AS_LOG_WARNING, "CManscdp::parse,parse xml msg:[%s] fail.",strMsg.c_str());
         return ;
     }
-    m_time = time(NULL);
 
-    m_Status = AS_RTSP_CHECK_STATUS_RUN;
+
+    XMLElement *req = doc.RootElement();
+    if (NULL == req)
+    {
+        AS_LOG(AS_LOG_ERROR, "Parse XML failed, content is %s.", strMsg.c_str());
+        return ;
+    }
+
+    int32_t nResult = AS_ERROR_CODE_OK;
+
+    do
+    {
+        if (0 == strcmp(req->Name(), "Notify"))
+        {
+            nResult = parseNotify(*req);
+            break;
+        }
+        else if (0 == strcmp(req->Name(), "Response"))
+        {
+            nResult = parseResponse(*req);
+            break;
+        }
+    }while(0);
+
+    if (0 != nResult)
+    {
+        AS_LOG(AS_LOG_ERROR, "Parse XML failed, content is %s.", strMsg.c_str());
+        return ;
+    }
+
+
+    AS_LOG(AS_LOG_DEBUG,"ASDevice::handleMessage end.");
+    return ;
 }
 
-CHECK_STATUS ASLensInfo::Status()
+DEV_STATUS ASDevice::Status()
 {
     return m_Status;
 }
-void ASLensInfo::NotifyStatus(AS_RTSP_STATUS status)
+int32_t ASDevice::parseNotify(const XMLElement &rRoot)
 {
-    AS_LOG(AS_LOG_DEBUG,"ASLensInfo::NotifyStatus,rtsp status:[%d].",status);
-    if(AS_RTSP_STATUS_TEARDOWN == status)
+    const XMLElement* pCmdType = rRoot.FirstChildElement("CmdType");
+    if (NULL == pCmdType)
     {
-         m_Status = AS_RTSP_CHECK_STATUS_END;
-         m_handle = NULL;
-    }
-}
-void ASLensInfo::NotifyRecvData(AS_RTSP_CHECK_RESULT enResult,uint32_t ulDuration,uint64_t ulVideoRecv,uint64_t ulAudioRecv)
-{
-    m_enCheckResult = enResult;
-    m_ulDuration    = ulDuration;
-    m_ulVideoRecv   = ulVideoRecv;
-    m_ulAudioRecv   = ulAudioRecv;
-}
-
-
-int32_t ASLensInfo::StartRtspCheck()
-{
-    AS_LOG(AS_LOG_DEBUG,"ASLensInfo::StartRtspCheck begin.");
-    ASEvLiveHttpClient httpHandle;
-    std::string strRtspUrl;
-    int32_t nRet = httpHandle.send_live_url_request(m_strCameraID,m_strStreamType,strRtspUrl);
-    if(nRet != AS_ERROR_CODE_OK)
-    {
-        AS_LOG(AS_LOG_WARNING,"ASLensInfo::StartRtspCheck,get the rtsp url fail.");
-        m_enCheckResult = AS_RTSP_CHECK_RESULT_URL_FAIL;
+        AS_LOG(AS_LOG_ERROR, "Parse notify failed. Can't find 'CmdType'.");
         return AS_ERROR_CODE_FAIL;
     }
-    AS_LOG(AS_LOG_INFO,"ASLensInfo::StartRtspCheck,get the rtsp url:[%s].",strRtspUrl.c_str());
 
-    AS_LOG(AS_LOG_DEBUG,"ASLensInfo::StartRtspCheck end.");
+    AS_LOG(AS_LOG_INFO, "Receive notify %s.", pCmdType->GetText());
+
+    if (0 == strcmp(pCmdType->GetText(), "Keepalive"))
+    {
+        AS_LOG(AS_LOG_INFO, "Receive Notify Keepalive.");
+    }
+
     return AS_ERROR_CODE_OK;
 }
-void    ASLensInfo::stopRtspCheck()
+
+int32_t ASDevice::parseResponse(const XMLElement &rRoot)
 {
-    AS_LOG(AS_LOG_DEBUG,"ASLensInfo::stopRtspCheck begin.");
-
-    AS_LOG(AS_LOG_DEBUG,"ASLensInfo::stopRtspCheck end.");
-    return;
-}
-
-
-ASRtspCheckTask::ASRtspCheckTask()
-{
-    m_Status = AS_RTSP_CHECK_STATUS_WAIT;
-}
-ASRtspCheckTask::~ASRtspCheckTask()
-{
-    ASLensInfo* pLenInfo = NULL;
-
-    LENSINFOLISTITRT iter = m_LensList.begin();
-
-    for(; iter != m_LensList.end();++iter)
+    const XMLElement* pCmdType = rRoot.FirstChildElement("CmdType");
+    if (NULL == pCmdType)
     {
-        pLenInfo = *iter;
-        if(NULL !=  pLenInfo)
+        AS_LOG(AS_LOG_ERROR, "Parse response failed. Can't find 'CmdType'.");
+        return AS_ERROR_CODE_FAIL;
+    }
+
+    AS_LOG(AS_LOG_INFO, "Receive response %s.", pCmdType->GetText());
+
+    int32_t nResult = 0;
+    if (0 == strcmp(pCmdType->GetText(), "Catalog"))
+    {
+        nResult = parseQueryCatalog(rRoot);
+    }
+
+    if (0 != nResult)
+    {
+        AS_LOG(AS_LOG_ERROR, "Parse response %s failed.", pCmdType->GetText());
+        return -1;
+    }
+
+    return AS_ERROR_CODE_OK;
+}
+
+int32_t ASDevice::parseQueryCatalog(const XMLElement &rRoot)
+{
+    const XMLElement* pDeviceList = rRoot.FirstChildElement("DeviceList");
+    if (NULL == pDeviceList)
+    {
+        AS_LOG(AS_LOG_ERROR, "Parse response failed. Can't find 'DeviceList'.");
+        return AS_ERROR_CODE_FAIL;
+    }
+
+    int32_t nDeviceNum = 0;
+    int32_t nReulst = pDeviceList->QueryIntAttribute("Num", &nDeviceNum);
+    if (XML_SUCCESS != nReulst)
+    {
+        AS_LOG(AS_LOG_ERROR, "Parse Num of DeviceList failed, error code is %d.", nReulst);
+        return AS_ERROR_CODE_FAIL;
+    }
+
+    if (0 >= nDeviceNum)
+    {
+        AS_LOG(AS_LOG_INFO, "Num of DeviceList is 0.");
+        return AS_ERROR_CODE_OK;
+    }
+
+    int32_t nItemNum = 0;
+    const XMLElement* pItem = pDeviceList->FirstChildElement("Item");
+    while (NULL != pItem)
+    {
+        nReulst = parseDeviceItem(*pItem);
+        if (0 != nReulst)
         {
-            AS_DELETE(pLenInfo);
+            AS_LOG(AS_LOG_ERROR, "Parse item of device list failed.");
+            return AS_ERROR_CODE_FAIL;
         }
+
+        nItemNum++;
+        pItem = pItem->NextSiblingElement();
     }
-    m_LensList.clear();
-}
-void ASRtspCheckTask::setTaskInfo(std::string& strCheckID,std::string& strReportUrl)
-{
-    m_strCheckID   = strCheckID;
-    m_strReportUrl = strReportUrl;
-    AS_LOG(AS_LOG_INFO,"ASRtspCheckTask::setTaskInfo,checkId:[%s],report url:[%s].",
-                                          m_strCheckID.c_str(),m_strReportUrl.c_str());
-}
-void ASRtspCheckTask::addCamera(std::string& strCameraID,std::string& strStreamTye)
-{
-    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckTask::addCamera begin.");
-    ASLensInfo* pLenInfo = NULL;
-    pLenInfo = AS_NEW(pLenInfo);
-    if(NULL == pLenInfo)
+
+    if (nDeviceNum != nItemNum)
     {
-        return;
+        AS_LOG(AS_LOG_ERROR, "Real item num(%d) of device list is not the same as num(%d) of device list.",
+            nItemNum, nDeviceNum);
+        return AS_ERROR_CODE_FAIL;
     }
-    pLenInfo->setLensInfo(strCameraID, strStreamTye);
-    m_LensList.push_back(pLenInfo);
-    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckTask::addCamera end.");
+
+    return AS_ERROR_CODE_OK;
 }
-void ASRtspCheckTask::checkTask()
+
+int32_t ASDevice::parseDeviceItem(const XMLElement &rItem)
 {
-    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckTask::checkTask begin.");
-    if(AS_RTSP_CHECK_STATUS_END == m_Status )
+    const XMLElement* pDeviceID = rItem.FirstChildElement("DeviceID");
+    if (NULL == pDeviceID)
     {
-        AS_LOG(AS_LOG_DEBUG,"ASRtspCheckTask::checkTask,task is end.");
-        return;
+        AS_LOG(AS_LOG_ERROR, "Parse response failed. Can't find 'DeviceID' of 'Item'.");
+        return AS_ERROR_CODE_FAIL;
     }
 
-    ASLensInfo* pLenInfo = NULL;
-    bool bRunning = false;
-
-    LENSINFOLISTITRT iter = m_LensList.begin();
-
-    for(; iter != m_LensList.end();++iter)
+    const XMLElement* pName = rItem.FirstChildElement("Name");
+    if (NULL == pName)
     {
-        pLenInfo = *iter;
-        pLenInfo->check();
-        if(AS_RTSP_CHECK_STATUS_END != pLenInfo->Status() )
-        {
-            bRunning = true;
-        }
+        AS_LOG(AS_LOG_ERROR, "Parse response failed. Can't find 'Name' of 'Item'.");
+        return AS_ERROR_CODE_FAIL;
     }
 
-    if(bRunning)
+    const XMLElement* pManufacturer = rItem.FirstChildElement("Manufacturer");
+    if (NULL == pManufacturer)
     {
-        AS_LOG(AS_LOG_DEBUG,"ASRtspCheckTask::checkTask,task is go running now.");
-        return;
+        AS_LOG(AS_LOG_ERROR, "Parse response failed. Can't find 'Manufacturer' of 'Item'.");
+        return AS_ERROR_CODE_FAIL;
     }
 
-    //report the task info to the server,and end eth task
-    ReportTaskStatus();
+    const XMLElement* pModel = rItem.FirstChildElement("Model");
+    if (NULL == pModel)
+    {
+        AS_LOG(AS_LOG_ERROR, "Parse response failed. Can't find 'Model' of 'Item'.");
+        return AS_ERROR_CODE_FAIL;
+    }
 
-    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckTask::checkTask,task is stop ,so report to server.");
-    m_Status = AS_RTSP_CHECK_STATUS_END;
+    const XMLElement* pStatus = rItem.FirstChildElement("Status");
+    if (NULL == pStatus)
+    {
+        AS_LOG(AS_LOG_ERROR, "Parse response failed. Can't find 'Status' of 'Item'.");
+        return AS_ERROR_CODE_FAIL;
+    }
+    /*
+    SVS_DEVICE_INFO stDeviceInfo;
+    stDeviceInfo.eDeviceType = SVS_DEV_TYPE_GB28181;
+    stDeviceInfo.eDeviceStatus = (0 == strcmp(pStatus->GetText(), "ON"))
+                                ? SVS_DEV_STATUS_ONLINE
+                                : SVS_DEV_STATUS_OFFLINE;
+    strncpy(stDeviceInfo.szDeviceID, pDeviceID->GetText(), sizeof(stDeviceInfo.szDeviceID) - 1);
+    strncpy(stDeviceInfo.szDeviceName, pName->GetText(), sizeof(stDeviceInfo.szDeviceName) - 1);
+
+    int32_t nResult = IAccessControlManager::instance().notifyDeviceInfo(stDeviceInfo);
+    if (0 != nResult)
+    {
+        AS_LOG(AS_LOG_ERROR, "Notfiy device info failed.");
+        return -1;
+    }*/
+
+    return AS_ERROR_CODE_OK;
 }
-CHECK_STATUS ASRtspCheckTask::TaskStatus()
-{
-    return m_Status;
-}
-void ASRtspCheckTask::ReportTaskStatus()
-{
-    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckTask::ReportTaskStatus begin.");
-    ASEvLiveHttpClient httpHandle;
 
-    /* 1.build the request xml message */
-    XMLDocument msg;
+std::string ASDevice::createQueryCatalog()
+{
+    XMLDocument XmlDoc;
     XMLPrinter printer;
-    XMLDeclaration *declare = msg.NewDeclaration();
-    XMLElement *report = msg.NewElement("report");
-    msg.InsertEndChild(declare);
-    msg.InsertEndChild(report);
-    report->SetAttribute("version", "1.0");
-    XMLElement *check = msg.NewElement("check");
-    report->InsertEndChild(check);
-
-    check->SetAttribute("checkid", m_strCheckID.c_str());
-    XMLElement *CameraList = msg.NewElement("cameralist");
-    check->InsertEndChild(CameraList);
-
-    LENSINFOLISTITRT iter = m_LensList.begin();
-    ASLensInfo* pLenInfo = NULL;
-    std::string    strCameraID;
-    AS_RTSP_CHECK_RESULT       ulCheckResult;
-    uint32_t       ulDuration;
-    uint64_t       ulVideoRecv;
-    uint64_t       ulAudioRecv;
-    char           szbuf[RTSP_CHECK_TMP_BUF_SIZE] = {0};
-
-    for(; iter != m_LensList.end();++iter)
+    try
     {
-        pLenInfo = *iter;
-        if(NULL == pLenInfo)
-        {
-            continue;
-        }
-        strCameraID   = pLenInfo->getCameraID();
-        ulCheckResult = pLenInfo->getResult();
-        ulDuration    = pLenInfo->getDuration();
-        ulVideoRecv   = pLenInfo->getVideoRecv();
-        ulAudioRecv   = pLenInfo->getAudioRecv();
-        XMLElement *Camera = msg.NewElement("camera");
-        CameraList->InsertEndChild(Camera);
+        XMLDeclaration *declare = XmlDoc.NewDeclaration();
+        XmlDoc.LinkEndChild(declare);
 
-        /*
-        Camera->SetAttribute("ID", strCameraID.c_str());
-        snprintf(szbuf,RTSP_CHECK_TMP_BUF_SIZE,"%d",ulCheckResult);
-        Camera->SetAttribute("result", szbuf);
-        snprintf(szbuf,RTSP_CHECK_TMP_BUF_SIZE,"%d",ulDuration);
-        Camera->SetAttribute("duration", szbuf);
-        snprintf(szbuf,RTSP_CHECK_TMP_BUF_SIZE,"%lld",ulVideoRecv);
-        Camera->SetAttribute("video_recv", szbuf);
-        snprintf(szbuf,RTSP_CHECK_TMP_BUF_SIZE,"%lld",ulAudioRecv);
-        Camera->SetAttribute("audio_recv", szbuf);
-        */
+        XMLElement *xmlQuery = XmlDoc.NewElement("Query");
+        XmlDoc.LinkEndChild(xmlQuery);
+
+        XMLElement *xmlCmdType = XmlDoc.NewElement("CmdType");
+        xmlCmdType->SetText("Catalog");
+        xmlQuery->LinkEndChild(xmlCmdType);
+
+        XMLElement *xmlSN = XmlDoc.NewElement("SN");
+        xmlSN->SetText("17430");
+        xmlQuery->LinkEndChild(xmlSN);
+
+        XMLElement *xmlDeviceID = XmlDoc.NewElement("DeviceID");
+        xmlSN->SetText(m_strDevID.c_str());
+        xmlQuery->LinkEndChild(xmlDeviceID);
+    }
+    catch(...)
+    {
+        AS_LOG(AS_LOG_ERROR, "Create query catalog xml failed.");
+        return "";
     }
 
+    XmlDoc.Accept(&printer);
+    std::string strMsg = printer.CStr();
 
-    msg.Accept(&printer);
-    std::string strRespMsg = printer.CStr();
-    /* sent the http request */
-    httpHandle.report_check_msg(m_strReportUrl,strRespMsg);
-    AS_LOG(AS_LOG_DEBUG,"ASRtspCheckTask::ReportTaskStatus end.");
+    return strMsg;
 }
 
 
@@ -1198,230 +652,6 @@ int32_t ASEvLiveHttpClient::send_http_request(std::string& strUrl,std::string& s
 }
 
 
-int32_t CManscdp::parse(const char* pszXML)
-{
-    XMLDocument doc;
-    XMLError xmlerr = doc.Parse(pszXML,strlen(pszXML));
-    if(XML_SUCCESS != xmlerr)
-    {
-        AS_LOG(AS_LOG_WARNING, "CManscdp::parse,parse xml msg:[%s] fail.",pszXML);
-        return AS_ERROR_CODE_FAIL;
-    }
-
-
-    XMLElement *req = doc.RootElement();
-    if (NULL == req)
-    {
-        AS_LOG(AS_LOG_ERROR, "Parse XML failed, content is %s.", pszXML);
-        return AS_ERROR_CODE_FAIL;
-    }
-
-    int32_t nResult = AS_ERROR_CODE_OK;
-
-    do
-    {
-        if (0 == strcmp(req->Name(), "Notify"))
-        {
-            nResult = parseNotify(*req);
-            break;
-        }
-        else if (0 == strcmp(req->Name(), "Response"))
-        {
-            nResult = parseResponse(*req);
-            break;
-        }
-    }while(0);
-
-    if (0 != nResult)
-    {
-        AS_LOG(AS_LOG_ERROR, "Parse XML failed, content is %s.", pszXML);
-        return AS_ERROR_CODE_FAIL;
-    }
-
-    return AS_ERROR_CODE_OK;
-}
-
-int32_t CManscdp::parseNotify(const XMLElement &rRoot)
-{
-    const XMLElement* pCmdType = rRoot.FirstChildElement("CmdType");
-    if (NULL == pCmdType)
-    {
-        AS_LOG(AS_LOG_ERROR, "Parse notify failed. Can't find 'CmdType'.");
-        return AS_ERROR_CODE_FAIL;
-    }
-
-    AS_LOG(AS_LOG_INFO, "Receive notify %s.", pCmdType->GetText());
-
-    if (0 == strcmp(pCmdType->GetText(), "Keepalive"))
-    {
-        AS_LOG(AS_LOG_INFO, "Receive Notify Keepalive.");
-    }
-
-    return AS_ERROR_CODE_OK;
-}
-
-int32_t CManscdp::parseResponse(const XMLElement &rRoot)
-{
-    const XMLElement* pCmdType = rRoot.FirstChildElement("CmdType");
-    if (NULL == pCmdType)
-    {
-        AS_LOG(AS_LOG_ERROR, "Parse response failed. Can't find 'CmdType'.");
-        return AS_ERROR_CODE_FAIL;
-    }
-
-    AS_LOG(AS_LOG_INFO, "Receive response %s.", pCmdType->GetText());
-
-    int32_t nResult = 0;
-    if (0 == strcmp(pCmdType->GetText(), "Catalog"))
-    {
-        nResult = parseQueryCatalog(rRoot);
-    }
-
-    if (0 != nResult)
-    {
-        AS_LOG(AS_LOG_ERROR, "Parse response %s failed.", pCmdType->GetText());
-        return -1;
-    }
-
-    return AS_ERROR_CODE_OK;
-}
-
-int32_t CManscdp::parseQueryCatalog(const XMLElement &rRoot)
-{
-    const XMLElement* pDeviceList = rRoot.FirstChildElement("DeviceList");
-    if (NULL == pDeviceList)
-    {
-        AS_LOG(AS_LOG_ERROR, "Parse response failed. Can't find 'DeviceList'.");
-        return AS_ERROR_CODE_FAIL;
-    }
-
-    int32_t nDeviceNum = 0;
-    int32_t nReulst = pDeviceList->QueryIntAttribute("Num", &nDeviceNum);
-    if (XML_SUCCESS != nReulst)
-    {
-        AS_LOG(AS_LOG_ERROR, "Parse Num of DeviceList failed, error code is %d.", nReulst);
-        return AS_ERROR_CODE_FAIL;
-    }
-
-    if (0 >= nDeviceNum)
-    {
-        AS_LOG(AS_LOG_INFO, "Num of DeviceList is 0.");
-        return AS_ERROR_CODE_OK;
-    }
-
-    int32_t nItemNum = 0;
-    const XMLElement* pItem = pDeviceList->FirstChildElement("Item");
-    while (NULL != pItem)
-    {
-        nReulst = parseDeviceItem(*pItem);
-        if (0 != nReulst)
-        {
-            AS_LOG(AS_LOG_ERROR, "Parse item of device list failed.");
-            return AS_ERROR_CODE_FAIL;
-        }
-
-        nItemNum++;
-        pItem = pItem->NextSiblingElement();
-    }
-
-    if (nDeviceNum != nItemNum)
-    {
-        AS_LOG(AS_LOG_ERROR, "Real item num(%d) of device list is not the same as num(%d) of device list.",
-            nItemNum, nDeviceNum);
-        return AS_ERROR_CODE_FAIL;
-    }
-
-    return AS_ERROR_CODE_OK;
-}
-
-int32_t CManscdp::parseDeviceItem(const XMLElement &rItem)
-{
-    const XMLElement* pDeviceID = rItem.FirstChildElement("DeviceID");
-    if (NULL == pDeviceID)
-    {
-        AS_LOG(AS_LOG_ERROR, "Parse response failed. Can't find 'DeviceID' of 'Item'.");
-        return AS_ERROR_CODE_FAIL;
-    }
-
-    const XMLElement* pName = rItem.FirstChildElement("Name");
-    if (NULL == pName)
-    {
-        AS_LOG(AS_LOG_ERROR, "Parse response failed. Can't find 'Name' of 'Item'.");
-        return AS_ERROR_CODE_FAIL;
-    }
-
-    const XMLElement* pManufacturer = rItem.FirstChildElement("Manufacturer");
-    if (NULL == pManufacturer)
-    {
-        AS_LOG(AS_LOG_ERROR, "Parse response failed. Can't find 'Manufacturer' of 'Item'.");
-        return AS_ERROR_CODE_FAIL;
-    }
-
-    const XMLElement* pModel = rItem.FirstChildElement("Model");
-    if (NULL == pModel)
-    {
-        AS_LOG(AS_LOG_ERROR, "Parse response failed. Can't find 'Model' of 'Item'.");
-        return AS_ERROR_CODE_FAIL;
-    }
-
-    const XMLElement* pStatus = rItem.FirstChildElement("Status");
-    if (NULL == pStatus)
-    {
-        AS_LOG(AS_LOG_ERROR, "Parse response failed. Can't find 'Status' of 'Item'.");
-        return AS_ERROR_CODE_FAIL;
-    }
-    /*
-    SVS_DEVICE_INFO stDeviceInfo;
-    stDeviceInfo.eDeviceType = SVS_DEV_TYPE_GB28181;
-    stDeviceInfo.eDeviceStatus = (0 == strcmp(pStatus->GetText(), "ON"))
-                                ? SVS_DEV_STATUS_ONLINE
-                                : SVS_DEV_STATUS_OFFLINE;
-    strncpy(stDeviceInfo.szDeviceID, pDeviceID->GetText(), sizeof(stDeviceInfo.szDeviceID) - 1);
-    strncpy(stDeviceInfo.szDeviceName, pName->GetText(), sizeof(stDeviceInfo.szDeviceName) - 1);
-
-    int32_t nResult = IAccessControlManager::instance().notifyDeviceInfo(stDeviceInfo);
-    if (0 != nResult)
-    {
-        AS_LOG(AS_LOG_ERROR, "Notfiy device info failed.");
-        return -1;
-    }*/
-
-    return AS_ERROR_CODE_OK;
-}
-
-int32_t CManscdp::createQueryCatalog()
-{
-    try
-    {
-        XMLDeclaration *declare = m_objXmlDoc.NewDeclaration();
-        m_objXmlDoc.LinkEndChild(declare);
-
-        XMLElement *xmlQuery = m_objXmlDoc.NewElement("Query");
-        m_objXmlDoc.LinkEndChild(xmlQuery);
-
-        XMLElement *xmlCmdType = m_objXmlDoc.NewElement("CmdType");
-        xmlCmdType->SetText("Catalog");
-        xmlQuery->LinkEndChild(xmlCmdType);
-
-        XMLElement *xmlSN = m_objXmlDoc.NewElement("SN");
-        xmlSN->SetText("17430");
-        xmlQuery->LinkEndChild(xmlSN);
-
-        XMLElement *xmlDeviceID = m_objXmlDoc.NewElement("DeviceID");
-        xmlSN->SetText("34020000001320000001");
-        xmlQuery->LinkEndChild(xmlDeviceID);
-    }
-    catch(...)
-    {
-        AS_LOG(AS_LOG_ERROR, "Create query catalog xml failed.");
-        return -1;
-    }
-
-    return 0;
-}
-
-
-
 
 ASCameraSvrManager::ASCameraSvrManager()
 {
@@ -1470,6 +700,12 @@ int32_t ASCameraSvrManager::init()
     m_mutex = as_create_mutex();
     if(NULL == m_mutex) {
         AS_LOG(AS_LOG_ERROR,"ASCameraSvrManager::init ,create mutex fail");
+        return AS_ERROR_CODE_FAIL;
+    }
+
+    m_devMutex = as_create_mutex();
+    if(NULL == m_devMutex) {
+        AS_LOG(AS_LOG_ERROR,"ASCameraSvrManager::init ,create dev mutex fail");
         return AS_ERROR_CODE_FAIL;
     }
 
@@ -1786,7 +1022,8 @@ void ASCameraSvrManager::handle_http_req(struct evhttp_request *req)
     AS_LOG(AS_LOG_INFO, "ASCameraSvrManager::handle_http_req, msg[%s]", post_str.c_str());
 
     std::string strResp = "";
-    if(AS_ERROR_CODE_OK != handle_check(post_str,strResp))
+
+    if(AS_ERROR_CODE_OK != handle_http_message(post_str,strResp))
     {
         evhttp_send_error(req, 404, "call service fail!");
         return;
@@ -1804,51 +1041,41 @@ void ASCameraSvrManager::handle_http_req(struct evhttp_request *req)
     AS_LOG(AS_LOG_DEBUG, "ASCameraSvrManager::handle_http_req end");
 }
 
+ASDevice* ASCameraSvrManager::find_device(std::string& strDevID)
+{
+    as_lock_guard locker(m_devMutex);
+    return NULL;
+}
+void ASCameraSvrManager::release_device(ASDevice* pDev)
+{
+    as_lock_guard locker(m_devMutex);
+}
 
-int32_t ASCameraSvrManager::handle_check(std::string &strReqMsg,std::string &strRespMsg)
+
+int32_t ASCameraSvrManager::handle_http_message(std::string& strReq,std::string& strResp)
 {
     std::string strCheckID  = "";
 
     int32_t ret = AS_ERROR_CODE_OK;
 
-    AS_LOG(AS_LOG_INFO, "ASCameraSvrManager::handle_check,msg:[%s].",strReqMsg.c_str());
+    AS_LOG(AS_LOG_INFO, "ASCameraSvrManager::handle_http_message,msg:[%s].",strReq.c_str());
 
 
 
     XMLDocument doc;
-    XMLError xmlerr = doc.Parse(strReqMsg.c_str(),strReqMsg.length());
+    XMLError xmlerr = doc.Parse(strReq.c_str(),strReq.length());
     if(XML_SUCCESS != xmlerr)
     {
-        AS_LOG(AS_LOG_WARNING, "ASCameraSvrManager::handle_check,parse xml msg:[%s] fail.",strReqMsg.c_str());
+        AS_LOG(AS_LOG_WARNING, "ASCameraSvrManager::handle_http_message,parse xml msg:[%s] fail.",strReq.c_str());
         return AS_ERROR_CODE_FAIL;
     }
 
     XMLElement *req = doc.RootElement();
     if(NULL == req)
     {
-        AS_LOG(AS_LOG_WARNING, "ASCameraSvrManager::handle_check,get xml req node fail.");
+        AS_LOG(AS_LOG_WARNING, "ASCameraSvrManager::handle_http_message,get xml req node fail.");
         return AS_ERROR_CODE_FAIL;
     }
-
-    XMLElement *check = req->FirstChildElement("check");
-    if(NULL == check)
-    {
-        AS_LOG(AS_LOG_WARNING, "ASCameraSvrManager::handle_check,get xml session node fail.");
-        return AS_ERROR_CODE_FAIL;
-    }
-
-
-
-
-    const char* checkid = check->Attribute("checkid");
-    if(NULL == checkid)
-    {
-        AS_LOG(AS_LOG_WARNING, "ASCameraSvrManager::handle_check,get xml check id fail.");
-        return AS_ERROR_CODE_FAIL;
-    }
-    strCheckID = checkid;
-
-    ret = handle_check_task(check);
 
     XMLDocument resp;
     XMLPrinter printer;
@@ -1871,107 +1098,13 @@ int32_t ASCameraSvrManager::handle_check(std::string &strReqMsg,std::string &str
         respEle->SetAttribute("err_msg","fail");
     }
 
-    SesEle->SetAttribute("checkid",checkid);
-
     resp.Accept(&printer);
-    strRespMsg = printer.CStr();
+    strResp = printer.CStr();
 
-    AS_LOG(AS_LOG_DEBUG, "ASCameraSvrManager::handle_session,end");
-    return AS_ERROR_CODE_OK;
-}
-int32_t ASCameraSvrManager::handle_check_task(const XMLElement *check)
-{
-    std::string strReportURL  = "";
-    std::string strCheckID    = "";
-    std::string strCameraID   = "";
-    std::string strStreamType = "";
-    //uint32_t    ulInterval    = 0;
-    ASRtspCheckTask* task     = NULL;
-
-
-    const char* checkid = check->Attribute("checkid");
-    if(NULL != checkid)
-    {
-        strCheckID = checkid;
-    }
-
-   const XMLElement *report = check->FirstChildElement("report");
-    if(NULL == report)
-    {
-        AS_LOG(AS_LOG_INFO, "ASCameraSvrManager::handle_check_task,get xml report node fail.");
-        return AS_ERROR_CODE_FAIL;
-    }
-    //const char* interval = report->Attribute("interval");
-    //if(NULL != interval)
-    //{
-    //    ulInterval = atoi(interval);
-    //}
-    const char* url      = report->Attribute("url");
-    if(NULL != url)
-    {
-        strReportURL = url;
-    }
-
-    const XMLElement *CameraList = check->FirstChildElement("cameralist");
-    if(NULL == CameraList)
-    {
-        AS_LOG(AS_LOG_WARNING, "ASCameraSvrManager::handle_check_task,get xml cameralist node fail.");
-        return AS_ERROR_CODE_FAIL;
-    }
-
-    task = AS_NEW(task);
-    if(NULL == task)
-    {
-        AS_LOG(AS_LOG_WARNING, "ASCameraSvrManager::handle_check_task,create task fail.");
-        return AS_ERROR_CODE_FAIL;
-    }
-
-    task->setTaskInfo(strCheckID,strReportURL);
-
-
-    const XMLElement *camera = CameraList->FirstChildElement("camera");
-
-    const char* cameraId  = NULL;
-    const char* streamType = NULL;
-    uint32_t count = 0;
-    while(camera)
-    {
-        cameraId = camera->Attribute("ID");
-        streamType = camera->Attribute("streamType");
-
-        if(NULL == cameraId)
-        {
-            camera = camera->NextSiblingElement();
-            continue;
-        }
-        strCameraID   = cameraId;
-        strStreamType = streamType;
-
-        task->addCamera(strCameraID,strStreamType);
-        count++;
-
-        camera = camera->NextSiblingElement();
-    }
-
-
-    AS_LOG(AS_LOG_INFO, "ASCameraSvrManager::handle_check_task,CheckID:[%s],camera count:[%d].",
-        strCheckID.c_str(), count);
-
-    as_lock_guard locker(m_mutex);
-
-    AS_LOG(AS_LOG_DEBUG, "ASCameraSvrManager::handle_check_task,end");
+    AS_LOG(AS_LOG_DEBUG, "ASCameraSvrManager::handle_http_message,end");
     return AS_ERROR_CODE_OK;
 }
 
-void  ASCameraSvrManager::check_task_status()
-{
-    ASRtspCheckTask* task     = NULL;
-
-    as_lock_guard locker(m_mutex);
-    AS_LOG(AS_LOG_INFO, "ASCameraSvrManager::check_task_status begin.");
-
-    AS_LOG(AS_LOG_DEBUG, "ASCameraSvrManager::check_task_status,end");
-}
 
 
 void ASCameraSvrManager::setRecvBufSize(u_int32_t ulSize)
@@ -2152,7 +1285,6 @@ int32_t ASCameraSvrManager::handleRegisterReq(eXosip_event_t& rEvent)
 {
     int32_t nResult = 0;
     int32_t nRespCode = SIP_OK;
-    bool bRegister = false;
 
     do
     {
@@ -2169,7 +1301,6 @@ int32_t ASCameraSvrManager::handleRegisterReq(eXosip_event_t& rEvent)
         if (pExpires->hvalue[0] != '0') //×¢²á
         {
             nResult = handleDeviceRegister(rEvent);
-            bRegister = true;
         }
         else    //×¢Ïú
         {
@@ -2220,29 +1351,42 @@ int32_t ASCameraSvrManager::handleDeviceRegister(eXosip_event_t& rEvent)
         }
     }
 
-    DEVICE_INFO szDeviceInfo;
+    ASDevice* pDev = NULL;
+    std::string strDevID = pContact->url->username;
+    std::string strHost  = "";
+    std::string strPort  = "";
+    pDev = find_device(strDevID);
+    if(NULL == pDev)
+    {
+        AS_LOG(AS_LOG_ERROR, "find the device %s failed.", pContact->url->username);
+        send_sip_response(rEvent,SIP_INTERNAL_SERVER_ERROR);
+        return AS_ERROR_CODE_FAIL;
+    }
     if (NULL != pReceived)
     {
-        strncpy(szDeviceInfo.szHost, pReceived->gvalue, sizeof(szDeviceInfo.szHost) - 1);
-        strncpy(szDeviceInfo.szPort, pRport->gvalue, sizeof(szDeviceInfo.szPort) - 1);
+        strHost = pReceived->gvalue;
+        strPort = pRport->gvalue;
     }
     else
     {
-        strncpy(szDeviceInfo.szHost, pContact->url->host, sizeof(szDeviceInfo.szHost) - 1);
-        strncpy(szDeviceInfo.szPort, pContact->url->port, sizeof(szDeviceInfo.szPort) - 1);
+        strHost = pContact->url->host;
+        strPort = pContact->url->port;
     }
-    strncpy(szDeviceInfo.szUserName, pContact->url->username, sizeof(szDeviceInfo.szUserName) - 1);
-    szDeviceInfo.strTo = szDeviceInfo.strTo + szDeviceInfo.szUserName + "@" + szDeviceInfo.szHost + ":" + szDeviceInfo.szPort;
+    pDev->setDevInfo(strHost,strPort);
 
-    {
-        m_devMap[szDeviceInfo.szUserName] = szDeviceInfo;
-    }
-    send_sip_response(rEvent,SIP_OK);
+
+
     AS_LOG(AS_LOG_INFO, "Register new user \"%s\", host is %s, port is %s.",
-            szDeviceInfo.szUserName, szDeviceInfo.szHost, szDeviceInfo.szPort);
+                strDevID.c_str(), strHost.c_str(), strPort.c_str());
+    send_sip_response(rEvent,SIP_OK);
 
     /* send the catalog req */
-    return send_catalog_Req(szDeviceInfo);
+    if(AS_ERROR_CODE_OK != send_catalog_Req(pDev))
+    {
+        AS_LOG(AS_LOG_INFO, "send catalog to devr \"%s\" fail.",strDevID.c_str());
+    }
+    release_device(pDev);
+    return AS_ERROR_CODE_OK;
 }
 
 int32_t ASCameraSvrManager::handleDeviceUnRegister(eXosip_event_t& rEvent)
@@ -2253,15 +1397,23 @@ int32_t ASCameraSvrManager::handleDeviceUnRegister(eXosip_event_t& rEvent)
     if (NULL == pContact)
     {
         AS_LOG(AS_LOG_ERROR, "Parse %s contact failed.", rEvent.request->sip_method);
-        return -1;
+        return AS_ERROR_CODE_FAIL;
     }
+    std::string strDevID = pContact->url->username;
+    ASDevice* pDev = NULL;
 
+    pDev = find_device(strDevID);
+    if(NULL == pDev)
     {
-        m_devMap.erase(pContact->url->username);
+        AS_LOG(AS_LOG_ERROR, "find the device %s failed.", pContact->url->username);
+        send_sip_response(rEvent,SIP_INTERNAL_SERVER_ERROR);
+        return AS_ERROR_CODE_FAIL;
     }
+    release_device(pDev);
+    release_device(pDev);
 
     AS_LOG(AS_LOG_INFO, "Unregister user \"%s\".", pContact->url->username);
-    return 0;
+    return AS_ERROR_CODE_OK;
 }
 
 int32_t ASCameraSvrManager::handleMessageReq(eXosip_event_t& rEvent)
@@ -2269,6 +1421,8 @@ int32_t ASCameraSvrManager::handleMessageReq(eXosip_event_t& rEvent)
 
     int32_t nResult = 0;
     int32_t nRespCode = SIP_OK;
+    std::string strDevID;
+    ASDevice* pDev = NULL;
 
     do
     {
@@ -2280,13 +1434,14 @@ int32_t ASCameraSvrManager::handleMessageReq(eXosip_event_t& rEvent)
             break;
         }
 
+        strDevID = pFrom->url->username;
+
+        pDev = find_device(strDevID);
+        if(NULL == pDev)
         {
-            if (m_devMap.find(pFrom->url->username) == m_devMap.end())
-            {
-                AS_LOG(AS_LOG_INFO, "User \"%s\" hasn't register.", pFrom->url->username);
-                nRespCode = SIP_NOT_FOUND;
-                break;
-            }
+            AS_LOG(AS_LOG_ERROR, "find the device %s failed.", pFrom->url->username);
+            nRespCode = SIP_NOT_FOUND;
+            break;
         }
 
         osip_body_t *pBody = NULL;
@@ -2298,30 +1453,30 @@ int32_t ASCameraSvrManager::handleMessageReq(eXosip_event_t& rEvent)
             break;
         }
 
-        CManscdp objManscdp;
-        nResult = objManscdp.parse(pBody->body);
-        if (0 != nResult)
-        {
-            AS_LOG(AS_LOG_INFO, "Parse %s body failed, content is %s.", rEvent.request->sip_method, pBody->body);
-            nRespCode = SIP_BAD_REQUEST;
-            break;
-        }
+        std::string strMsg = pBody->body;
+
+        pDev->handleMessage(strMsg);
 
         AS_LOG(AS_LOG_INFO, "Parse %s body OK, content is %s.", rEvent.request->sip_method, pBody->body);
     }while(0);
+
+    if(NULL != pDev)
+    {
+        release_device(pDev);
+    }
 
 
     nResult = send_sip_response(rEvent, nRespCode);
     if (0 != nResult)
     {
         AS_LOG(AS_LOG_ERROR, "Response %s failed.", rEvent.request->sip_method);
-        return -1;
+        return AS_ERROR_CODE_FAIL;
     }
 
-    return 0;
+    return AS_ERROR_CODE_OK;
 }
 
-int32_t ASCameraSvrManager::send_catalog_Req(DEVICE_INFO& devInfo)
+int32_t ASCameraSvrManager::send_catalog_Req(ASDevice* pDev)
 {
     osip_message_t *pRequest = NULL;
     std::string strFrom = "sip:" + m_strServerID+ "@" + m_strLocalIP;
@@ -2329,24 +1484,18 @@ int32_t ASCameraSvrManager::send_catalog_Req(DEVICE_INFO& devInfo)
     {
         strFrom = "sip:" + m_strServerID+ "@" + m_strFireWallIP;
     }
+    std::string strTo = pDev->getSendTo();
     int32_t nResult = eXosip_message_build_request(m_pEXosipCtx, &pRequest,
-                                                  "MESSAGE", devInfo.strTo.c_str(),
+                                                  "MESSAGE", strTo.c_str(),
                                                   strFrom.c_str(),NULL);
     if (OSIP_SUCCESS != nResult)
     {
         AS_LOG(AS_LOG_ERROR, "eXosip_message_build_request Message failed, error code is %d.", nResult);
         return -1;
     }
+    std::string strMsg = pDev->createQueryCatalog();
 
-    char szBody[1024] = {0};
-    snprintf(szBody, sizeof(szBody), "<?xml version=\"1.0\"?>\
-                                     <Query>\
-                                       <CmdType>Catalog</CmdType>\
-                                       <SN>17430</SN>\
-                                       <DeviceID>%s</DeviceID>\
-                                     </Query>",devInfo.szUserName);
-
-    nResult = osip_message_set_body(pRequest, szBody, strlen(szBody));
+    nResult = osip_message_set_body(pRequest, strMsg.c_str(), strMsg.length());
     if (OSIP_SUCCESS != nResult)
     {
         AS_LOG(AS_LOG_ERROR, "osip_message_set_body Message failed, error code is %d.", nResult);

@@ -115,8 +115,6 @@ extern "C"{
 #define RTSP_CHECK_TMP_BUF_SIZE   256
 
 
-
-
 // By default, we request that the server stream its data using RTP/UDP.
 // If, instead, you want to request that the server stream via RTP-over-TCP, change the following to True:
 #define REQUEST_STREAMING_OVER_TCP True
@@ -144,251 +142,55 @@ extern "C"{
 
 #define ALLCAM_AGENT_NAME                 "all camera server"
 
-struct DEVICE_INFO
+
+
+typedef enum AS_DEV_STATUS
 {
-    char szUserName[AS_DEVICEID_LEN + 1];
-    char szHost[AS_IP_LENS + 1];
-    char szPort[6];
-    std::string strTo;
+    AS_DEV_STATUS_OFFLIEN   = 0,
+    AS_DEV_STATUS_ONLINE    = 1,
+    AS_DEV_STATUS_MAX
+}DEV_STATUS;
 
-    DEVICE_INFO()
-    {
-        szUserName[0]   = '\0';
-        szHost[0]       = '\0';
-        szPort[0]       = '\0';
-        strTo           = "sip:";
-    }
-};
-
-
-enum AS_RTSP_CHECK_RESULT
-{
-    AS_RTSP_CHECK_RESULT_SUCCESS    = 0,
-    AS_RTSP_CHECK_RESULT_URL_FAIL   = 1, /* get the url fail */
-    AS_RTSP_CHECK_RESULT_OPEN_URL   = 2, /* opne the url fail */
-    AS_RTSP_CHECK_RESULT_RECV_DATA  = 3, /* recv video data fail */
-};
-
-
-// Define a class to hold per-stream state that we maintain throughout each stream's lifetime:
-enum AS_RTSP_STATUS {
-    AS_RTSP_STATUS_INIT     = 0x00,
-    AS_RTSP_STATUS_SETUP    = 0x01,
-    AS_RTSP_STATUS_PLAY     = 0x02,
-    AS_RTSP_STATUS_PAUSE    = 0x03,
-    AS_RTSP_STATUS_TEARDOWN = 0x04,
-    AS_RTSP_STATUS_INVALID  = 0xFF,
-};
-
-class ASRtspStatusObervser
+class ASLens
 {
 public:
-    ASRtspStatusObervser(){};
-    virtual ~ASRtspStatusObervser(){};
-    virtual void NotifyStatus(AS_RTSP_STATUS status) = 0;
-    virtual void NotifyRecvData(AS_RTSP_CHECK_RESULT enResult,uint32_t ulDuration,
-                                uint64_t ulVideoRecv,uint64_t ulAudioRecv) = 0;
-};
-
-
-class ASRtspCheckStreamState {
-public:
-  ASRtspCheckStreamState();
-  virtual ~ASRtspCheckStreamState();
-public:
-  MediaSubsessionIterator* iter;
-  MediaSession*            session;
-  MediaSubsession*         subsession;
-  TaskToken                streamTimerTask;
-  double                   duration;
-};
-
-// If you're streaming just a single stream (i.e., just from a single URL, once), then you can define and use just a single
-// "ASRtsp2SipStreamState" structure, as a global variable in your application.  However, because - in this demo application - we're
-// showing how to play multiple streams, concurrently, we can't do that.  Instead, we have to have a separate "ASRtsp2SipStreamState"
-// structure for each "RTSPClient".  To do this, we subclass "RTSPClient", and add a "ASRtsp2SipStreamState" field to the subclass:
-
-class ASRtspCheckChannel: public RTSPClient {
-public:
-    static ASRtspCheckChannel* createNew(u_int32_t ulEnvIndex,UsageEnvironment& env, char const* rtspURL,
-                  int verbosityLevel = 0,
-                  char const* applicationName = NULL,
-                  portNumBits tunnelOverHTTPPortNum = 0);
-protected:
-    ASRtspCheckChannel(u_int32_t ulEnvIndex,UsageEnvironment& env, char const* rtspURL,
-            int verbosityLevel, char const* applicationName, portNumBits tunnelOverHTTPPortNum);
-    // called only by createNew();
-    virtual ~ASRtspCheckChannel();
-public:
-    int32_t open(uint32_t ulDuration,ASRtspStatusObervser* observer);
-    void    close();
-    u_int32_t index(){return m_ulEnvIndex;};
-    void    SupportsGetParameter(Boolean bSupportsGetParameter) {m_bSupportsGetParameter = bSupportsGetParameter;};
-    Boolean SupportsGetParameter(){return m_bSupportsGetParameter;};
-public:
-    void    handle_after_options(int resultCode, char* resultString);
-    void    handle_after_describe(int resultCode, char* resultString);
-    void    handle_after_setup(int resultCode, char* resultString);
-    void    handle_after_play(int resultCode, char* resultString);
-    void    handle_after_teardown(int resultCode, char* resultString);
-    void    handle_subsession_after_playing(MediaSubsession* subsession);
-    void    handle_after_timeout();
-    // Used to iterate through each stream's 'subsessions', setting up each one:
-    void    setupNextSubsession();
-    // Used to shut down and close a stream (including its "RTSPClient" object):
-    void    shutdownStream();
-public:
-    // RTSP 'response handlers':
-    static void continueAfterOPTIONS(RTSPClient* rtspClient, int resultCode, char* resultString);
-    static void continueAfterDESCRIBE(RTSPClient* rtspClient, int resultCode, char* resultString);
-    static void continueAfterSETUP(RTSPClient* rtspClient, int resultCode, char* resultString);
-    static void continueAfterPLAY(RTSPClient* rtspClient, int resultCode, char* resultString);
-    static void continueAfterGET_PARAMETE(RTSPClient* rtspClient, int resultCode, char* resultString);
-    static void continueAfterTeardown(RTSPClient* rtspClient, int resultCode, char* resultString);
-
-    // Other event handler functions:
-    static void subsessionAfterPlaying(void* clientData); // called when a stream's subsession (e.g., audio or video substream) ends
-    static void subsessionByeHandler(void* clientData); // called when a RTCP "BYE" is received for a subsession
-    static void streamTimerHandler(void* clientData);
-
-public:
-    ASRtspCheckStreamState   scs;
-private:
-    u_int32_t             m_ulEnvIndex;
-    Boolean               m_bSupportsGetParameter;
-    AS_RTSP_STATUS        m_enStatus;
-    ASRtspStatusObervser *m_bObervser;
-    Boolean               m_bStop;
-    uint32_t              m_ulDuration;
-    time_t                m_ulStartTime;
-    AS_RTSP_CHECK_RESULT  m_enCheckResult;
-};
-
-// Define a data sink (a subclass of "MediaSink") to receive the data for each subsession (i.e., each audio or video 'substream').
-// In practice, this might be a class (or a chain of classes) that decodes and then renders the incoming audio or video.
-// Or it might be a "FileSink", for outputting the received data into a file (as is done by the "openRTSP" application).
-// In this example code, however, we define a simple 'dummy' sink that receives incoming data, but does nothing with it.
-
-class ASRtspCheckVideoSink: public MediaSink {
-public:
-  static ASRtspCheckVideoSink* createNew(UsageEnvironment& env, MediaSubsession& subsession);
-
-  uint64_t getRecvVideoSize() { return m_ulRecvSize;};
-
-private:
-  ASRtspCheckVideoSink(UsageEnvironment& env, MediaSubsession& subsession);
-    // called only by "createNew()"
-  virtual ~ASRtspCheckVideoSink();
-
-  static void afterGettingFrame(void* clientData, unsigned frameSize,
-                                unsigned numTruncatedBytes,
-                struct timeval presentationTime,
-                                unsigned durationInMicroseconds);
-  void afterGettingFrame(unsigned frameSize, unsigned numTruncatedBytes,
-             struct timeval presentationTime, unsigned durationInMicroseconds);
-
-private:
-  // redefined virtual functions:
-  virtual Boolean continuePlaying();
-private:
-  u_int8_t  fMediaBuffer[DUMMY_SINK_MEDIA_BUFFER_SIZE];
-  MediaSubsession& fSubsession;
-  uint64_t        m_ulRecvSize;
-};
-
-class ASRtspCheckAudioSink: public MediaSink {
-public:
-  static ASRtspCheckAudioSink* createNew(UsageEnvironment& env, MediaSubsession& subsession);
-
-  uint64_t getRecvAudioSize() { return m_ulRecvSize;};
-
-private:
-  ASRtspCheckAudioSink(UsageEnvironment& env, MediaSubsession& subsession);
-    // called only by "createNew()"
-  virtual ~ASRtspCheckAudioSink();
-
-  static void afterGettingFrame(void* clientData, unsigned frameSize,
-                                unsigned numTruncatedBytes,
-                struct timeval presentationTime,
-                                unsigned durationInMicroseconds);
-  void afterGettingFrame(unsigned frameSize, unsigned numTruncatedBytes,
-             struct timeval presentationTime, unsigned durationInMicroseconds);
-
-private:
-  // redefined virtual functions:
-  virtual Boolean continuePlaying();
-private:
-  u_int8_t  fMediaBuffer[DUMMY_SINK_MEDIA_BUFFER_SIZE];
-  MediaSubsession& fSubsession;
-  uint64_t        m_ulRecvSize;
-};
-
-
-typedef enum AS_RTSP_CHECK_STATUS
-{
-    AS_RTSP_CHECK_STATUS_WAIT   = 0,
-    AS_RTSP_CHECK_STATUS_RUN    = 1,
-    AS_RTSP_CHECK_STATUS_END    = 2
-}CHECK_STATUS;
-
-class ASLensInfo:public ASRtspStatusObervser
-{
-public:
-    ASLensInfo();
-    virtual ~ASLensInfo();
-    void setLensInfo(std::string& strCameraID,std::string& strStreamType);
-    void check();
-    CHECK_STATUS Status();
-    std::string getCameraID(){return m_strCameraID;};
-    AS_RTSP_CHECK_RESULT    getResult(){return m_enCheckResult;};
-    uint32_t    getDuration(){return m_ulDuration;};
-    uint64_t    getVideoRecv(){return m_ulVideoRecv;};
-    uint64_t    getAudioRecv(){return m_ulAudioRecv;};
-    virtual void NotifyStatus(AS_RTSP_STATUS status);
-    virtual void NotifyRecvData(AS_RTSP_CHECK_RESULT enResult,uint32_t ulDuration,uint64_t ulVideoRecv,uint64_t ulAudioRecv);
-
-private:
-    int32_t StartRtspCheck();
-    void    stopRtspCheck();
+    ASLens();
+    virtual ~ASLens();
 private:
     std::string    m_strCameraID;
-    std::string    m_strStreamType;
-    AS_HANDLE      m_handle;
-    CHECK_STATUS   m_Status;
-    time_t         m_time;
-    AS_RTSP_CHECK_RESULT m_enCheckResult;
-    uint32_t       m_ulDuration;
-    uint64_t       m_ulVideoRecv;
-    uint64_t       m_ulAudioRecv;
+    DEV_STATUS     m_Status;
 };
 
-typedef std::list<ASLensInfo*>    LENSINFOLIST;
-typedef LENSINFOLIST::iterator    LENSINFOLISTITRT;
+typedef std::map<std::string,ASLens*>        LENSINFOMAP;
+typedef LENSINFOMAP::iterator                LENSINFOMAPITRT;
 
-
-
-class ASRtspCheckTask
+class ASDevice
 {
 public:
-    ASRtspCheckTask();
-    virtual ~ASRtspCheckTask();
-    void setTaskInfo(std::string& strCheckID,std::string& strReportUrl);
-    void addCamera(std::string& strCameraID,std::string& strStreamTye);
-    void checkTask();
-    CHECK_STATUS TaskStatus();
+    ASDevice();
+    ASDevice(std::string& strDveID);
+    virtual ~ASDevice();
+    void setDevInfo(std::string& strHost,std::string& strPort);
+    std::string getSendTo(){return m_strTo;};
+    std::string getDevId(){return m_strDevID;};
+    void handleMessage(std::string& strMsg);
+    DEV_STATUS Status();
+    std::string createQueryCatalog();
 private:
-    void ReportTaskStatus();
+    int32_t parseNotify(const XMLElement &rRoot);
+    int32_t parseResponse(const XMLElement &rRoot);
+    int32_t parseQueryCatalog(const XMLElement &rRoot);
+    int32_t parseDeviceItem(const XMLElement &rItem);
 private:
-    std::string   m_strCheckID;
-    std::string   m_strReportUrl;
-    LENSINFOLIST  m_LensList;
-    CHECK_STATUS  m_Status;
+    std::string   m_strDevID;
+    std::string   m_stHost;
+    std::string   m_strPort;
+    std::string   m_strTo;
+    LENSINFOMAP   m_LensMap;
+    DEV_STATUS    m_Status;
 };
 
 
-
-typedef std::list<ASRtspCheckTask*>  ASCHECKTASKLIST;
-typedef ASCHECKTASKLIST::iterator    ASCHECKTASKLISTITER;
 
 class ASEvLiveHttpClient
 {
@@ -413,26 +215,6 @@ private:
     std::string              m_strRespMsg;
     as_digest_t              m_Authen;
 };
-
-class CManscdp
-{
-public:
-    CManscdp(){};
-    virtual ~CManscdp(){};
-
-    int32_t parse(const char* pszXML);
-    int32_t createQueryCatalog();
-
-private:
-    int32_t parseNotify(const XMLElement &rRoot);
-    int32_t parseResponse(const XMLElement &rRoot);
-    int32_t parseQueryCatalog(const XMLElement &rRoot);
-    int32_t parseDeviceItem(const XMLElement &rItem);
-
-private:
-    XMLDocument m_objXmlDoc;
-};
-
 
 
 class ASCameraSvrManager
@@ -491,12 +273,12 @@ private:
     int32_t handleDeviceRegister(eXosip_event_t& rEvent);
     int32_t handleDeviceUnRegister(eXosip_event_t& rEvent);
     int32_t handleMessageReq(eXosip_event_t& rEvent);
-    int32_t send_catalog_Req(DEVICE_INFO& devInfo);//for GB28181
+    int32_t send_catalog_Req(ASDevice* pDev);//for GB28181
 
 private:
-    int32_t handle_check(std::string &strReqMsg,std::string &strRespMsg);
-    int32_t handle_check_task(const XMLElement *check);
-    void    check_task_status();
+    ASDevice* find_device(std::string& strDevID);
+    void release_device(ASDevice* pDev);
+    int32_t handle_http_message(std::string& strReq,std::string& strResp);
 private:
     u_int32_t         m_ulTdIndex;
     as_mutex_t       *m_mutex;
@@ -504,8 +286,9 @@ private:
     u_int32_t         m_ulRecvBufSize;
     u_int32_t         m_ulLogLM;
 private:
-    typedef std::map<std::string, DEVICE_INFO> DEV_MAP;
+    typedef std::map<std::string, ASDevice*> DEV_MAP;
     DEV_MAP           m_devMap;
+    as_mutex_t       *m_devMutex;
 private:
     //GB28181 SIP Service
     struct eXosip_t  *m_pEXosipCtx;
