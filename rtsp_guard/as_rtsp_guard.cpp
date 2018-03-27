@@ -424,7 +424,7 @@ void ASRtspCheckChannel::shutdownStream() {
     AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::shutdownStream end.");
 
     /* not close here ,it will be closed by the close URL */
-    //Medium::close(rtspClient);
+    Medium::close(this);
     // Note that this will also cause this stream's "ASRtsp2SipStreamState" structure to get reclaimed.
 
 }
