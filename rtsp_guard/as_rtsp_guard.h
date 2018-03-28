@@ -388,6 +388,10 @@ private:
     std::string              m_reqPath;
     std::string              m_strRespMsg;
     as_digest_t              m_Authen;
+    struct evhttp_request   *m_pReq;
+    struct event_base       *m_pBase;
+    struct evhttp_connection*m_pConn;
+    struct evdns_base       *m_pDnsbase;
 };
 
 
@@ -420,6 +424,7 @@ public:
     std::string getPassword(){return m_strPassword;};
     uint32_t    getRtspHandleCount(){return m_ulRtspHandlCount;};
     uint32_t    getMaxCheckCount(){ return m_ulMaxCheckCount;};
+    uint32_t    getCheckDuration(){ return m_ulCheckDuration;};
 public:
     void http_env_thread();
     void rtsp_env_thread();
@@ -466,6 +471,7 @@ private:
     u_int32_t         m_ulRecvBufSize;
     u_int32_t         m_ulLogLM;
     u_int32_t         m_ulMaxCheckCount;
+    time_t            m_ulCheckDuration;
 private:
     std::string       m_strAppID;
     std::string       m_strAppSecret;
