@@ -814,7 +814,7 @@ u_int32_t ASRtspClientManager::find_beast_thread()
 
 AS_HANDLE ASRtspClientManager::openURL(char const* rtspURL,as_rtsp_callback_t* cb) {
 
-    as_mutex_lock(m_mutex);
+    as_lock_guard locker(m_mutex);
     TaskScheduler* scheduler = NULL;
     UsageEnvironment* env = NULL;
     u_int32_t index =  0;
@@ -829,7 +829,6 @@ AS_HANDLE ASRtspClientManager::openURL(char const* rtspURL,as_rtsp_callback_t* c
 
     RTSPClient* rtspClient = ASRtspClient::createNew(index,*env, rtspURL, RTSP_CLIENT_VERBOSITY_LEVEL, RTSP_AGENT_NAME);
     if (rtspClient == NULL) {
-        as_mutex_unlock(m_mutex);
         return NULL;
     }
     if(AS_RTSP_MODEL_MUTIL == m_ulModel) {
@@ -839,13 +838,12 @@ AS_HANDLE ASRtspClientManager::openURL(char const* rtspURL,as_rtsp_callback_t* c
     ASRtspClient* AsRtspClient = (ASRtspClient*)rtspClient;
 
     AsRtspClient->open(cb);
-    as_mutex_unlock(m_mutex);
     return (AS_HANDLE)AsRtspClient;
 }
 
 void      ASRtspClientManager::closeURL(AS_HANDLE handle)
 {
-    as_mutex_lock(m_mutex);
+    as_lock_guard locker(m_mutex);
     TaskScheduler* scheduler = NULL;
     UsageEnvironment* env = NULL;
 
@@ -863,7 +861,6 @@ void      ASRtspClientManager::closeURL(AS_HANDLE handle)
         delete scheduler;
         scheduler = NULL;
     }
-    as_mutex_unlock(m_mutex);
     return;
 }
 

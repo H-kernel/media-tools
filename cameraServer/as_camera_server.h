@@ -180,11 +180,14 @@ public:
     ASDevice();
     virtual ~ASDevice();
     void DevID(std::string& strDveID);
+    std::string DevID(){return m_strDevID;};
     void setDevInfo(std::string& strHost,std::string& strPort);
     std::string getSendTo(){return m_strTo;};
     std::string getDevId(){return m_strDevID;};
     void handleMessage(std::string& strMsg);
     DEV_STATUS Status();
+    int32_t increase_reference();
+    int32_t decrease_reference();
     std::string createQueryCatalog();
 private:
     int32_t parseNotify(const XMLElement &rRoot);
@@ -198,6 +201,7 @@ private:
     std::string   m_strTo;
     LENSINFOMAP   m_LensMap;
     DEV_STATUS    m_Status;
+    int32_t       m_iRefCnt;
 };
 
 
@@ -287,6 +291,7 @@ private:
     int32_t send_catalog_Req(ASDevice* pDev);//for GB28181
 
 private:
+    ASDevice* create_device(std::string& strDevID);
     ASDevice* find_device(std::string& strDevID);
     void release_device(ASDevice* pDev);
     int32_t handle_http_message(std::string& strReq,std::string& strResp);

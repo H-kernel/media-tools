@@ -1092,7 +1092,7 @@ int32_t ASEvLiveHttpClient::open_http_by_url(std::string& strUrl)
     {
         m_reqPath = path;
     }
-    
+
 
 
     m_pBase = event_base_new();
@@ -1844,7 +1844,7 @@ void ASRtsp2SiptManager::rtsp_env_thread()
 
 u_int32_t ASRtsp2SiptManager::find_beast_thread()
 {
-    as_mutex_lock(m_mutex);
+    as_lock_guard locker(m_mutex);
     u_int32_t index = 0;
     u_int32_t count = 0xFFFFFFFF;
     for(u_int32_t i = 0; i < RTSP_MANAGE_ENV_MAX_COUNT;i++) {
@@ -1853,7 +1853,6 @@ u_int32_t ASRtsp2SiptManager::find_beast_thread()
             count = m_clCountArray[i];
         }
     }
-    as_mutex_unlock(m_mutex);
     return index;
 }
 UsageEnvironment* ASRtsp2SiptManager::get_env(u_int32_t index)

@@ -99,7 +99,7 @@ extern "C"{
 #define H264_RTP_TIMESTAMP_FREQUE 3600
 #define G711_RTP_TIMESTAMP_FREQUE 400
 
-#define RTSP_CLINET_HANDLE_MAX    200
+#define RTSP_CLINET_HANDLE_MAX    1000
 
 #define RTSP_CLINET_RUN_DURATION  60
 
@@ -151,6 +151,7 @@ enum AS_RTSP_STATUS {
     AS_RTSP_STATUS_PLAY     = 0x02,
     AS_RTSP_STATUS_PAUSE    = 0x03,
     AS_RTSP_STATUS_TEARDOWN = 0x04,
+    AS_RTSP_STATUS_RELEASE  = 0x05,
     AS_RTSP_STATUS_INVALID  = 0xFF,
 };
 
@@ -194,14 +195,16 @@ protected:
     // called only by createNew();
     virtual ~ASRtspCheckChannel();
 public:
-    int32_t open(uint32_t ulDuration,ASRtspStatusObervser* observer);
+    int32_t open(ASRtspStatusObervser* observer);
     void    close();
     u_int32_t index(){return m_ulEnvIndex;};
+    AS_RTSP_STATUS  getStatus(){return m_enStatus;};
     void    SupportsGetParameter(Boolean bSupportsGetParameter) {m_bSupportsGetParameter = bSupportsGetParameter;};
     Boolean SupportsGetParameter(){return m_bSupportsGetParameter;};
 public:
     void    handle_after_options(int resultCode, char* resultString);
     void    handle_after_describe(int resultCode, char* resultString);
+    void    handle_after_getparameter(int resultCode, char* resultString);
     void    handle_after_setup(int resultCode, char* resultString);
     void    handle_after_play(int resultCode, char* resultString);
     void    handle_after_teardown(int resultCode, char* resultString);
@@ -232,8 +235,7 @@ private:
     Boolean               m_bSupportsGetParameter;
     AS_RTSP_STATUS        m_enStatus;
     ASRtspStatusObervser *m_bObervser;
-    Boolean               m_bStop;
-    uint32_t              m_ulDuration;
+    volatile Boolean      m_bStop;
     time_t                m_ulStartTime;
     AS_RTSP_CHECK_RESULT  m_enCheckResult;
 };
@@ -407,6 +409,7 @@ public:
     void    close();
     AS_HANDLE openURL(char const* rtspURL,ASRtspStatusObervser* observer);
     void      closeURL(AS_HANDLE handle);
+    AS_RTSP_STATUS  getStatus(AS_HANDLE handle);
     void      setRecvBufSize(u_int32_t ulSize);
     u_int32_t getRecvBufSize();
     std::string getAppID(){return m_strAppID;};
@@ -416,6 +419,7 @@ public:
     std::string getUserName(){return m_strUserName;};
     std::string getPassword(){return m_strPassword;};
     uint32_t    getRtspHandleCount(){return m_ulRtspHandlCount;};
+    uint32_t    getMaxCheckCount(){ return m_ulMaxCheckCount;};
 public:
     void http_env_thread();
     void rtsp_env_thread();
@@ -436,10 +440,9 @@ private:
     static void *check_task_invoke(void *arg);
     u_int32_t thread_index()
     {
-        as_mutex_lock(m_mutex);
+        as_lock_guard locker(m_mutex);
         u_int32_t index = m_ulTdIndex;
-        m_ulTdIndex++;
-        as_mutex_unlock(m_mutex);
+        m_ulTdIndex++;;
         return index;
     }
 
@@ -462,6 +465,7 @@ private:
     u_int32_t         m_ulRtspHandlCount;
     u_int32_t         m_ulRecvBufSize;
     u_int32_t         m_ulLogLM;
+    u_int32_t         m_ulMaxCheckCount;
 private:
     std::string       m_strAppID;
     std::string       m_strAppSecret;

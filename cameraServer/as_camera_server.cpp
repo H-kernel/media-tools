@@ -36,6 +36,7 @@ ASDevice::ASDevice()
 {
     m_strDevID = "";
     m_Status = AS_DEV_STATUS_OFFLIEN;
+    m_iRefCnt = 1;
 }
 
 
@@ -93,7 +94,7 @@ void ASDevice::handleMessage(std::string& strMsg)
 
     if (0 != nResult)
     {
-        AS_LOG(AS_LOG_ERROR, "Parse XML failed, content is %s.", strMsg.c_str());
+        AS_LOG(AS_LOG_ERROR, "Parse XML failed, content is:\n %s.", strMsg.c_str());
         return ;
     }
 
@@ -106,6 +107,18 @@ DEV_STATUS ASDevice::Status()
 {
     return m_Status;
 }
+int32_t ASDevice::increase_reference()
+{
+    m_iRefCnt++;
+    return m_iRefCnt;
+}
+
+int32_t ASDevice::decrease_reference()
+{
+    m_iRefCnt--;
+    return m_iRefCnt;
+}
+
 int32_t ASDevice::parseNotify(const XMLElement &rRoot)
 {
     const XMLElement* pCmdType = rRoot.FirstChildElement("CmdType");
@@ -281,7 +294,7 @@ std::string ASDevice::createQueryCatalog()
         xmlQuery->LinkEndChild(xmlSN);
 
         XMLElement *xmlDeviceID = XmlDoc.NewElement("DeviceID");
-        xmlSN->SetText(m_strDevID.c_str());
+        xmlDeviceID->SetText(m_strDevID.c_str());
         xmlQuery->LinkEndChild(xmlDeviceID);
     }
     catch(...)
@@ -1048,15 +1061,60 @@ void ASCameraSvrManager::handle_http_req(struct evhttp_request *req)
     evbuffer_free(evbuf);
     AS_LOG(AS_LOG_DEBUG, "ASCameraSvrManager::handle_http_req end");
 }
+ASDevice* ASCameraSvrManager::create_device(std::string& strDevID)
+{
+    as_lock_guard locker(m_devMutex);
+
+    ASDevice* pDev = NULL;
+    DEV_MAP::iterator iter = m_devMap.find(strDevID);
+    if(iter != m_devMap.end())
+    {
+        pDev = iter->second;
+    }
+    else {
+        pDev = AS_NEW(pDev);
+        if(NULL == pDev)
+        {
+            return NULL;
+        }
+        pDev->DevID(strDevID);
+        m_devMap.insert(DEV_MAP::value_type(strDevID,pDev));
+    }
+    pDev->increase_reference();
+    return pDev;
+}
 
 ASDevice* ASCameraSvrManager::find_device(std::string& strDevID)
 {
     as_lock_guard locker(m_devMutex);
-    return NULL;
+
+    ASDevice* pDev = NULL;
+    DEV_MAP::iterator iter = m_devMap.find(strDevID);
+    if(iter == m_devMap.end())
+    {
+
+        return NULL ;
+    }
+    pDev = iter->second;
+    pDev->increase_reference();
+    return pDev;
 }
 void ASCameraSvrManager::release_device(ASDevice* pDev)
 {
     as_lock_guard locker(m_devMutex);
+    int nRef = pDev->decrease_reference();
+    if(nRef > 0)
+    {
+        return;
+    }
+    std::string strDevID = pDev->DevID();
+    DEV_MAP::iterator iter = m_devMap.find(strDevID);
+    if(iter != m_devMap.end())
+    {
+        m_devMap.erase(iter);
+        AS_DELETE(pDev);
+    }
+    return;
 }
 
 
@@ -1381,7 +1439,7 @@ int32_t ASCameraSvrManager::handleDeviceRegister(eXosip_event_t& rEvent)
     std::string strDevID = pContact->url->username;
     std::string strHost  = "";
     std::string strPort  = "";
-    pDev = find_device(strDevID);
+    pDev = create_device(strDevID);
     if(NULL == pDev)
     {
         AS_LOG(AS_LOG_ERROR, "find the device %s failed.", pContact->url->username);

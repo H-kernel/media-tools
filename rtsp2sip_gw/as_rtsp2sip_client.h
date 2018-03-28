@@ -498,10 +498,9 @@ private:
     static void *rtsp_env_invoke(void *arg);
     u_int32_t thread_index()
     {
-        as_mutex_lock(m_mutex);
+        as_lock_guard locker(m_mutex);
         u_int32_t index = m_ulTdIndex;
         m_ulTdIndex++;
-        as_mutex_unlock(m_mutex);
         return index;
     }
 
