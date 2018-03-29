@@ -195,6 +195,8 @@ void sigchld_handle(int32_t signum)
 
     //先还原SIGCHLD处理函数，否则fork出来就是僵尸
     (void)signal(SIGCHLD, SIG_DFL);
+    //休眠2秒，防止频发启停
+    sleep(WAIT_RELAUNCH);
 
     //daemon进程派生出工作进程，此时daemon进程将监控工作进程
     pid = fork();

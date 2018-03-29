@@ -1287,7 +1287,7 @@ int32_t ASRtspGuardManager::init()
         return AS_ERROR_CODE_FAIL;
     }
 
-    event_init();
+    //event_init();
 
     /* start the log module */
     ASSetLogLevel(m_ulLogLM);

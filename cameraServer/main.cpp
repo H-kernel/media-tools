@@ -24,11 +24,7 @@ int main(int argc, char *argv[])
 #else
     workFunc();
 #endif
-    as_sleep(10000);
-    while (true)
-    {
-        as_sleep(100);
-    }
+    
     return 0;
 }
 
@@ -58,6 +54,12 @@ void workFunc()
     if (AS_ERROR_CODE_OK != ret)
     {
         return ;
+    }
+    
+    as_sleep(10000);
+    while (true)
+    {
+        as_sleep(100);
     }
 
     return ;
