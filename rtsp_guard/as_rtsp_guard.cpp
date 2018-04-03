@@ -65,8 +65,6 @@ int32_t ASRtspCheckChannel::open(ASRtspStatusObervser* observer)
         return AS_ERROR_CODE_FAIL;
     }
 
-    unsigned uSecsToDelay = (unsigned)(GW_TIMER_CHECK_TASK*1000);
-    scs.streamTimerTask = envir().taskScheduler().scheduleDelayedTask(uSecsToDelay, (TaskFunc*)streamTimerHandler, this);
     AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::open,end.");
     return AS_ERROR_CODE_OK;
 }
@@ -90,6 +88,10 @@ void    ASRtspCheckChannel::handle_after_options(int resultCode, char* resultStr
             delete[] resultString;
             break;
         }
+
+        unsigned uSecsToDelay = (unsigned)(GW_TIMER_CHECK_TASK*1000);
+        scs.streamTimerTask = envir().taskScheduler().scheduleDelayedTask(uSecsToDelay, (TaskFunc*)streamTimerHandler, this);
+
 
         Boolean serverSupportsGetParameter = RTSPOptionIsSupported("GET_PARAMETER", resultString);
         delete[] resultString;
