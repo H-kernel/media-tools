@@ -81,13 +81,6 @@ void    ASRtspCheckChannel::handle_after_options(int resultCode, char* resultStr
     AS_LOG(AS_LOG_DEBUG,"ASRtspCheckChannel::handle_after_options begin.");
 
     do {
-        if (resultCode != 0) {
-            AS_LOG(AS_LOG_WARNING,"ASRtspCheckChannel::handle_after_options,"
-                                  "this result:[%d] is not right.",resultCode);
-            m_enCheckResult  = AS_RTSP_CHECK_RESULT_OPEN_URL;
-            delete[] resultString;
-            break;
-        }
 
         unsigned uSecsToDelay = (unsigned)(GW_TIMER_CHECK_TASK*1000);
         scs.streamTimerTask = envir().taskScheduler().scheduleDelayedTask(uSecsToDelay, (TaskFunc*)streamTimerHandler, this);
@@ -1236,9 +1229,22 @@ int32_t ASEvLiveHttpClient::send_http_request(std::string& strUrl,std::string& s
             break;
         }
         evhttp_request_free(m_pReq);
+        m_pReq  = NULL;
         evhttp_connection_free(m_pConn);
+        m_pConn = NULL;
 
     }while(true);
+
+    if(NULL != m_pReq)
+    {
+        evhttp_request_free(m_pReq);
+        m_pReq  = NULL;
+    }
+    if(NULL != m_pConn)
+    {
+        evhttp_connection_free(m_pConn);
+        m_pConn  = NULL;
+    }
 
     evdns_base_free(m_pDnsbase,1);
     event_base_free(m_pBase);
