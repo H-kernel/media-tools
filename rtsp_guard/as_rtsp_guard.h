@@ -388,9 +388,7 @@ private:
     std::string              m_reqPath;
     std::string              m_strRespMsg;
     as_digest_t              m_Authen;
-    struct evhttp_request   *m_pReq;
     struct event_base       *m_pBase;
-    struct evhttp_connection*m_pConn;
     struct evdns_base       *m_pDnsbase;
 };
 

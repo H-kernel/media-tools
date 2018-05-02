@@ -871,9 +871,7 @@ ASEvLiveHttpClient::ASEvLiveHttpClient()
 {
     m_reqPath = "/";
     m_strRespMsg = "";
-    m_pReq  = NULL;
     m_pBase = NULL;
-    m_pConn = NULL;
     m_pDnsbase = NULL;
 }
 ASEvLiveHttpClient::~ASEvLiveHttpClient()
@@ -911,7 +909,9 @@ int32_t ASEvLiveHttpClient::send_live_url_request(std::string& strCameraID,
     cJSON_AddItemToObject(root, "streamType", cJSON_CreateString(strStreamType.c_str()));
     cJSON_AddItemToObject(root, "urlType", cJSON_CreateString("1"));
 
-    std::string strReqMSg = cJSON_PrintUnformatted(root);
+    char* pReqMsg = cJSON_PrintUnformatted(root);
+    std::string strReqMSg = pReqMsg;
+    free(pReqMsg);
     cJSON_Delete(root);
     /* sent the http request */
     if(AS_ERROR_CODE_OK != send_http_request(strLiveUrl,strReqMSg)) {
@@ -1042,6 +1042,9 @@ int32_t ASEvLiveHttpClient::send_http_request(std::string& strUrl,std::string& s
     char   Digest[HTTP_DIGEST_LENS_MAX] = {0};
     unsigned char Password[RTSP_CHECK_TMP_BUF_SIZE] = {0};
 
+    struct evhttp_request   *pReq  = NULL;
+    struct evhttp_connection*pConn = NULL;
+
     if (-1 == as_digest_init(&m_Authen,0)) {
         return AS_ERROR_CODE_FAIL;
     }
@@ -1125,14 +1128,18 @@ int32_t ASEvLiveHttpClient::send_http_request(std::string& strUrl,std::string& s
         }
         nTryTime++;
 
-        m_pReq = evhttp_request_new(remote_read_cb, this);
-        evhttp_add_header(m_pReq->output_headers, "Content-Type", strContentType.c_str());
+        pReq = evhttp_request_new(remote_read_cb, this);
+        if(!pReq)
+        {
+            break;
+        }
+        evhttp_add_header(pReq->output_headers, "Content-Type", strContentType.c_str());
         snprintf(lenbuf, 32, "%lu", strMsg.length());
-        evhttp_add_header(m_pReq->output_headers, "Content-length", lenbuf); //content length
+        evhttp_add_header(pReq->output_headers, "Content-length", lenbuf); //content length
         snprintf(lenbuf, 32, "%s:%d", host,port);
-        evhttp_add_header(m_pReq->output_headers, "Host", lenbuf);
-        evhttp_add_header(m_pReq->output_headers, "Connection", "close");
-        evhttp_request_set_chunked_cb(m_pReq, readchunk_cb);
+        evhttp_add_header(pReq->output_headers, "Host", lenbuf);
+        evhttp_add_header(pReq->output_headers, "Connection", "close");
+        evhttp_request_set_chunked_cb(pReq, readchunk_cb);
 
         if(bAuth)
         {
@@ -1151,25 +1158,26 @@ int32_t ASEvLiveHttpClient::send_http_request(std::string& strUrl,std::string& s
                 break;
             }
             AS_LOG(AS_LOG_INFO,"generate digest :[%s].",Digest);
-            evhttp_add_header(m_pReq->output_headers, HTTP_AUTHENTICATE,Digest);
+            evhttp_add_header(pReq->output_headers, HTTP_AUTHENTICATE,Digest);
         }
         else if(1 == nTryTime)
         {
-            evhttp_add_header(m_pReq->output_headers, HTTP_AUTHENTICATE,"Authorization: Digest username=test,realm=test, nonce =0001,"
+            evhttp_add_header(pReq->output_headers, HTTP_AUTHENTICATE,"Authorization: Digest username=test,realm=test, nonce =0001,"
                                                               "uri=/api/alarm/list,response=c76a6680f0f1c8e26723d81b44977df0,"
                                                               "cnonce=00000001,opaque=000001,qop=auth,nc=00000001");
         }
 
 
-        m_pConn = evhttp_connection_base_new(m_pBase,m_pDnsbase, host, port);
+        pConn = evhttp_connection_base_new(m_pBase,m_pDnsbase, host, port);
         //pConn = evhttp_connection_new( host, port);
-        if (!m_pConn)
+        if (!pConn)
         {
             nRet = AS_ERROR_CODE_FAIL;
             break;
         }
         //evhttp_connection_set_base(pConn, pBase);
-        evhttp_connection_set_closecb(m_pConn, remote_connection_close_cb, this);
+        //evhttp_connection_free_on_completion(pConn);
+        evhttp_connection_set_closecb(pConn, remote_connection_close_cb, this);
 
         //struct evbuffer *buf = NULL;
         //buf = evbuffer_new();
@@ -1178,8 +1186,8 @@ int32_t ASEvLiveHttpClient::send_http_request(std::string& strUrl,std::string& s
         //    nRet = AS_ERROR_CODE_FAIL;
         //    break;
         //}
-        m_pReq->output_buffer = evbuffer_new();
-        if (NULL == m_pReq->output_buffer)
+        pReq->output_buffer = evbuffer_new();
+        if (NULL == pReq->output_buffer)
         {
             nRet = AS_ERROR_CODE_FAIL;
             break;
@@ -1190,19 +1198,19 @@ int32_t ASEvLiveHttpClient::send_http_request(std::string& strUrl,std::string& s
 
         //evbuffer_add_printf(buf, "%s", strMsg.c_str());
         //evbuffer_add_buffer(pReq->output_buffer, buf);
-        evbuffer_add(m_pReq->output_buffer,strMsg.c_str(),strMsg.length());
-        m_pReq->flags = EVHTTP_USER_OWNED;
-        evhttp_make_request(m_pConn, m_pReq, type, m_reqPath.c_str());
-        evhttp_connection_set_timeout(m_pReq->evcon, 600);
+        evbuffer_add(pReq->output_buffer,strMsg.c_str(),strMsg.length());
+        //m_pReq->flags = EVHTTP_USER_OWNED;
+        evhttp_make_request(pConn, pReq, type, m_reqPath.c_str());
+        evhttp_connection_set_timeout(pReq->evcon, 600);
         event_base_dispatch(m_pBase);
 
-        int32_t nRespCode = evhttp_request_get_response_code(m_pReq);
+        int32_t nRespCode = evhttp_request_get_response_code(pReq);
         AS_LOG(AS_LOG_DEBUG,"ASEvLiveHttpClient::send_http_request,http result:[%d].",nRespCode);
         if(HTTP_CODE_OK == nRespCode) {
             break;
         }
         else if(HTTP_CODE_AUTH == nRespCode) {
-            const char* pszAuthInfo = evhttp_find_header(m_pReq->input_headers,HTTP_WWW_AUTH);
+            const char* pszAuthInfo = evhttp_find_header(pReq->input_headers,HTTP_WWW_AUTH);
             if(NULL == pszAuthInfo) {
                 nRet = AS_ERROR_CODE_FAIL;
                 AS_LOG(AS_LOG_WARNING,"find WWW-Authenticate header fail.");
@@ -1228,22 +1236,22 @@ int32_t ASEvLiveHttpClient::send_http_request(std::string& strUrl,std::string& s
             nRet = AS_ERROR_CODE_FAIL;
             break;
         }
-        evhttp_request_free(m_pReq);
-        m_pReq  = NULL;
-        evhttp_connection_free(m_pConn);
-        m_pConn = NULL;
+        //evhttp_request_free(m_pReq);
+        //m_pReq  = NULL;
+        evhttp_connection_free(pConn);
+        pConn = NULL;
 
     }while(true);
 
-    if(NULL != m_pReq)
+    //if(NULL != m_pReq)
+    //{
+    //    evhttp_request_free(m_pReq);
+    //    m_pReq  = NULL;
+    //}
+    if(NULL != pConn)
     {
-        evhttp_request_free(m_pReq);
-        m_pReq  = NULL;
-    }
-    if(NULL != m_pConn)
-    {
-        evhttp_connection_free(m_pConn);
-        m_pConn  = NULL;
+        evhttp_connection_free(pConn);
+        pConn  = NULL;
     }
 
     evdns_base_free(m_pDnsbase,1);
@@ -1405,7 +1413,7 @@ AS_HANDLE ASRtspGuardManager::openURL(char const* rtspURL,ASRtspStatusObervser* 
 }
 void      ASRtspGuardManager::closeURL(AS_HANDLE handle)
 {
-     as_lock_guard locker(m_mutex);
+    as_lock_guard locker(m_mutex);
     ASRtspCheckChannel* pAsRtspClient = (ASRtspCheckChannel*)handle;
 
     u_int32_t index = pAsRtspClient->index();
@@ -1738,7 +1746,7 @@ int32_t ASRtspGuardManager::handle_check(std::string &strReqMsg,std::string &str
     resp.Accept(&printer);
     strRespMsg = printer.CStr();
 
-    AS_LOG(AS_LOG_DEBUG, "ASRtspGuardManager::handle_session,end");
+    AS_LOG(AS_LOG_DEBUG, "ASRtspGuardManager::handle_check,end");
     return AS_ERROR_CODE_OK;
 }
 int32_t ASRtspGuardManager::handle_check_task(const XMLElement *check)
@@ -1822,6 +1830,9 @@ int32_t ASRtspGuardManager::handle_check_task(const XMLElement *check)
     as_lock_guard locker(m_mutex);
     m_TaskList.push_back(task);
 
+    AS_LOG(AS_LOG_INFO, "ASRtspGuardManager::handle_check_task,current task count:[%d].",
+        m_TaskList.size());
+
     AS_LOG(AS_LOG_DEBUG, "ASRtspGuardManager::handle_check_task,end");
     return AS_ERROR_CODE_OK;
 }
@@ -1837,6 +1848,7 @@ void  ASRtspGuardManager::check_task_status()
     {
         task = *iter;
         task->checkTask();
+        AS_LOG(AS_LOG_INFO, "ASRtspGuardManager::check_task_status,task status:[%d].",task->TaskStatus());
 
         if(AS_RTSP_CHECK_STATUS_END == task->TaskStatus())
         {
