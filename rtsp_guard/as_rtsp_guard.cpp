@@ -4,6 +4,7 @@
 #include "Base64.hh"
 #include "GroupsockHelper.hh"
 #include "BasicUsageEnvironment.hh"
+#include "EpollTaskScheduler.hh"
 #include "GroupsockHelper.hh"
 #include "as_rtsp_guard.h"
 #include "RTSPCommon.hh"
@@ -1563,7 +1564,12 @@ void ASRtspGuardManager::rtsp_env_thread()
     if(RTSP_MANAGE_ENV_MAX_COUNT <= index) {
         return;
     }
+#if AS_APP_OS == AS_OS_LINUX
+    scheduler = EpollTaskScheduler::createNew();
+#elif AS_APP_OS == AS_OS_WIN32
     scheduler = BasicTaskScheduler::createNew();
+#endif
+
     env = BasicUsageEnvironment::createNew(*scheduler);
     m_envArray[index] = env;
     m_clCountArray[index] = 0;

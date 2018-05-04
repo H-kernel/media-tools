@@ -7,7 +7,8 @@ all:	$(ALL)
 
 OBJS = BasicUsageEnvironment0.$(OBJ) BasicUsageEnvironment.$(OBJ) \
 	BasicTaskScheduler0.$(OBJ) BasicTaskScheduler.$(OBJ) \
-	DelayQueue.$(OBJ) BasicHashTable.$(OBJ)
+	DelayQueue.$(OBJ) BasicHashTable.$(OBJ) \
+    EpollTaskScheduler.$(OBJ)
 
 libBasicUsageEnvironment.$(LIB_SUFFIX): $(OBJS)
 	$(LIBRARY_LINK)$@ $(LIBRARY_LINK_OPTS) \
@@ -27,6 +28,7 @@ BasicTaskScheduler0.$(CPP):	include/BasicUsageEnvironment0.hh include/HandlerSet
 BasicTaskScheduler.$(CPP):	include/BasicUsageEnvironment.hh include/HandlerSet.hh
 DelayQueue.$(CPP):		include/DelayQueue.hh
 BasicHashTable.$(CPP):		include/BasicHashTable.hh
+EpollTaskScheduler.$(CPP):		include/EpollTaskScheduler.hh
 
 clean:
 	-rm -rf *.$(OBJ) $(ALL) core *.core *~ include/*~
