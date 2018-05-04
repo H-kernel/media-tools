@@ -1199,7 +1199,7 @@ int32_t ASEvLiveHttpClient::send_http_request(std::string& strUrl,std::string& s
         //evbuffer_add_printf(buf, "%s", strMsg.c_str());
         //evbuffer_add_buffer(pReq->output_buffer, buf);
         evbuffer_add(pReq->output_buffer,strMsg.c_str(),strMsg.length());
-        //m_pReq->flags = EVHTTP_USER_OWNED;
+        pReq->flags = EVHTTP_USER_OWNED;
         evhttp_make_request(pConn, pReq, type, m_reqPath.c_str());
         evhttp_connection_set_timeout(pReq->evcon, 600);
         event_base_dispatch(m_pBase);
@@ -1236,18 +1236,18 @@ int32_t ASEvLiveHttpClient::send_http_request(std::string& strUrl,std::string& s
             nRet = AS_ERROR_CODE_FAIL;
             break;
         }
-        //evhttp_request_free(m_pReq);
-        //m_pReq  = NULL;
+        evhttp_request_free(pReq);
+        pReq  = NULL;
         evhttp_connection_free(pConn);
         pConn = NULL;
 
     }while(true);
 
-    //if(NULL != m_pReq)
-    //{
-    //    evhttp_request_free(m_pReq);
-    //    m_pReq  = NULL;
-    //}
+    if(NULL != pReq)
+    {
+        evhttp_request_free(pReq);
+        pReq  = NULL;
+    }
     if(NULL != pConn)
     {
         evhttp_connection_free(pConn);
