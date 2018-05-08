@@ -37,6 +37,8 @@ extern "C"{
 #define RTSP_MANAGE_ENV_MAX_COUNT       4
 #define RTSP_AGENT_NAME                 "all stream media"
 
+#define RTSP_CLIENT_TIME               5000
+
 // Define a class to hold per-stream state that we maintain throughout each stream's lifetime:
 
 class ASRtspStreamState {
@@ -103,7 +105,7 @@ public:
 private:
     void    destory();
     // Used to shut down and close a stream (including its "RTSPClient" object):
-    void shutdownStream(int exitCode = 1);
+    void shutdownStream();
 public:
     // RTSP 'response handlers':
     static void continueAfterOPTIONS(RTSPClient* rtspClient, int resultCode, char* resultString);
@@ -130,6 +132,7 @@ private:
     int                 m_curStatus;
     as_mutex_t         *m_mutex;
     volatile int32_t    m_ulRefCount;
+    volatile bool       m_bRunning;
 };
 
 // Define a data sink (a subclass of "MediaSink") to receive the data for each subsession (i.e., each audio or video 'substream').

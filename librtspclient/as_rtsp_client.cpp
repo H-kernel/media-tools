@@ -80,38 +80,23 @@ int32_t ASRtspClient::open(as_rtsp_callback_t* cb)
     // Instead, the following function call returns immediately, and we handle the RTSP response later, from within the event loop:
     scs.Start();
     m_ulRefCount++;
+    m_bRunning = true;
+    //return sendDescribeCommand(continueAfterDESCRIBE);
     return sendOptionsCommand(continueAfterOPTIONS);
 }
 void    ASRtspClient::close()
 {
     as_lock_guard locker(m_mutex);
     scs.Stop();
-    if (scs.session != NULL) {
-        Boolean someSubsessionsWereActive = False;
-        MediaSubsessionIterator iter(*scs.session);
-        MediaSubsession* subsession;
-
-        while ((subsession = iter.next()) != NULL) {
-            if (subsession->sink != NULL) {
-                someSubsessionsWereActive = True;
-            }
-        }
-
-        if (someSubsessionsWereActive) {
-          // Send a RTSP "TEARDOWN" command, to tell the server to shutdown the stream.
-          // Don't bother handling the response to the "TEARDOWN".
-          sendTeardownCommand(*scs.session,continueAfterTeardown);
-        }
-    }
     m_cb = NULL;
     m_ulRefCount--;
-    shutdownStream(0);
+    m_bRunning = false;
 }
 void    ASRtspClient::destory()
 {
     as_lock_guard locker(m_mutex);
     m_ulRefCount--;
-    shutdownStream(1);
+    shutdownStream();
 }
 double ASRtspClient::getDuration()
 {
@@ -188,15 +173,14 @@ void ASRtspClient::report_status(int status)
 
 void ASRtspClient::handleAfterOPTIONS(int resultCode, char* resultString)
 {
-    if (0 != resultCode) {
-        destory();
-        return;
-    }
-
     do {
-        if (resultCode != 0) {
+        if (NULL != resultString) {
             delete[] resultString;
-            break;
+        }
+
+        if(NULL == scs.streamTimerTask) {
+            unsigned uSecsToDelay = (unsigned)(RTSP_CLIENT_TIME*1000);
+            scs.streamTimerTask = envir().taskScheduler().scheduleDelayedTask(uSecsToDelay, (TaskFunc*)streamTimerHandler, this);
         }
 
         Boolean serverSupportsGetParameter = RTSPOptionIsSupported("GET_PARAMETER", resultString);
@@ -233,6 +217,11 @@ void ASRtspClient::handleAfterDESCRIBE(int resultCode, char* resultString)
         }
         else if (!scs.session->hasSubsessions()) {
             break;
+        }
+
+        if(NULL == scs.streamTimerTask) {
+            unsigned uSecsToDelay = (unsigned)(RTSP_CLIENT_TIME*1000);
+            scs.streamTimerTask = envir().taskScheduler().scheduleDelayedTask(uSecsToDelay, (TaskFunc*)streamTimerHandler, this);
         }
 
         /* report the status */
@@ -352,12 +341,12 @@ void ASRtspClient::handleAfterPLAY(int resultCode, char* resultString)
         // using a RTCP "BYE").  This is optional.  If, instead, you want to keep the stream active - e.g., so you can later
         // 'seek' back within it and do another RTSP "PLAY" - then you can omit this code.
         // (Alternatively, if you don't want to receive the entire stream, you could set this timer for some shorter value.)
-        if (scs.duration > 0) {
-            unsigned const delaySlop = 2; // number of seconds extra to delay, after the stream's expected duration.  (This is optional.)
-            scs.duration += delaySlop;
-            unsigned uSecsToDelay = (unsigned)(scs.duration * 1000000);
-            scs.streamTimerTask = env.taskScheduler().scheduleDelayedTask(uSecsToDelay, (TaskFunc*)streamTimerHandler, this);
-        }
+        //if (scs.duration > 0) {
+        //    unsigned const delaySlop = 2; // number of seconds extra to delay, after the stream's expected duration.  (This is optional.)
+        //    scs.duration += delaySlop;
+        //    unsigned uSecsToDelay = (unsigned)(scs.duration * 1000000);
+        //    scs.streamTimerTask = env.taskScheduler().scheduleDelayedTask(uSecsToDelay, (TaskFunc*)streamTimerHandler, this);
+        //}
 
         success = True;
         /* report the status */
@@ -440,7 +429,15 @@ void ASRtspClient::handlestreamTimerHandler(MediaSubsession* subsession)
     scs.streamTimerTask = NULL;
 
     // Shut down the stream:
-    destory();
+    if((!m_bRunning)||(0 >= m_ulRefCount)) {
+        shutdownStream();
+        return;
+    }
+
+    unsigned uSecsToDelay = (unsigned)(RTSP_CLIENT_TIME*1000);
+    scs.streamTimerTask
+       = envir().taskScheduler().scheduleDelayedTask(uSecsToDelay,
+                                                 (TaskFunc*)streamTimerHandler, this);
 }
 
 // Implementation of the RTSP 'response handlers':
@@ -517,10 +514,15 @@ void ASRtspClient::streamTimerHandler(void* clientData) {
     pAsRtspClient->handlestreamTimerHandler(subsession);
 }
 
-void ASRtspClient::shutdownStream(int exitCode) {
+void ASRtspClient::shutdownStream() {
     UsageEnvironment& env = envir(); // alias
     if (0 < m_ulRefCount) {
         return;
+    }
+
+    if(NULL != scs.streamTimerTask) {
+        envir().taskScheduler().unscheduleDelayedTask(scs.streamTimerTask);
+        scs.streamTimerTask = NULL;
     }
 
     // First, check whether any subsessions have still to be closed:
@@ -548,7 +550,7 @@ void ASRtspClient::shutdownStream(int exitCode) {
     }
 
     /* report the status */
-    if (exitCode) {
+    if (m_bRunning) {
         report_status(AS_RTSP_STATUS_TEARDOWN);
     }
 
