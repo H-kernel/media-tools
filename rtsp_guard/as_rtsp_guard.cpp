@@ -1237,18 +1237,18 @@ int32_t ASEvLiveHttpClient::send_http_request(std::string& strUrl,std::string& s
             nRet = AS_ERROR_CODE_FAIL;
             break;
         }
-        evhttp_request_free(pReq);
-        pReq  = NULL;
+        //evhttp_request_free(pReq);
+        //pReq  = NULL;
         evhttp_connection_free(pConn);
         pConn = NULL;
 
     }while(true);
 
-    if(NULL != pReq)
-    {
-        evhttp_request_free(pReq);
-        pReq  = NULL;
-    }
+    //if(NULL != pReq)
+    //{
+    //    evhttp_request_free(pReq);
+    //    pReq  = NULL;
+    //}
     if(NULL != pConn)
     {
         evhttp_connection_free(pConn);
