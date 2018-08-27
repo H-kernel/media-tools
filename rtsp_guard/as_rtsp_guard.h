@@ -78,7 +78,7 @@ extern "C"{
 #define AC_MSS_ERROR_CODE_OK           "00000000"
 
 #define GW_TIMER_SCALE                 1000
-#define GW_TIMER_CHECK_TASK            5000
+#define GW_TIMER_CHECK_TASK            15000
 
 
 
