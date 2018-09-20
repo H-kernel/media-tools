@@ -27,7 +27,7 @@ uint32_t as_rtsp2rtmp_get_recv_buffer_size()
 /* open a rtsp2rtmp client handle */
 AS_HANDLE as_rtsp2rtmp_create_handle(char const* rtspURL,char const* rtmpURL, as_rtsp_callback_t* cb, bool bTcp)
 {
-    return ASRtsp2RtmpClientManager::instance().openURL(rtspURL, cb, bTcp);
+    return ASRtsp2RtmpClientManager::instance().openURL(rtspURL, rtmpURL,cb, bTcp);
 }
 
 /* destory a rtsp2rtmp client handle */

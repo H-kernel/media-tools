@@ -245,7 +245,7 @@ build_openssl()
         return 1
     fi
     
-    ./config shared --prefix=${PREFIX_ROOT}
+    ./config shared --prefix=${EXTEND_ROOT}
     if [ 0 -ne ${?} ]; then
         echo "config openssl fail!\n"
         return 1
@@ -283,8 +283,8 @@ build_rtmpdump()
     tar -zxvf ${module_pack}
     
     cd *rtmpdump*
-    #./configure --prefix=${PREFIX_ROOT} 
-    PREFIX_ROOT_SED=$(echo ${PREFIX_ROOT} |sed -e 's/\//\\\//g')
+    #./configure --prefix=${EXTEND_ROOT} 
+    PREFIX_ROOT_SED=$(echo ${EXTEND_ROOT} |sed -e 's/\//\\\//g')
     sed -i "s/prefix\=\/usr\/local/prefix\=${PREFIX_ROOT_SED}/" Makefile 
     if [ 0 -ne ${?} ]; then
         echo "configure rtmpdump fail!\n"
@@ -303,11 +303,11 @@ build_rtmpdump()
         return 1
     fi
     
-    C_INCLUDE_PATH=${PREFIX_ROOT}/include/:${C_INCLUDE_PATH:=/usr/local/include/}
+    C_INCLUDE_PATH=${EXTEND_ROOT}/include/:${C_INCLUDE_PATH:=/usr/local/include/}
     export C_INCLUDE_PATH 
-    CPLUS_INCLUDE_PATH=${PREFIX_ROOT}/include/:${CPLUS_INCLUDE_PATH:=/usr/local/include/}
+    CPLUS_INCLUDE_PATH=${EXTEND_ROOT}/include/:${CPLUS_INCLUDE_PATH:=/usr/local/include/}
     export CPLUS_INCLUDE_PATH
-    LIBRARY_PATH=${PREFIX_ROOT}/lib:${LIBRARY_PATH:=/usr/local/lib/}
+    LIBRARY_PATH=${EXTEND_ROOT}/lib:${LIBRARY_PATH:=/usr/local/lib/}
     export LIBRARY_PATH 
                 
     make SHARED=yes && make install SHARED=yes

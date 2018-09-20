@@ -157,14 +157,12 @@ void RTMPStream::Close()
     if(m_pRtmp)
     {
 
-        int x=RTMP_IsConnected(m_pRtmp);
-        WSACleanup();
+       if(RTMP_IsConnected(m_pRtmp)) {
+            RTMP_Close(m_pRtmp);
+       }
+       RTMP_Free(m_pRtmp);
 
-        RTMP_Close(m_pRtmp);
-        RTMP_Free(m_pRtmp);
-
-        m_pRtmp = NULL;
-
+       m_pRtmp = NULL;
     }
 }
 // ??MetaData
@@ -386,7 +384,6 @@ ASRtsp2RtmpClient::ASRtsp2RtmpClient(u_int32_t ulEnvIndex,UsageEnvironment& env,
   m_bTcp = false;
   m_lLastHeartBeat = time(NULL);
 
-  m_rtmp    = NULL;
   m_rtmpUlr = NULL;
 }
 
@@ -577,7 +574,7 @@ void ASRtsp2RtmpClient::handleAfterSETUP(int resultCode, char* resultString)
         // (This will prepare the data sink to receive data; the actual flow of data from the client won't start happening until later,
         // after we've sent a RTSP "PLAY" command.)
 
-        scs.subsession->sink = ASRtsp2RtmpStreamSink::createNew(env, *scs.subsession,&m_RtmpStream, url(), this);
+        scs.subsession->sink = ASRtsp2RtmpStreamSink::createNew(env, *scs.subsession,&m_RtmpStream, url());
         // perhaps use your own custom "MediaSink" subclass instead
         if (scs.subsession->sink == NULL) {
             break;
@@ -891,15 +888,6 @@ bool ASRtsp2RtmpClient::checkStop()
     if (0 == m_bRunning) {
         return false;
     }
-
-    if(NULL == m_rtmp) {
-        return false;
-    }
-
-    if(!RTMP_IsConnected(m_rtmp)) {
-        return false;
-    }
-
     return true;
 }
 void ASRtsp2RtmpClient::tryReqeust()
@@ -971,10 +959,10 @@ void ASRtsp2RtmpStreamState::Stop()
 
 
 ASRtsp2RtmpStreamSink* ASRtsp2RtmpStreamSink::createNew(UsageEnvironment& env, MediaSubsession& subsession,
-    RTMPStream* pRtmpStream,char const* streamId, ASStreamReport* cb) {
+    RTMPStream* pRtmpStream,char const* streamId) {
     ASRtsp2RtmpStreamSink* pSink = NULL;
     try{
-        pSink = new ASRtsp2RtmpStreamSink(env, subsession,pRtmpStream, streamId, cb);
+        pSink = new ASRtsp2RtmpStreamSink(env, subsession,pRtmpStream, streamId);
     }
     catch (...){
         pSink = NULL;
@@ -983,8 +971,8 @@ ASRtsp2RtmpStreamSink* ASRtsp2RtmpStreamSink::createNew(UsageEnvironment& env, M
 }
 
 ASRtsp2RtmpStreamSink::ASRtsp2RtmpStreamSink(UsageEnvironment& env, MediaSubsession& subsession,
-    RTMPStream* pRtmpStream,char const* streamId, ASStreamReport* cb)
-    : MediaSink(env), fSubsession(subsession),m_pRtmpStream(pRtmpStream), m_StreamReport(cb) {
+    RTMPStream* pRtmpStream,char const* streamId)
+    : MediaSink(env), fSubsession(subsession),m_pRtmpStream(pRtmpStream) {
     fStreamId = strDup(streamId);
     m_bWaitFirstKeyFrame = false;
     fReceiveBuffer = (u_int8_t*)&fMediaBuffer[RTMP_HEAD_SIZE];
@@ -994,7 +982,7 @@ ASRtsp2RtmpStreamSink::ASRtsp2RtmpStreamSink(UsageEnvironment& env, MediaSubsess
 
     if (!strcmp(fSubsession.mediumName(), "video")) {
         m_bWaitFirstKeyFrame = true;
-        if (!strcmp(fOurSubsession.codecName(), "H264")) {
+        if (!strcmp(fSubsession.codecName(), "H264")) {
             fMediaBuffer[prefixSize] = 0x00;
             fMediaBuffer[prefixSize + 1] = 0x00;
             fMediaBuffer[prefixSize + 2] = 0x00;
@@ -1002,7 +990,7 @@ ASRtsp2RtmpStreamSink::ASRtsp2RtmpStreamSink(UsageEnvironment& env, MediaSubsess
 
             prefixSize += DUMMY_SINK_H264_STARTCODE_SIZE;
             fReceiveBuffer = (u_int8_t*)&fMediaBuffer[prefixSize];
-            m_stMetadata.nvideocodecid = FLV_CODECID_H264
+            m_stMetadata.nvideocodecid = FLV_CODECID_H264;
         }
 
         // TODO H265
@@ -1113,33 +1101,6 @@ void ASRtsp2RtmpStreamSink::sendH265Frame()
     //todo:
 }
 
-int ASRtsp2RtmpStreamSink::SendRtmpPacket(unsigned int nPacketType,unsigned char *data,unsigned int size,unsigned int nTimestamp)
-{
-    RTMPPacket* packet; /*分配包内存和初始化,len为包体长度*/
-    packet = (RTMPPacket *)(data - RTMP_HEAD_SIZE);
-    memset(packet,0,RTMP_HEAD_SIZE);    /*包体内存*/
-    packet->m_body            = data;
-    packet->m_nBodySize       = size;
-    packet->m_hasAbsTimestamp = 0;
-    packet->m_packetType      = nPacketType; /*此处为类型有两种一种是音频,一种是视频*/
-    packet->m_nInfoField2     = m_rtmp->m_stream_id;
-    packet->m_nChannel        = 0x04;
-    packet->m_headerType      = RTMP_PACKET_SIZE_LARGE;
-    if (RTMP_PACKET_TYPE_AUDIO ==nPacketType && size !=4)   {
-        packet->m_headerType = RTMP_PACKET_SIZE_MEDIUM;
-    }
-    packet->m_nTimeStamp = nTimestamp;  /*发送*/
-    int nRet =0;
-    if (RTMP_IsConnected(m_rtmp))  {
-        nRet = RTMP_SendPacket(m_rtmp,packet,TRUE); /*TRUE为放进发送队列,FALSE是不放进发送队列,直接发送*/
-    }
-    else {
-        return AS_ERROR_CODE_FAIL;
-    }
-    return nRet;
-}
-
-
 void ASRtsp2RtmpStreamSink::Start()
 {
     m_bRunning = true;
@@ -1163,7 +1124,6 @@ ASRtsp2RtmpClientManager::~ASRtsp2RtmpClientManager()
 
 int32_t ASRtsp2RtmpClientManager::init()
 {
-    m_ulModel = model;
     // Begin by setting up our usage environment:
     u_int32_t i = 0;
 
@@ -1254,14 +1214,10 @@ AS_HANDLE ASRtsp2RtmpClientManager::openURL(char const* rtspURL,char const* rtmp
     TaskScheduler* scheduler = NULL;
     UsageEnvironment* env = NULL;
     u_int32_t index =  0;
-    if(AS_RTSP_MODEL_MUTIL == m_ulModel) {
-        index = find_beast_thread();
-        env = m_envArray[index];
-    }
-    else {
-        scheduler = BasicTaskScheduler::createNew();
-        env = BasicUsageEnvironment::createNew(*scheduler);
-    }
+
+    index = find_beast_thread();
+    env = m_envArray[index];
+
     //unsigned long ulLen = strlen(rtspURL) - 14;
     //char* pszUrl = new char[ulLen];
     //memset(pszUrl, 0, ulLen);
@@ -1275,20 +1231,18 @@ AS_HANDLE ASRtsp2RtmpClientManager::openURL(char const* rtspURL,char const* rtmp
         as_mutex_unlock(m_mutex);
         return NULL;
     }
-    if(AS_RTSP_MODEL_MUTIL == m_ulModel) {
-        m_clCountArray[index]++;
-    }
+    m_clCountArray[index]++;
 
-    ASRtsp2RtmpClient* ASRtsp2RtmpClient = (ASRtsp2RtmpClient*)rtspClient;
-    ASRtsp2RtmpClient->setMediaTcp(bTcp);
-    if (AS_ERROR_CODE_OK == ASRtsp2RtmpClient->open(cb))
+    ASRtsp2RtmpClient* pRtsp2RtmpClient = (ASRtsp2RtmpClient*)rtspClient;
+    pRtsp2RtmpClient->setMediaTcp(bTcp);
+    if (AS_ERROR_CODE_OK == pRtsp2RtmpClient->open(rtmpURL,cb))
     {
-        Medium::close(ASRtsp2RtmpClient);
+        Medium::close(pRtsp2RtmpClient);
         as_mutex_unlock(m_mutex);
         return NULL;
     }
     as_mutex_unlock(m_mutex);
-    return (AS_HANDLE)ASRtsp2RtmpClient;
+    return (AS_HANDLE)pRtsp2RtmpClient;
 }
 
 

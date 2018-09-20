@@ -7,7 +7,7 @@ extern "C"{
 #include "as_common.h"
 #include <librtmp/rtmp.h>
 #include <librtmp/log.h>
-#include <librtmp/rtmp_sys.h>
+#include <librtmp/http.h>
 #include <librtmp/amf.h>
 }
 //#ifndef _BASIC_USAGE_ENVIRONMENT0_HH
@@ -284,14 +284,13 @@ public:
   static ASRtsp2RtmpStreamSink* createNew(UsageEnvironment& env,
                   MediaSubsession& subsession, // identifies the kind of data that's being received
                   RTMPStream* pRtmpStream,
-                  char const* streamId = NULL,
-                  ASStreamReport* cb = NULL); // identifies the stream itself (optional)
+                  char const* streamId = NULL); // identifies the stream itself (optional)
 
   void Start();
   void Stop();
 
 private:
-    ASRtsp2RtmpStreamSink(UsageEnvironment& env, MediaSubsession& subsession, char const* streamId, ASStreamReport* cb);
+    ASRtsp2RtmpStreamSink(UsageEnvironment& env, MediaSubsession& subsession,RTMPStream* pRtmpStream, char const* streamIdb);
     // called only by "createNew()"
 public:
   virtual ~ASRtsp2RtmpStreamSink();
@@ -313,16 +312,12 @@ private:
   void sendH264KeyFrame(unsigned frameSize, unsigned int nTimeStamp);
   // send the H265 frame
   void sendH265Frame();
-
-  int  SendRtmpPacket(unsigned int nPacketType,unsigned char *data,unsigned int size,unsigned int nTimestamp);
-
 private:
   u_int8_t* fReceiveBuffer;
   u_int8_t  fMediaBuffer[DUMMY_SINK_MEDIA_BUFFER_SIZE];
   u_int32_t prefixSize;
   MediaSubsession& fSubsession;
   char* fStreamId;
-  ASStreamReport     *m_StreamReport;
   RTMPStream*         m_pRtmpStream;
   RTMPMetadata        m_stMetadata;
   bool                m_bWaitFirstKeyFrame;
@@ -364,7 +359,6 @@ private:
     }
     u_int32_t find_beast_thread();
 private:
-    u_int32_t         m_ulModel;
     u_int32_t         m_ulTdIndex;
     as_mutex_t       *m_mutex;
     char              m_LoopWatchVar;
