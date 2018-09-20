@@ -25,7 +25,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #include "liveMedia.hh"
 #include "BasicUsageEnvironment.hh"
 #include "GroupsockHelper.hh"
-#include "as_rtsp_client.h"
+#include "as_rtsp2rtmp_client.h"
 #include "RTSPCommon.hh"
 #include "as_lock_guard.h"
 #include <time.h>

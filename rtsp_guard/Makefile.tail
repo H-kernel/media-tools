@@ -30,7 +30,7 @@ GROUPSOCK_DIR = ../groupsock
 GROUPSOCK_LIB = $(GROUPSOCK_DIR)/libgroupsock.$(libgroupsock_LIB_SUFFIX)
 COMMON_DIR = ../common
 COMMON_LIB = $(COMMON_DIR)/libcommon.$(libcommon_LIB_SUFFIX)
-EXTEND_DIR     = ../extend/
+EXTEND_DIR     = ../extend/linux64/
 EXTEND_INCLUDE = $(EXTEND_DIR)include/
 EXTEND_LIB     = $(EXTEND_DIR)lib/libevent.a $(EXTEND_DIR)lib/libevent_core.a \
                  $(EXTEND_DIR)lib/libevent_extra.a $(EXTEND_DIR)lib/libevent_pthreads.a

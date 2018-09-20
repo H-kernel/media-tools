@@ -237,6 +237,7 @@ protected:
   virtual ~RTSPClient();
 
   void reset();
+  void resetTCPSockets();
   void setBaseURL(char const* url);
   int grabSocket(); // allows a subclass to reuse our input socket, so that it won't get closed when we're deleted
   virtual unsigned sendRequest(RequestRecord* request);
@@ -269,7 +270,7 @@ private:
     RequestRecord* fTail;
   };
 
-  void resetTCPSockets();
+  //void resetTCPSockets();
   void resetResponseBuffer();
   int openConnection(); // result values: -1: failure; 0: pending; 1: success
   char* createAuthenticatorString(char const* cmd, char const* url);

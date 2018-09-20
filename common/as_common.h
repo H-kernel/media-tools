@@ -18,8 +18,6 @@
 #endif
 
 
-#define  AS_DEFAULT_STACK_SIZE (128*1024)
-
 enum AS_ERROR_CODE {
     AS_ERROR_CODE_FAIL        = -1,
     AS_ERROR_CODE_OK          = 0x00,
