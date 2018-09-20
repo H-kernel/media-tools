@@ -7,6 +7,8 @@ extern "C"{
 #include "as_common.h"
 #include <librtmp/rtmp.h>
 #include <librtmp/log.h>
+#include <librtmp/rtmp_sys.h>
+#include <librtmp/amf.h>
 }
 //#ifndef _BASIC_USAGE_ENVIRONMENT0_HH
 //#include "BasicUsageEnvironment0.hh"
@@ -24,42 +26,134 @@ extern "C"{
 
 // Even though we're not going to be doing anything with the incoming data, we still need to receive it.
 // Define the size of the buffer that we'll use:
-#pragma pack(push,1)
-typedef struct _SVS_MEDIA_FRAME_HEADER
-{
-    uint16_t          nWidth;
-    uint16_t          nHeight;
-    uint16_t          nVideoEncodeFormat;
-    uint16_t          nMotionBlocks;
-
-    uint8_t           nID[4];
-    uint32_t          nVideoSize;
-    uint32_t          nTimeTick;
-    uint16_t          nAudioSize;
-    uint8_t           bKeyFrame;
-    uint8_t           bVolHead;
-
-}
-SVS_MEDIA_FRAME_HEADER, *PSVS_MEDIA_FRAME_HEADER;
-#pragma pack(pop)
 
 #define DUMMY_SINK_RECEIVE_BUFFER_SIZE /*(2*1024*1024)*/(512*1024)
 
 #define DUMMY_SINK_H264_STARTCODE_SIZE 4
 
-#define DUMMY_SINK_MEDIA_BUFFER_SIZE (DUMMY_SINK_RECEIVE_BUFFER_SIZE+DUMMY_SINK_H264_STARTCODE_SIZE + sizeof(SVS_MEDIA_FRAME_HEADER))
+//定义包头长度，RTMP_MAX_HEADER_SIZE=18
+#define RTMP_HEAD_SIZE   (sizeof(RTMPPacket)+RTMP_MAX_HEADER_SIZE)
+
+
+#define DUMMY_SINK_MEDIA_BUFFER_SIZE (RTMP_HEAD_SIZE + DUMMY_SINK_RECEIVE_BUFFER_SIZE+DUMMY_SINK_H264_STARTCODE_SIZE)
 
 
 #define RTSP_SOCKET_RECV_BUFFER_SIZE_DEFAULT (1024*1024)
+
+#define H264_PPS_SPS_FRAME_LEN_MAX  1024
 
 
 // If you don't want to see debugging output for each received frame, then comment out the following line:
 #define DEBUG_PRINT_EACH_RECEIVED_FRAME 1
 
 #define RTSP_MANAGE_ENV_MAX_COUNT       4
-#define RTSP_AGENT_NAME                 "all stream media"
+#define RTSP_AGENT_NAME                 "all stream push"
 
 #define RTSP_CLIENT_TIME               5000
+
+typedef enum
+{
+    H264_NALU_TYPE_UNDEFINED    =0,
+    H264_NALU_TYPE_IDR          =5,
+    H264_NALU_TYPE_SEI          =6,
+    H264_NALU_TYPE_SPS          =7,
+    H264_NALU_TYPE_PPS          =8,
+    H264_NALU_TYPE_STAP_A       =24,
+    H264_NALU_TYPE_STAP_B       =25,
+    H264_NALU_TYPE_MTAP16       =26,
+    H264_NALU_TYPE_MTAP24       =27,
+    H264_NALU_TYPE_FU_A         =28,
+    H264_NALU_TYPE_FU_B         =29,
+    H264_NALU_TYPE_END
+}H264_NALU_TYPE;
+
+typedef struct
+{
+    //byte 0
+    uint8_t TYPE:5;
+    uint8_t NRI:2;
+    uint8_t F:1;
+}H264_FU_INDICATOR; /**//* 1 BYTES */
+
+// NALU
+typedef struct _NaluUnit
+{
+    int type;
+    int size;
+    unsigned char *data;
+}NaluUnit;
+
+typedef struct _RTMPMetadata
+{
+    // video, must be h264 type
+    unsigned int    nWidth;
+    unsigned int    nHeight;
+    unsigned int    nFrameRate;        // fps
+    unsigned int    nVideoDataRate;    // bps
+    unsigned int    nvideocodecid;
+    unsigned int    nSpsLen;
+    unsigned char   Sps[H264_PPS_SPS_FRAME_LEN_MAX];
+    unsigned int    nPpsLen;
+    unsigned char   Pps[H264_PPS_SPS_FRAME_LEN_MAX];
+
+    // audio, must be aac type
+    bool            bHasAudio;
+    unsigned int    nAudioDatarate;
+    unsigned int    nAudioSampleRate;
+    unsigned int    nAudioSampleSize;
+    int             nAudioFmt;
+    unsigned int    nAudioChannels;
+    char            pAudioSpecCfg;
+    unsigned int    nAudioSpecCfgLen;
+
+} RTMPMetadata,*LPRTMPMetadata;
+
+#define FILEBUFSIZE (1024 * 1024 * 10) //  10M
+
+enum
+{
+    FLV_CODECID_H264 = 7,
+    FLV_CODECID_H265 = 12,
+};
+
+
+typedef enum RTSP2RTMP_PAYLOAD_TYPE
+{
+    RTSP2RTMP_PAYLOAD_TYPE_H264      = 0x01,
+    RTSP2RTMP_PAYLOAD_TYPE_H265      = 0x02
+}PAYLOAD_TYPE;
+
+
+
+class RTMPStream
+{
+public:
+    RTMPStream(void);
+    virtual ~RTMPStream(void);
+public:
+    bool Connect(const char* url);
+    void Close();
+    bool SendMetadata(LPRTMPMetadata lpMetaData);
+    bool SendH264Packet(unsigned char *data,unsigned int size,bool bIsKeyFrame,unsigned int nTimeStamp);
+    bool SendAACPacket(unsigned char* data,unsigned int size,unsigned int nTimeStamp );
+private:
+    int InitSockets();
+    void CleanupSockets();
+    char * put_byte( char *output, uint8_t nVal ) ;
+    char * put_be16(char *output, uint16_t nVal ) ;
+    char * put_be24(char *output,uint32_t nVal )  ;
+    char * put_be32(char *output, uint32_t nVal ) ;
+    char * put_be64( char *output, uint64_t nVal );
+    char * put_amf_string( char *c, const char *str );
+    char * put_amf_double( char *c, double d );
+    // ????
+    int SendPacket(unsigned int nPacketType,unsigned char *data,unsigned int size,unsigned int nTimestamp);
+private:
+
+    RTMP* m_pRtmp;
+
+};
+
 
 // Define a class to hold per-stream state that we maintain throughout each stream's lifetime:
 
@@ -78,21 +172,13 @@ public:
   TaskToken streamTimerTask;
   double duration;
 };
-class ASStreamReport
-{
-public:
-    ASStreamReport(){};
-    virtual ~ASStreamReport(){};
-
-    virtual void report_stream(MediaFrameInfo* info, char* data, unsigned int size) = 0;
-};
 
 // If you're streaming just a single stream (i.e., just from a single URL, once), then you can define and use just a single
 // "ASRtsp2RtmpStreamState" structure, as a global variable in your application.  However, because - in this demo application - we're
 // showing how to play multiple streams, concurrently, we can't do that.  Instead, we have to have a separate "ASRtsp2RtmpStreamState"
 // structure for each "RTSPClient".  To do this, we subclass "RTSPClient", and add a "ASRtsp2RtmpStreamState" field to the subclass:
 
-class ASRtsp2RtmpClient : public RTSPClient, ASStreamReport {
+class ASRtsp2RtmpClient : public RTSPClient {
 public:
     static ASRtsp2RtmpClient* createNew(u_int32_t ulEnvIndex,UsageEnvironment& env, char const* rtspURL,
                   int verbosityLevel = 0,
@@ -104,7 +190,7 @@ protected:
     // called only by createNew();
     virtual ~ASRtsp2RtmpClient();
 public:
-    int32_t open(as_rtsp_callback_t* cb);
+    int32_t open(char const* rtmpURL,as_rtsp_callback_t* cb);
     void    close();
     void    setMediaTcp(bool bTcp) { m_bTcp = bTcp; };
     u_int32_t index(){return m_ulEnvIndex;};
@@ -112,7 +198,6 @@ public:
     void    SupportsGetParameter(Boolean bSupportsGetParameter) {m_bSupportsGetParameter = bSupportsGetParameter;};
     Boolean SupportsGetParameter(){return m_bSupportsGetParameter;};
     as_rtsp_callback_t* get_cb(){return m_cb;};
-    virtual void report_stream(MediaFrameInfo* info, char* data, unsigned int size);
 public:
     void handleAfterOPTIONS(int resultCode, char* resultString);
     void handleAfterDESCRIBE(int resultCode, char* resultString);
@@ -135,8 +220,6 @@ public:
 private:
     // Used to shut down and close a stream (including its "RTSPClient" object):
     void shutdownStream();
-    // send the hik key frame request
-    void sendHikKeyFrame(MediaSession& session);
     //
     void StopClient();
     bool checkStop();
@@ -172,21 +255,24 @@ private:
     bool                m_bTcp;
     time_t              m_lLastHeartBeat;
 private:
-    RTMP                rtmp;
-    char                *app;
-    char                *conn;
-    char                *subscribe;
-    char                *playpath;
-    char                *tcurl;
-    char                *flashver;
-    char                *swfurl;
-    char                *swfverify;
-    char                *pageurl;
-    char                *client_buffer_time;
-    int                  live;
-    char                *temp_filename;
-    int                  buffer_size;
+    RTMPStream          m_RtmpStream;
+    char               *m_rtmpUlr;
+    char               *app;
+    char               *conn;
+    char               *subscribe;
+    char               *playpath;
+    char               *tcurl;
+    char               *flashver;
+    char               *swfurl;
+    char               *swfverify;
+    char               *pageurl;
+    char               *client_buffer_time;
+    int                 live;
+    char               *temp_filename;
+    int                 buffer_size;
 };
+
+
 
 // Define a data sink (a subclass of "MediaSink") to receive the data for each subsession (i.e., each audio or video 'substream').
 // In practice, this might be a class (or a chain of classes) that decodes and then renders the incoming audio or video.
@@ -197,6 +283,7 @@ class ASRtsp2RtmpStreamSink: public MediaSink {
 public:
   static ASRtsp2RtmpStreamSink* createNew(UsageEnvironment& env,
                   MediaSubsession& subsession, // identifies the kind of data that's being received
+                  RTMPStream* pRtmpStream,
                   char const* streamId = NULL,
                   ASStreamReport* cb = NULL); // identifies the stream itself (optional)
 
@@ -220,6 +307,15 @@ private:
   // redefined virtual functions:
   virtual Boolean continuePlaying();
 
+  // send the H264 frame
+  void sendH264Frame(unsigned frameSize, unsigned numTruncatedBytes,
+             struct timeval presentationTime, unsigned durationInMicroseconds);
+  void sendH264KeyFrame(unsigned frameSize, unsigned int nTimeStamp);
+  // send the H265 frame
+  void sendH265Frame();
+
+  int  SendRtmpPacket(unsigned int nPacketType,unsigned char *data,unsigned int size,unsigned int nTimestamp);
+
 private:
   u_int8_t* fReceiveBuffer;
   u_int8_t  fMediaBuffer[DUMMY_SINK_MEDIA_BUFFER_SIZE];
@@ -227,9 +323,10 @@ private:
   MediaSubsession& fSubsession;
   char* fStreamId;
   ASStreamReport     *m_StreamReport;
-  MediaFrameInfo      m_MediaInfo;
-
-  volatile bool m_bRunning;
+  RTMPStream*         m_pRtmpStream;
+  RTMPMetadata        m_stMetadata;
+  bool                m_bWaitFirstKeyFrame;
+  volatile bool       m_bRunning;
 };
 
 

@@ -140,7 +140,7 @@ extern "C"{
 
 #define RTSP_MANAGE_ENV_MAX_COUNT       4
 
-#define ALLCAM_AGENT_NAME                 "all camera server"
+#define ALLCAM_AGENT_NAME               "all camera server"
 
 
 

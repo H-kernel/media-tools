@@ -83,14 +83,14 @@ int32_t ASRtspClient::open(as_rtsp_callback_t* cb)
     // Note that this command - like all RTSP commands - is sent asynchronously; we do not block, waiting for a response.
     // Instead, the following function call returns immediately, and we handle the RTSP response later, from within the event loop:
     scs.Start();
-	return sendOptionsCommand(continueAfterOPTIONS);
-	//return sendDescribeCommand(continueAfterDESCRIBE);
+    return sendOptionsCommand(continueAfterOPTIONS);
+    //return sendDescribeCommand(continueAfterDESCRIBE);
 }
 
 void    ASRtspClient::close()
 {
-	resetTCPSockets();
-	StopClient();
+    resetTCPSockets();
+    StopClient();
 }
 
 double ASRtspClient::getDuration()
@@ -153,12 +153,12 @@ void ASRtspClient::play()
 }
 void ASRtspClient::report_stream(MediaFrameInfo* info, char* data, unsigned int size)
 {
-	as_lock_guard locker(m_mutex);
-	if (NULL != m_cb) {
-		if (NULL != m_cb->f_data_cb) {
-			m_cb->f_data_cb(info, data, size, m_cb->ctx);
-		}
-	}
+    as_lock_guard locker(m_mutex);
+    if (NULL != m_cb) {
+        if (NULL != m_cb->f_data_cb) {
+            m_cb->f_data_cb(info, data, size, m_cb->ctx);
+        }
+    }
 }
 void ASRtspClient::report_status(int status)
 {
@@ -177,9 +177,9 @@ void ASRtspClient::report_status(int status)
 void ASRtspClient::handleAfterOPTIONS(int resultCode, char* resultString)
 {
     if (0 != resultCode) {
-		delete[] resultString;
-		/* ignore the options result for redirect */
-		sendDescribeCommand(continueAfterDESCRIBE);
+        delete[] resultString;
+        /* ignore the options result for redirect */
+        sendDescribeCommand(continueAfterDESCRIBE);
         return;
     }
 
@@ -196,16 +196,16 @@ void ASRtspClient::handleAfterOPTIONS(int resultCode, char* resultString)
 }
 void ASRtspClient::handleAfterDESCRIBE(int resultCode, char* resultString)
 {
-	if (NULL == scs.streamTimerTask) {
-		m_bRunning = 1;
-		unsigned uSecsToDelay = (unsigned)(RTSP_CLIENT_TIME * 1000);
-		scs.streamTimerTask = envir().taskScheduler().scheduleDelayedTask(uSecsToDelay, (TaskFunc*)streamTimerHandler, this);
-	}
+    if (NULL == scs.streamTimerTask) {
+        m_bRunning = 1;
+        unsigned uSecsToDelay = (unsigned)(RTSP_CLIENT_TIME * 1000);
+        scs.streamTimerTask = envir().taskScheduler().scheduleDelayedTask(uSecsToDelay, (TaskFunc*)streamTimerHandler, this);
+    }
 
     if (0 != resultCode) {
-		if (2 > m_ulTryTime) {
-			tryReqeust();
-		}
+        if (2 > m_ulTryTime) {
+            tryReqeust();
+        }
         return;
     }
     do {
@@ -274,13 +274,13 @@ void ASRtspClient::setupNextSubsession() {
             }
 
             // Continue setting up this subsession, by sending a RTSP "SETUP" command:
-			if (m_bTcp) {
-				sendSetupCommand(*scs.subsession, continueAfterSETUP, False, REQUEST_STREAMING_OVER_TCP);
-			}
-			else {
-				sendSetupCommand(*scs.subsession, continueAfterSETUP, False, REQUEST_STREAMING_OVER_UDP);
-			}
-		}
+            if (m_bTcp) {
+                sendSetupCommand(*scs.subsession, continueAfterSETUP, False, REQUEST_STREAMING_OVER_TCP);
+            }
+            else {
+                sendSetupCommand(*scs.subsession, continueAfterSETUP, False, REQUEST_STREAMING_OVER_UDP);
+            }
+        }
         return;
     }
     /* report the status */
@@ -313,7 +313,7 @@ void ASRtspClient::handleAfterSETUP(int resultCode, char* resultString)
         // (This will prepare the data sink to receive data; the actual flow of data from the client won't start happening until later,
         // after we've sent a RTSP "PLAY" command.)
 
-		scs.subsession->sink = ASStreamSink::createNew(env, *scs.subsession, url(), this);
+        scs.subsession->sink = ASStreamSink::createNew(env, *scs.subsession, url(), this);
         // perhaps use your own custom "MediaSink" subclass instead
         if (scs.subsession->sink == NULL) {
             break;
@@ -359,16 +359,16 @@ void ASRtspClient::handleAfterPLAY(int resultCode, char* resultString)
         success = True;
         /* report the status */
         report_status(AS_RTSP_STATUS_PLAY);
-		sendGetParameterCommand(*scs.session, continueAfterGET_PARAMETE, "", NULL);
-		/*
-		if (SupportsGetParameter()) {
-		sendGetParameterCommand(*scs.session, continueAfterGET_PARAMETE, "", NULL);
-		}
-		else {
-		sendOptionsCommand(continueAfterHearBeatOption);
-		//sendHikKeyFrame(*scs.session);
-		}
-		*/
+        sendGetParameterCommand(*scs.session, continueAfterGET_PARAMETE, "", NULL);
+        /*
+        if (SupportsGetParameter()) {
+        sendGetParameterCommand(*scs.session, continueAfterGET_PARAMETE, "", NULL);
+        }
+        else {
+        sendOptionsCommand(continueAfterHearBeatOption);
+        //sendHikKeyFrame(*scs.session);
+        }
+        */
 
     } while (0);
     delete[] resultString;
@@ -380,7 +380,7 @@ void ASRtspClient::handleAfterPLAY(int resultCode, char* resultString)
 void ASRtspClient::handleAfterGET_PARAMETE(int resultCode, char* resultString)
 {
     delete[] resultString;
-	//sendHikKeyFrame(*scs.session);
+    //sendHikKeyFrame(*scs.session);
 }
 void ASRtspClient::handleAfterPause(int resultCode, char* resultString)
 {
@@ -408,23 +408,23 @@ void ASRtspClient::handleAfterTeardown(int resultCode, char* resultString)
 
 void ASRtspClient::handleHeartBeatOption(int resultCode, char* resultString)
 {
-	if (0 != resultCode) {
-		delete[] resultString;
-		return;
-	}
+    if (0 != resultCode) {
+        delete[] resultString;
+        return;
+    }
 
-	do {
-		Boolean serverSupportsGetParameter = RTSPOptionIsSupported("GET_PARAMETER", resultString);
-		delete[] resultString;
-		SupportsGetParameter(serverSupportsGetParameter);
-		return;
-	} while (0);
-	return;
+    do {
+        Boolean serverSupportsGetParameter = RTSPOptionIsSupported("GET_PARAMETER", resultString);
+        delete[] resultString;
+        SupportsGetParameter(serverSupportsGetParameter);
+        return;
+    } while (0);
+    return;
 }
 void ASRtspClient::handleHeartGET_PARAMETE(int resultCode, char* resultString)
 {
-	/* noting to do*/
-	return;
+    /* noting to do*/
+    return;
 }
 
 void ASRtspClient::handlesubsessionAfterPlaying(MediaSubsession* subsession)
@@ -459,30 +459,30 @@ void ASRtspClient::handlesubsessionByeHandler(MediaSubsession* subsession)
 }
 void ASRtspClient::handlestreamTimerHandler()
 {
-	scs.streamTimerTask = NULL;
+    scs.streamTimerTask = NULL;
 
-	// Shut down the stream:
-	if ((!checkStop())) {
+    // Shut down the stream:
+    if ((!checkStop())) {
 
-		shutdownStream();
-		return;
-	}
+        shutdownStream();
+        return;
+    }
 
-	time_t now = time(NULL);
-	if ((now > m_lLastHeartBeat) && (10 <= (now - m_lLastHeartBeat))) {
-		if (!m_bTcp) {
-			if (m_bSupportsGetParameter) {
-				sendGetParameterCommand(*scs.session, continueAfterHearBeatGET_PARAMETE, "", NULL);
-			}
-			else {
-				sendOptionsCommand(continueAfterHearBeatOption);
-			}
-		}
-		m_lLastHeartBeat = time(NULL);
-	}
+    time_t now = time(NULL);
+    if ((now > m_lLastHeartBeat) && (10 <= (now - m_lLastHeartBeat))) {
+        if (!m_bTcp) {
+            if (m_bSupportsGetParameter) {
+                sendGetParameterCommand(*scs.session, continueAfterHearBeatGET_PARAMETE, "", NULL);
+            }
+            else {
+                sendOptionsCommand(continueAfterHearBeatOption);
+            }
+        }
+        m_lLastHeartBeat = time(NULL);
+    }
 
-	unsigned uSecsToDelay = (unsigned)(RTSP_CLIENT_TIME * 1000);
-	scs.streamTimerTask = envir().taskScheduler().scheduleDelayedTask(uSecsToDelay, (TaskFunc*)streamTimerHandler, this);
+    unsigned uSecsToDelay = (unsigned)(RTSP_CLIENT_TIME * 1000);
+    scs.streamTimerTask = envir().taskScheduler().scheduleDelayedTask(uSecsToDelay, (TaskFunc*)streamTimerHandler, this);
 }
 
 // Implementation of the RTSP 'response handlers':
@@ -535,15 +535,15 @@ void ASRtspClient::continueAfterTeardown(RTSPClient* rtspClient, int resultCode,
 
 void ASRtspClient::continueAfterHearBeatOption(RTSPClient* rtspClient, int resultCode, char* resultString)
 {
-	ASRtspClient* pAsRtspClient = (ASRtspClient*)rtspClient;
-	pAsRtspClient->handleHeartBeatOption(resultCode, resultString);
+    ASRtspClient* pAsRtspClient = (ASRtspClient*)rtspClient;
+    pAsRtspClient->handleHeartBeatOption(resultCode, resultString);
 
 }
 
 void ASRtspClient::continueAfterHearBeatGET_PARAMETE(RTSPClient* rtspClient, int resultCode, char* resultString)
 {
-	ASRtspClient* pAsRtspClient = (ASRtspClient*)rtspClient;
-	pAsRtspClient->handleHeartGET_PARAMETE(resultCode, resultString);
+    ASRtspClient* pAsRtspClient = (ASRtspClient*)rtspClient;
+    pAsRtspClient->handleHeartGET_PARAMETE(resultCode, resultString);
 }
 // Implementation of the other event handlers:
 
@@ -564,7 +564,7 @@ void ASRtspClient::subsessionByeHandler(void* clientData) {
 }
 
 void ASRtspClient::streamTimerHandler(void* clientData) {
-	ASRtspClient* pAsRtspClient = (ASRtspClient*)clientData;
+    ASRtspClient* pAsRtspClient = (ASRtspClient*)clientData;
     pAsRtspClient->handlestreamTimerHandler();
 }
 
@@ -597,9 +597,9 @@ void ASRtspClient::shutdownStream() {
     }
 
     /* report the status */
-	if (m_bRunning) {
-		report_status(AS_RTSP_STATUS_TEARDOWN);
-	}
+    if (m_bRunning) {
+        report_status(AS_RTSP_STATUS_TEARDOWN);
+    }
 
     /* not close here ,it will be closed by the close URL */
     //Modified by Chris@201712011000;
@@ -608,45 +608,45 @@ void ASRtspClient::shutdownStream() {
 
 void ASRtspClient::sendHikKeyFrame(MediaSession& session)
 {
-	sendRequest(new RequestRecord(++fCSeq, "FORCEIFRAME", NULL, &session));
+    sendRequest(new RequestRecord(++fCSeq, "FORCEIFRAME", NULL, &session));
 }
 
 void ASRtspClient::StopClient()
 {
-	scs.Stop();
-	m_cb = NULL;
-	m_bRunning = 0;
-	(void)as_mutex_lock(m_mutex);
-	shutdownStream();
-	if (NULL != scs.streamTimerTask) {
-		envir().taskScheduler().unscheduleDelayedTask(scs.streamTimerTask);
-		scs.streamTimerTask = NULL;
-	}
-	(void)as_mutex_unlock(m_mutex);
-	Medium::close(this);
+    scs.Stop();
+    m_cb = NULL;
+    m_bRunning = 0;
+    (void)as_mutex_lock(m_mutex);
+    shutdownStream();
+    if (NULL != scs.streamTimerTask) {
+        envir().taskScheduler().unscheduleDelayedTask(scs.streamTimerTask);
+        scs.streamTimerTask = NULL;
+    }
+    (void)as_mutex_unlock(m_mutex);
+    Medium::close(this);
 
 }
 bool ASRtspClient::checkStop()
 {
-	as_lock_guard locker(m_mutex);
-	if (0 == m_bRunning) {
-		return false;
-	}
-	return true;
+    as_lock_guard locker(m_mutex);
+    if (0 == m_bRunning) {
+        return false;
+    }
+    return true;
 }
 void ASRtspClient::tryReqeust()
 {
-	/* shutshow first*/
-	as_lock_guard locker(m_mutex);
-	m_bRunning = 0;
-	resetTCPSockets();
-	shutdownStream();
-	if (NULL != scs.streamTimerTask) {
-		envir().taskScheduler().unscheduleDelayedTask(scs.streamTimerTask);
-		scs.streamTimerTask = NULL;
-	}
-	sendDescribeCommand(continueAfterDESCRIBE);
-	m_ulTryTime++;
+    /* shutshow first*/
+    as_lock_guard locker(m_mutex);
+    m_bRunning = 0;
+    resetTCPSockets();
+    shutdownStream();
+    if (NULL != scs.streamTimerTask) {
+        envir().taskScheduler().unscheduleDelayedTask(scs.streamTimerTask);
+        scs.streamTimerTask = NULL;
+    }
+    sendDescribeCommand(continueAfterDESCRIBE);
+    m_ulTryTime++;
 }
 
 
@@ -663,7 +663,7 @@ ASRtspStreamState::~ASRtspStreamState() {
     UsageEnvironment& env = session->envir(); // alias
 
     env.taskScheduler().unscheduleDelayedTask(streamTimerTask);
-	streamTimerTask = NULL;
+    streamTimerTask = NULL;
     Medium::close(session);
   }
 }
@@ -703,42 +703,42 @@ void ASRtspStreamState::Stop()
 
 
 ASStreamSink* ASStreamSink::createNew(UsageEnvironment& env, MediaSubsession& subsession,
-	char const* streamId, ASStreamReport* cb) {
-	ASStreamSink* pSink = NULL;
-	try{
-		pSink = new ASStreamSink(env, subsession, streamId, cb);
-	}
-	catch (...){
-		pSink = NULL;
-	}
-	return pSink;
+    char const* streamId, ASStreamReport* cb) {
+    ASStreamSink* pSink = NULL;
+    try{
+        pSink = new ASStreamSink(env, subsession, streamId, cb);
+    }
+    catch (...){
+        pSink = NULL;
+    }
+    return pSink;
 }
 
 ASStreamSink::ASStreamSink(UsageEnvironment& env, MediaSubsession& subsession,
-	char const* streamId, ASStreamReport* cb)
-	: MediaSink(env), fSubsession(subsession), m_StreamReport(cb) {
+    char const* streamId, ASStreamReport* cb)
+    : MediaSink(env), fSubsession(subsession), m_StreamReport(cb) {
     fStreamId = strDup(streamId);
     fReceiveBuffer = (u_int8_t*)&fMediaBuffer[0];
-	prefixSize = sizeof(SVS_MEDIA_FRAME_HEADER);
+    prefixSize = sizeof(SVS_MEDIA_FRAME_HEADER);
 
     memset(&m_MediaInfo,0,sizeof(MediaFrameInfo));
 
     m_MediaInfo.type = AS_RTSP_DATA_TYPE_OTHER;
 
-	if (!strcmp(fSubsession.mediumName(), "video")) {
-		fMediaBuffer[prefixSize] = 0x00;
-		fMediaBuffer[prefixSize + 1] = 0x00;
-		fMediaBuffer[prefixSize + 2] = 0x00;
-		fMediaBuffer[prefixSize + 3] = 0x01;
+    if (!strcmp(fSubsession.mediumName(), "video")) {
+        fMediaBuffer[prefixSize] = 0x00;
+        fMediaBuffer[prefixSize + 1] = 0x00;
+        fMediaBuffer[prefixSize + 2] = 0x00;
+        fMediaBuffer[prefixSize + 3] = 0x01;
 
-		prefixSize += DUMMY_SINK_H264_STARTCODE_SIZE;
-		fReceiveBuffer = (u_int8_t*)&fMediaBuffer[prefixSize];
-		m_MediaInfo.type = AS_RTSP_DATA_TYPE_VIDEO;
-	}
-	else if (!strcmp(fSubsession.mediumName(), "audio")){
-		fReceiveBuffer = (u_int8_t*)&fMediaBuffer[prefixSize];
-		m_MediaInfo.type = AS_RTSP_DATA_TYPE_AUDIO;
-	}
+        prefixSize += DUMMY_SINK_H264_STARTCODE_SIZE;
+        fReceiveBuffer = (u_int8_t*)&fMediaBuffer[prefixSize];
+        m_MediaInfo.type = AS_RTSP_DATA_TYPE_VIDEO;
+    }
+    else if (!strcmp(fSubsession.mediumName(), "audio")){
+        fReceiveBuffer = (u_int8_t*)&fMediaBuffer[prefixSize];
+        m_MediaInfo.type = AS_RTSP_DATA_TYPE_AUDIO;
+    }
 
     m_MediaInfo.rtpPayloadFormat = fSubsession.rtpPayloadFormat();
     m_MediaInfo.rtpTimestampFrequency = fSubsession.rtpTimestampFrequency();
@@ -771,7 +771,7 @@ void ASStreamSink::afterGettingFrame(unsigned frameSize, unsigned numTruncatedBy
                   struct timeval presentationTime, unsigned /*durationInMicroseconds*/) {
 
     if(!m_bRunning) {
-		continuePlaying();
+        continuePlaying();
         return;
     }
 
@@ -785,12 +785,12 @@ void ASStreamSink::afterGettingFrame(unsigned frameSize, unsigned numTruncatedBy
     m_MediaInfo.videoFPS = fSubsession.videoFPS();
     m_MediaInfo.numChannels = fSubsession.numChannels();
 
-	if (NULL != m_StreamReport) {
-		unsigned int size = frameSize + prefixSize;
-		m_StreamReport->report_stream(&m_MediaInfo, (char*)&fMediaBuffer[0], size);
-	}
+    if (NULL != m_StreamReport) {
+        unsigned int size = frameSize + prefixSize;
+        m_StreamReport->report_stream(&m_MediaInfo, (char*)&fMediaBuffer[0], size);
+    }
     // Then continue, to request the next frame of data:
-	    continuePlaying();
+        continuePlaying();
 }
 
 Boolean ASStreamSink::continuePlaying() {
@@ -862,7 +862,7 @@ void    ASRtspClientManager::release()
 
 u_int32_t ASRtspClientManager::getRunModel()
 {
-	return m_ulModel;
+    return m_ulModel;
 }
 
 void *ASRtspClientManager::rtsp_env_invoke(void *arg)
@@ -932,13 +932,13 @@ AS_HANDLE ASRtspClientManager::openURL(char const* rtspURL, as_rtsp_callback_t* 
         scheduler = BasicTaskScheduler::createNew();
         env = BasicUsageEnvironment::createNew(*scheduler);
     }
-	//unsigned long ulLen = strlen(rtspURL) - 14;
-	//char* pszUrl = new char[ulLen];
-	//memset(pszUrl, 0, ulLen);
-	//strncpy(pszUrl, rtspURL, ulLen - 1);
-	//char*pszUrl = "rtsp://47.97.197.105:557/pag://172.16.0.11:7302:33000000001310000580:0:MAIN:TCP?cnid=2&pnid=2&auth=50&streamform=rtp";
-	//char*pszUrl = "rtsp://47.97.197.105:557/pag://172.16.0.11:7302:33000000001310000580:0:MAIN:TCP?cnid=2&pnid=2&auth=50";
-	//RTSPClient* rtspClient = ASRtspClient::createNew(index, *env, pszUrl, RTSP_CLIENT_VERBOSITY_LEVEL, RTSP_AGENT_NAME);
+    //unsigned long ulLen = strlen(rtspURL) - 14;
+    //char* pszUrl = new char[ulLen];
+    //memset(pszUrl, 0, ulLen);
+    //strncpy(pszUrl, rtspURL, ulLen - 1);
+    //char*pszUrl = "rtsp://47.97.197.105:557/pag://172.16.0.11:7302:33000000001310000580:0:MAIN:TCP?cnid=2&pnid=2&auth=50&streamform=rtp";
+    //char*pszUrl = "rtsp://47.97.197.105:557/pag://172.16.0.11:7302:33000000001310000580:0:MAIN:TCP?cnid=2&pnid=2&auth=50";
+    //RTSPClient* rtspClient = ASRtspClient::createNew(index, *env, pszUrl, RTSP_CLIENT_VERBOSITY_LEVEL, RTSP_AGENT_NAME);
 
     RTSPClient* rtspClient = ASRtspClient::createNew(index,*env, rtspURL, RTSP_CLIENT_VERBOSITY_LEVEL, RTSP_AGENT_NAME);
     if (rtspClient == NULL) {
@@ -950,15 +950,15 @@ AS_HANDLE ASRtspClientManager::openURL(char const* rtspURL, as_rtsp_callback_t* 
     }
 
     ASRtspClient* AsRtspClient = (ASRtspClient*)rtspClient;
-	AsRtspClient->setMediaTcp(bTcp);
-	if (AS_ERROR_CODE_OK == AsRtspClient->open(cb))
-	{
-		Medium::close(AsRtspClient);
-		as_mutex_unlock(m_mutex);
-		return NULL;
-	}
-	as_mutex_unlock(m_mutex);
-	return (AS_HANDLE)AsRtspClient;
+    AsRtspClient->setMediaTcp(bTcp);
+    if (AS_ERROR_CODE_OK == AsRtspClient->open(cb))
+    {
+        Medium::close(AsRtspClient);
+        as_mutex_unlock(m_mutex);
+        return NULL;
+    }
+    as_mutex_unlock(m_mutex);
+    return (AS_HANDLE)AsRtspClient;
 }
 
 
@@ -969,7 +969,7 @@ void      ASRtspClientManager::closeURL(AS_HANDLE handle)
     UsageEnvironment* env = NULL;
 
     ASRtspClient* pAsRtspClient = (ASRtspClient*)handle;
-	u_int32_t index = pAsRtspClient->index();
+    u_int32_t index = pAsRtspClient->index();
     env = &pAsRtspClient->envir();
     scheduler = &env->taskScheduler();
     pAsRtspClient->close();
@@ -977,13 +977,13 @@ void      ASRtspClientManager::closeURL(AS_HANDLE handle)
        m_clCountArray[index]--;
     }
     else {
-        
+
         env->reclaim();
         env = NULL;
         delete scheduler;
         scheduler = NULL;
     }
-    
+
     as_mutex_unlock(m_mutex);
     return;
 }

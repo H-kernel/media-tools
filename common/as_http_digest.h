@@ -16,17 +16,17 @@ typedef struct {
 
 
 typedef struct {
-	char *username;
-	char *password;
-	char *realm;
-	char *nonce;
-	unsigned int cnonce;
-	char *opaque;
-	char *uri;
-	unsigned int method;
-	char algorithm;
-	unsigned int qop;
-	unsigned int nc;
+    char *username;
+    char *password;
+    char *realm;
+    char *nonce;
+    unsigned int cnonce;
+    char *opaque;
+    char *uri;
+    unsigned int method;
+    char algorithm;
+    unsigned int qop;
+    unsigned int nc;
     unsigned int quotes;
 } as_digest_s;
 
@@ -37,43 +37,43 @@ typedef as_digest_s as_digest_t;
     Authorization headers.
  */
 typedef enum {
-	D_ATTR_USERNAME,	/* char * */
-	D_ATTR_PASSWORD,	/* char * */
-	D_ATTR_REALM,		/* char * */
-	D_ATTR_NONCE,		/* char * */
-	D_ATTR_CNONCE,		/* int */
-	D_ATTR_OPAQUE,		/* char * */
-	D_ATTR_URI,		/* char * */
-	D_ATTR_METHOD,		/* int */
-	D_ATTR_ALGORITHM,	/* int */
-	D_ATTR_QOP,		/* int */
-	D_ATTR_NONCE_COUNT	/* int */
+    D_ATTR_USERNAME,    /* char * */
+    D_ATTR_PASSWORD,    /* char * */
+    D_ATTR_REALM,        /* char * */
+    D_ATTR_NONCE,        /* char * */
+    D_ATTR_CNONCE,        /* int */
+    D_ATTR_OPAQUE,        /* char * */
+    D_ATTR_URI,        /* char * */
+    D_ATTR_METHOD,        /* int */
+    D_ATTR_ALGORITHM,    /* int */
+    D_ATTR_QOP,        /* int */
+    D_ATTR_NONCE_COUNT    /* int */
 } as_digest_attr_t;
 
 /* Union type for attribute get/set function  */
 typedef union {
-	int number;
-	char *string;
-	const char *const_str; // for supress compiler warnings
+    int number;
+    char *string;
+    const char *const_str; // for supress compiler warnings
 } as_digest_attr_value_t;
 
 /* Supported hashing algorithms */
-#define DIGEST_ALGORITHM_NOT_SET	0
-#define DIGEST_ALGORITHM_MD5		1
+#define DIGEST_ALGORITHM_NOT_SET    0
+#define DIGEST_ALGORITHM_MD5        1
 
 /* Quality of Protection (qop) values */
-#define DIGEST_QOP_NOT_SET 	0
-#define DIGEST_QOP_AUTH 	1
-#define DIGEST_QOP_AUTH_INT	2 /* Not supported yet */
+#define DIGEST_QOP_NOT_SET     0
+#define DIGEST_QOP_AUTH     1
+#define DIGEST_QOP_AUTH_INT    2 /* Not supported yet */
 
 /* Method values */
-#define DIGEST_METHOD_OPTIONS	1
-#define DIGEST_METHOD_GET   	2
-#define DIGEST_METHOD_HEAD  	3
-#define DIGEST_METHOD_POST  	4
-#define DIGEST_METHOD_PUT   	5
-#define DIGEST_METHOD_DELETE	6
-#define DIGEST_METHOD_TRACE 	7
+#define DIGEST_METHOD_OPTIONS    1
+#define DIGEST_METHOD_GET       2
+#define DIGEST_METHOD_HEAD      3
+#define DIGEST_METHOD_POST      4
+#define DIGEST_METHOD_PUT       5
+#define DIGEST_METHOD_DELETE    6
+#define DIGEST_METHOD_TRACE     7
 
 /*********************************common************************************/
 /**

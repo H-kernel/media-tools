@@ -25,17 +25,17 @@ extern "C"{
 #pragma pack(push,1)
 typedef struct _SVS_MEDIA_FRAME_HEADER
 {
-	uint16_t          nWidth;
-	uint16_t          nHeight;
-	uint16_t          nVideoEncodeFormat;
-	uint16_t          nMotionBlocks;
+    uint16_t          nWidth;
+    uint16_t          nHeight;
+    uint16_t          nVideoEncodeFormat;
+    uint16_t          nMotionBlocks;
 
-	uint8_t           nID[4];
-	uint32_t          nVideoSize;
-	uint32_t          nTimeTick;
-	uint16_t          nAudioSize;
-	uint8_t           bKeyFrame;
-	uint8_t           bVolHead;
+    uint8_t           nID[4];
+    uint32_t          nVideoSize;
+    uint32_t          nTimeTick;
+    uint16_t          nAudioSize;
+    uint8_t           bKeyFrame;
+    uint8_t           bVolHead;
 
 }
 SVS_MEDIA_FRAME_HEADER, *PSVS_MEDIA_FRAME_HEADER;
@@ -79,10 +79,10 @@ public:
 class ASStreamReport
 {
 public:
-	ASStreamReport(){};
-	virtual ~ASStreamReport(){};
+    ASStreamReport(){};
+    virtual ~ASStreamReport(){};
 
-	virtual void report_stream(MediaFrameInfo* info, char* data, unsigned int size) = 0;
+    virtual void report_stream(MediaFrameInfo* info, char* data, unsigned int size) = 0;
 };
 
 // If you're streaming just a single stream (i.e., just from a single URL, once), then you can define and use just a single
@@ -104,7 +104,7 @@ protected:
 public:
     int32_t open(as_rtsp_callback_t* cb);
     void    close();
-	void    setMediaTcp(bool bTcp) { m_bTcp = bTcp; };
+    void    setMediaTcp(bool bTcp) { m_bTcp = bTcp; };
     double  getDuration();
     void    seek(double start);
     void    pause();
@@ -114,7 +114,7 @@ public:
     void    SupportsGetParameter(Boolean bSupportsGetParameter) {m_bSupportsGetParameter = bSupportsGetParameter;};
     Boolean SupportsGetParameter(){return m_bSupportsGetParameter;};
     as_rtsp_callback_t* get_cb(){return m_cb;};
-	virtual void report_stream(MediaFrameInfo* info, char* data, unsigned int size);
+    virtual void report_stream(MediaFrameInfo* info, char* data, unsigned int size);
 public:
     void handleAfterOPTIONS(int resultCode, char* resultString);
     void handleAfterDESCRIBE(int resultCode, char* resultString);
@@ -124,8 +124,8 @@ public:
     void handleAfterPause(int resultCode, char* resultString);
     void handleAfterSeek(int resultCode, char* resultString);
     void handleAfterTeardown(int resultCode, char* resultString);
-	void handleHeartBeatOption(int resultCode, char* resultString);
-	void handleHeartGET_PARAMETE(int resultCode, char* resultString);
+    void handleHeartBeatOption(int resultCode, char* resultString);
+    void handleHeartGET_PARAMETE(int resultCode, char* resultString);
 
     // Other event handler functions:
     void handlesubsessionAfterPlaying(MediaSubsession* subsession); // called when a stream's subsession (e.g., audio or video substream) ends
@@ -137,12 +137,12 @@ public:
 private:
     // Used to shut down and close a stream (including its "RTSPClient" object):
     void shutdownStream();
-	// send the hik key frame request
-	void sendHikKeyFrame(MediaSession& session);
-	//
-	void StopClient();
-	bool checkStop();
-	void tryReqeust();
+    // send the hik key frame request
+    void sendHikKeyFrame(MediaSession& session);
+    //
+    void StopClient();
+    bool checkStop();
+    void tryReqeust();
 public:
     // RTSP 'response handlers':
     static void continueAfterOPTIONS(RTSPClient* rtspClient, int resultCode, char* resultString);
@@ -153,8 +153,8 @@ public:
     static void continueAfterPause(RTSPClient* rtspClient, int resultCode, char* resultString);
     static void continueAfterSeek(RTSPClient* rtspClient, int resultCode, char* resultString);
     static void continueAfterTeardown(RTSPClient* rtspClient, int resultCode, char* resultString);
-	static void continueAfterHearBeatOption(RTSPClient* rtspClient, int resultCode, char* resultString);
-	static void continueAfterHearBeatGET_PARAMETE(RTSPClient* rtspClient, int resultCode, char* resultString);
+    static void continueAfterHearBeatOption(RTSPClient* rtspClient, int resultCode, char* resultString);
+    static void continueAfterHearBeatGET_PARAMETE(RTSPClient* rtspClient, int resultCode, char* resultString);
     // Other event handler functions:
     static void subsessionAfterPlaying(void* clientData); // called when a stream's subsession (e.g., audio or video substream) ends
     static void subsessionByeHandler(void* clientData); // called when a RTCP "BYE" is received for a subsession
@@ -169,10 +169,10 @@ private:
     double              m_dEndTime;
     int                 m_curStatus;
     as_mutex_t         *m_mutex;
-	uint32_t            m_bRunning;
-	uint32_t            m_ulTryTime;
-	bool                m_bTcp;
-	time_t              m_lLastHeartBeat;
+    uint32_t            m_bRunning;
+    uint32_t            m_ulTryTime;
+    bool                m_bTcp;
+    time_t              m_lLastHeartBeat;
 };
 
 // Define a data sink (a subclass of "MediaSink") to receive the data for each subsession (i.e., each audio or video 'substream').
@@ -185,13 +185,13 @@ public:
   static ASStreamSink* createNew(UsageEnvironment& env,
                   MediaSubsession& subsession, // identifies the kind of data that's being received
                   char const* streamId = NULL,
-				  ASStreamReport* cb = NULL); // identifies the stream itself (optional)
+                  ASStreamReport* cb = NULL); // identifies the stream itself (optional)
 
   void Start();
   void Stop();
 
 private:
-	ASStreamSink(UsageEnvironment& env, MediaSubsession& subsession, char const* streamId, ASStreamReport* cb);
+    ASStreamSink(UsageEnvironment& env, MediaSubsession& subsession, char const* streamId, ASStreamReport* cb);
     // called only by "createNew()"
 public:
   virtual ~ASStreamSink();
@@ -233,9 +233,9 @@ public:
     // init the live Environment
     int32_t init(u_int32_t model);
     void    release();
-	u_int32_t getRunModel();
-	// The main streaming routine (for each "rtsp://" URL):
-	AS_HANDLE openURL(char const* rtspURL, as_rtsp_callback_t* cb, bool bTcp);
+    u_int32_t getRunModel();
+    // The main streaming routine (for each "rtsp://" URL):
+    AS_HANDLE openURL(char const* rtspURL, as_rtsp_callback_t* cb, bool bTcp);
     void      closeURL(AS_HANDLE handle);
     double    getDuration(AS_HANDLE handle);
     void      seek(AS_HANDLE handle,double start);

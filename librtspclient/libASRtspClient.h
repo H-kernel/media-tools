@@ -17,14 +17,14 @@ extern "C"
     AS_API int32_t   as_lib_init(uint32_t model);
     /* release the rtsp client libary */
     AS_API void      as_lib_release();
-	/* get the rtsp client libary run model*/
-	AS_API uint32_t  as_lib_run_model();
+    /* get the rtsp client libary run model*/
+    AS_API uint32_t  as_lib_run_model();
     /* set the socket recv buffer size*/
     AS_API void      as_lib_set_recv_buffer_size(uint32_t size);
     /* get the socket recv buffer size*/
     AS_API uint32_t  as_lib_get_recv_buffer_size();
     /* open a rtsp client handle */
-	AS_API AS_HANDLE as_create_handle(char const* rtspURL, as_rtsp_callback_t* cb, bool bTcp);
+    AS_API AS_HANDLE as_create_handle(char const* rtspURL, as_rtsp_callback_t* cb, bool bTcp);
 
     /* destory a rtsp client handle */
     AS_API void      as_destory_handle(AS_HANDLE handle);

@@ -16,7 +16,7 @@ void      as_lib_release()
 /* get the rtsp client libary run model*/
 uint32_t  as_lib_run_model()
 {
-	return  ASRtspClientManager::instance().getRunModel();
+    return  ASRtspClientManager::instance().getRunModel();
 }
 /* set the socket recv buffer size*/
 void      as_lib_set_recv_buffer_size(uint32_t size)
@@ -31,7 +31,7 @@ uint32_t as_lib_get_recv_buffer_size()
 /* open a rtsp client handle */
 AS_HANDLE as_create_handle(char const* rtspURL, as_rtsp_callback_t* cb, bool bTcp)
 {
-	return ASRtspClientManager::instance().openURL(rtspURL, cb, bTcp);
+    return ASRtspClientManager::instance().openURL(rtspURL, cb, bTcp);
 }
 
 /* destory a rtsp client handle */

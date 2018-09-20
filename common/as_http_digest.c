@@ -269,17 +269,17 @@ as_md5_final(unsigned char *result, as_md5_ctx *ctx)
 static void
 as_get_md5(const char *string, char *result)
 {
-	int i = 0;
-	unsigned char digest[16];
+    int i = 0;
+    unsigned char digest[16];
 
-	as_md5_ctx context;
-	as_md5_init(&context);
-	as_md5_update(&context, string, strlen(string));
-	as_md5_final(digest, &context);
+    as_md5_ctx context;
+    as_md5_init(&context);
+    as_md5_update(&context, string, strlen(string));
+    as_md5_final(digest, &context);
 
-	for (i = 0; i < 16; ++i) {
-		sprintf(&result[i * 2], "%02x", (unsigned int) digest[i]);
-	}
+    for (i = 0; i < 16; ++i) {
+        sprintf(&result[i * 2], "%02x", (unsigned int) digest[i]);
+    }
 }
 
 /**
@@ -294,24 +294,24 @@ as_get_md5(const char *string, char *result)
 static char *
 as_dgst_get_val(char *parameter)
 {
-	char *cursor, *q;
+    char *cursor, *q;
 
-	/* Find start of value */
-	if (NULL == (cursor = strchr(parameter, '='))) {
-		return (char *) NULL;
-	}
+    /* Find start of value */
+    if (NULL == (cursor = strchr(parameter, '='))) {
+        return (char *) NULL;
+    }
 
-	if (*(++cursor) != '"') {
-		return cursor;
-	}
+    if (*(++cursor) != '"') {
+        return cursor;
+    }
 
-	cursor++;
-	if (NULL == (q = strchr(cursor, '"'))) {
-		return (char *) NULL;
-	}
-	*q = '\0';
+    cursor++;
+    if (NULL == (q = strchr(cursor, '"'))) {
+        return (char *) NULL;
+    }
+    *q = '\0';
 
-	return cursor;
+    return cursor;
 }
 
 /**
@@ -324,11 +324,11 @@ as_dgst_get_val(char *parameter)
 int
 as_check_string(const char *string)
 {
-	if (NULL == string || 255 < strlen(string)) {
-		return -1;
-	}
+    if (NULL == string || 255 < strlen(string)) {
+        return -1;
+    }
 
-	return 0;
+    return 0;
 }
 
 /**
@@ -343,8 +343,8 @@ as_check_string(const char *string)
 static char *
 as_crop_sentence(const char *header_value)
 {
- 	/* Skip Digest word, and duplicate string */
-	return strdup(header_value + 7);
+     /* Skip Digest word, and duplicate string */
+    return strdup(header_value + 7);
 }
 
 /**
@@ -361,31 +361,31 @@ as_crop_sentence(const char *header_value)
 static inline int
 as_split_string_by_comma(char *sentence, char **values, int max_values)
 {
-	int i = 0;
+    int i = 0;
 
-	while (i < max_values && '\0' != *sentence) {
-		/* Rewind to after spaces */
-		while (' ' == *sentence || ',' == *sentence) {
-			sentence++;
-		}
+    while (i < max_values && '\0' != *sentence) {
+        /* Rewind to after spaces */
+        while (' ' == *sentence || ',' == *sentence) {
+            sentence++;
+        }
 
-		/* Check for end of string */
-		if ('\0' == *sentence) {
-			break;
-		}
+        /* Check for end of string */
+        if ('\0' == *sentence) {
+            break;
+        }
 
-		values[i++] = sentence;
+        values[i++] = sentence;
 
-		/* Find comma */
-		if (NULL == (sentence = strchr(sentence, ','))) {
-			/* End of string */
-			break;
-		}
+        /* Find comma */
+        if (NULL == (sentence = strchr(sentence, ','))) {
+            /* End of string */
+            break;
+        }
 
-		*(sentence++) = '\0';
-	}
+        *(sentence++) = '\0';
+    }
 
-	return i;
+    return i;
 }
 
 /**
@@ -402,49 +402,49 @@ as_split_string_by_comma(char *sentence, char **values, int max_values)
 static inline unsigned int
 as_tokenize_sentence(char *sentence, char **values, unsigned int max_values)
 {
-	unsigned int i = 0;
-	char *cursor = sentence;
+    unsigned int i = 0;
+    char *cursor = sentence;
 
-	while (i < max_values && *cursor != '\0') {
-		/* Rewind to after spaces */
-		while (' ' == *cursor || ',' == *cursor) {
-			cursor++;
-		}
+    while (i < max_values && *cursor != '\0') {
+        /* Rewind to after spaces */
+        while (' ' == *cursor || ',' == *cursor) {
+            cursor++;
+        }
 
-		/* Check for end of string */
-		if ('\0' == *cursor) {
-			break;
-		}
+        /* Check for end of string */
+        if ('\0' == *cursor) {
+            break;
+        }
 
-		values[i++] = cursor;
+        values[i++] = cursor;
 
-		/* Find equal sign (=) */
-		if (NULL == (cursor = strchr(cursor, '='))) {
-			/* End of string */
-			break;
-		}
+        /* Find equal sign (=) */
+        if (NULL == (cursor = strchr(cursor, '='))) {
+            /* End of string */
+            break;
+        }
 
-		/* Check if a quotation mark follows the = */
-		if ('\"' == *(++cursor)) {
-			/* Find next quotation mark */
-			if (NULL == (cursor = strchr(++cursor, '\"'))) {
-				/* End of string */
-				break;
-			}
-			/* Comma should be after */
-			cursor++;
-		} else {
-			/* Find comma */
-			if (NULL == (cursor = strchr(cursor, ','))) {
-				/* End of string */
-				break;
-			}
-		}
+        /* Check if a quotation mark follows the = */
+        if ('\"' == *(++cursor)) {
+            /* Find next quotation mark */
+            if (NULL == (cursor = strchr(++cursor, '\"'))) {
+                /* End of string */
+                break;
+            }
+            /* Comma should be after */
+            cursor++;
+        } else {
+            /* Find comma */
+            if (NULL == (cursor = strchr(cursor, ','))) {
+                /* End of string */
+                break;
+            }
+        }
 
-		*(cursor++) = '\0';
-	}
+        *(cursor++) = '\0';
+    }
 
-	return i;
+    return i;
 }
 
 /**
@@ -459,46 +459,46 @@ as_tokenize_sentence(char *sentence, char **values, unsigned int max_values)
 static int
 as_parse_digest(as_digest_s *dig, const char *digest_string)
 {
-	int n, i = 0;
-	char *val, *parameters;
-	char *values[12];
+    int n, i = 0;
+    char *val, *parameters;
+    char *values[12];
 
-	parameters = as_crop_sentence(digest_string);
-	n = as_tokenize_sentence(parameters, values, ARRAY_LENGTH(values));
+    parameters = as_crop_sentence(digest_string);
+    n = as_tokenize_sentence(parameters, values, ARRAY_LENGTH(values));
 
-	while (i < n) {
-		if (NULL == (val = values[i++])) {
-			continue;
-		}
+    while (i < n) {
+        if (NULL == (val = values[i++])) {
+            continue;
+        }
 
-		if (0 == strncmp("nonce=", val, strlen("nonce="))) {
-			dig->nonce = as_dgst_get_val(val);
-		} else if (0 == strncmp("realm=", val, strlen("realm="))) {
-			dig->realm = as_dgst_get_val(val);
-		} else if (0 == strncmp("qop=", val, strlen("qop="))) {
-			char *qop_options = as_dgst_get_val(val);
-			char *qop_values[2];
-			int n_qops = as_split_string_by_comma(qop_options, qop_values, ARRAY_LENGTH(qop_values));
-			while (n_qops-- > 0) {
-				if (0 == strncmp(qop_values[n_qops], "auth", strlen("auth"))) {
-					dig->qop |= DIGEST_QOP_AUTH;
-					continue;
-				}
-				if (0 == strncmp(qop_values[n_qops], "auth-int", strlen("auth-int"))) {
-					dig->qop |= DIGEST_QOP_AUTH_INT;
-				}
-			}
-		} else if (0 == strncmp("opaque=", val, strlen("opaque="))) {
-			dig->opaque = as_dgst_get_val(val);
-		} else if (0 == strncmp("algorithm=", val, strlen("algorithm="))) {
-			char *algorithm = as_dgst_get_val(val);
-			if (0 == strncmp(algorithm, "MD5", strlen("MD5"))) {
-				dig->algorithm = DIGEST_ALGORITHM_MD5;
-			}
-		}
-	}
+        if (0 == strncmp("nonce=", val, strlen("nonce="))) {
+            dig->nonce = as_dgst_get_val(val);
+        } else if (0 == strncmp("realm=", val, strlen("realm="))) {
+            dig->realm = as_dgst_get_val(val);
+        } else if (0 == strncmp("qop=", val, strlen("qop="))) {
+            char *qop_options = as_dgst_get_val(val);
+            char *qop_values[2];
+            int n_qops = as_split_string_by_comma(qop_options, qop_values, ARRAY_LENGTH(qop_values));
+            while (n_qops-- > 0) {
+                if (0 == strncmp(qop_values[n_qops], "auth", strlen("auth"))) {
+                    dig->qop |= DIGEST_QOP_AUTH;
+                    continue;
+                }
+                if (0 == strncmp(qop_values[n_qops], "auth-int", strlen("auth-int"))) {
+                    dig->qop |= DIGEST_QOP_AUTH_INT;
+                }
+            }
+        } else if (0 == strncmp("opaque=", val, strlen("opaque="))) {
+            dig->opaque = as_dgst_get_val(val);
+        } else if (0 == strncmp("algorithm=", val, strlen("algorithm="))) {
+            char *algorithm = as_dgst_get_val(val);
+            if (0 == strncmp(algorithm, "MD5", strlen("MD5"))) {
+                dig->algorithm = DIGEST_ALGORITHM_MD5;
+            }
+        }
+    }
 
-	return i;
+    return i;
 }
 
 /**
@@ -515,28 +515,28 @@ as_parse_digest(as_digest_s *dig, const char *digest_string)
 static int
 as_parse_validate_attributes(as_digest_s *dig)
 {
-	if (-1 == as_check_string(dig->username)) {
-		return -1;
-	}
-	if (-1 == as_check_string(dig->password)) {
-		return -1;
-	}
-	if (-1 == as_check_string(dig->uri)) {
-		return -1;
-	}
-	if (-1 == as_check_string(dig->realm)) {
-		return -1;
-	}
-	if (NULL != dig->opaque && 255 < strlen(dig->opaque)) {
-		return -1;
-	}
+    if (-1 == as_check_string(dig->username)) {
+        return -1;
+    }
+    if (-1 == as_check_string(dig->password)) {
+        return -1;
+    }
+    if (-1 == as_check_string(dig->uri)) {
+        return -1;
+    }
+    if (-1 == as_check_string(dig->realm)) {
+        return -1;
+    }
+    if (NULL != dig->opaque && 255 < strlen(dig->opaque)) {
+        return -1;
+    }
 
-	/* nonce */
-	if (DIGEST_QOP_NOT_SET != dig->qop && -1 == as_check_string(dig->nonce)) {
-		return -1;
-	}
+    /* nonce */
+    if (DIGEST_QOP_NOT_SET != dig->qop && -1 == as_check_string(dig->nonce)) {
+        return -1;
+    }
 
-	return 0;
+    return 0;
 }
 
 
@@ -551,9 +551,9 @@ as_parse_validate_attributes(as_digest_s *dig)
 static void
 as_hash_generate_a2(char *result, const char *method, const char *uri)
 {
-	char raw[512];
-	sprintf(raw, "%s:%s", method, uri);
-	as_get_md5(raw, result);
+    char raw[512];
+    sprintf(raw, "%s:%s", method, uri);
+    as_get_md5(raw, result);
 }
 
 /**
@@ -565,9 +565,9 @@ as_hash_generate_a2(char *result, const char *method, const char *uri)
 static void
 as_hash_generate_a1(char *result, const char *username, const char *realm, const char *password)
 {
-	char raw[768];
-	sprintf(raw, "%s:%s:%s", username, realm, password);
-	as_get_md5(raw, result);
+    char raw[768];
+    sprintf(raw, "%s:%s:%s", username, realm, password);
+    as_get_md5(raw, result);
 }
 
 /**
@@ -582,9 +582,9 @@ as_hash_generate_a1(char *result, const char *username, const char *realm, const
 static void
 as_hash_generate_response_auth(char *result, const char *ha1, const char *nonce, unsigned int nc, unsigned int cnonce, const char *qop, const char *ha2)
 {
-	char raw[512];
-	sprintf(raw, "%s:%s:%08x:%08x:%s:%s", ha1, nonce, nc, cnonce, qop, ha2);
-	as_get_md5(raw, result);
+    char raw[512];
+    sprintf(raw, "%s:%s:%08x:%08x:%s:%s", ha1, nonce, nc, cnonce, qop, ha2);
+    as_get_md5(raw, result);
 }
 
 /**
@@ -599,129 +599,129 @@ as_hash_generate_response_auth(char *result, const char *ha1, const char *nonce,
 void
 as_hash_generate_response(char *result, const char *ha1, const char *nonce, const char *ha2)
 {
-	char raw[512];
-	sprintf(raw, "%s:%s:%s", ha1, nonce, ha2);
-	as_get_md5(raw, result);
+    char raw[512];
+    sprintf(raw, "%s:%s:%s", ha1, nonce, ha2);
+    as_get_md5(raw, result);
 }
 
 int
 as_digest_init(as_digest_t *digest,unsigned int quotes)
 {
-	as_digest_s *dig = (as_digest_s *) digest;
+    as_digest_s *dig = (as_digest_s *) digest;
 
-	/* Clear */
-	memset(dig, 0, sizeof (as_digest_s));
+    /* Clear */
+    memset(dig, 0, sizeof (as_digest_s));
 
-	/* Set default values */
-	dig->algorithm = DIGEST_ALGORITHM_MD5;
+    /* Set default values */
+    dig->algorithm = DIGEST_ALGORITHM_MD5;
     dig->quotes    = quotes;
 
-	return 0;
+    return 0;
 }
 
 int
 as_digest_is_digest(const char *header_value)
 {
-	if (NULL == header_value) {
-		return -1;
-	}
+    if (NULL == header_value) {
+        return -1;
+    }
 
-	if (0 != strncmp(header_value, "Digest", 6)) {
-		return -1;
-	}
+    if (0 != strncmp(header_value, "Digest", 6)) {
+        return -1;
+    }
 
-	return 0;
+    return 0;
 }
 
 void *
 as_digest_get_attr(as_digest_t *digest, as_digest_attr_t attr)
 {
-	as_digest_s *dig = (as_digest_s *) digest;
+    as_digest_s *dig = (as_digest_s *) digest;
 
-	switch (attr) {
-	case D_ATTR_USERNAME:
-		return dig->username;
-	case D_ATTR_PASSWORD:
-		return dig->password;
-	case D_ATTR_REALM:
-		return dig->realm;
-	case D_ATTR_NONCE:
-		return dig->nonce;
-	case D_ATTR_CNONCE:
-		return &(dig->cnonce);
-	case D_ATTR_OPAQUE:
-		return dig->opaque;
-	case D_ATTR_URI:
-		return dig->uri;
-	case D_ATTR_METHOD:
-		return &(dig->method);
-	case D_ATTR_ALGORITHM:
-		return &(dig->algorithm);
-	case D_ATTR_QOP:
-		return &(dig->qop);
-	case D_ATTR_NONCE_COUNT:
-		return &(dig->nc);
-	default:
-		return NULL;
-	}
+    switch (attr) {
+    case D_ATTR_USERNAME:
+        return dig->username;
+    case D_ATTR_PASSWORD:
+        return dig->password;
+    case D_ATTR_REALM:
+        return dig->realm;
+    case D_ATTR_NONCE:
+        return dig->nonce;
+    case D_ATTR_CNONCE:
+        return &(dig->cnonce);
+    case D_ATTR_OPAQUE:
+        return dig->opaque;
+    case D_ATTR_URI:
+        return dig->uri;
+    case D_ATTR_METHOD:
+        return &(dig->method);
+    case D_ATTR_ALGORITHM:
+        return &(dig->algorithm);
+    case D_ATTR_QOP:
+        return &(dig->qop);
+    case D_ATTR_NONCE_COUNT:
+        return &(dig->nc);
+    default:
+        return NULL;
+    }
 }
 
 int
 as_digest_set_attr(as_digest_t *digest, as_digest_attr_t attr, const as_digest_attr_value_t value)
 {
-	as_digest_s *dig = (as_digest_s *) digest;
+    as_digest_s *dig = (as_digest_s *) digest;
 
-	switch (attr) {
-	case D_ATTR_USERNAME:
-		dig->username = value.string;
-		break;
-	case D_ATTR_PASSWORD:
-		dig->password = value.string;
-		break;
-	case D_ATTR_REALM:
-		dig->realm = value.string;
-		break;
-	case D_ATTR_NONCE:
-		dig->nonce = value.string;
-		break;
-	case D_ATTR_CNONCE:
-		dig->cnonce = value.number;
-		break;
-	case D_ATTR_OPAQUE:
-		dig->opaque = value.string;
-		break;
-	case D_ATTR_URI:
-		dig->uri = value.string;
-		break;
-	case D_ATTR_METHOD:
-		dig->method = value.number;
-		break;
-	case D_ATTR_ALGORITHM:
-		dig->algorithm = value.number;
-		break;
-	case D_ATTR_QOP:
-		dig->qop = value.number;
-		break;
-	case D_ATTR_NONCE_COUNT:
-		dig->nc = value.number;
-		break;
-	default:
-		return -1;
-	}
+    switch (attr) {
+    case D_ATTR_USERNAME:
+        dig->username = value.string;
+        break;
+    case D_ATTR_PASSWORD:
+        dig->password = value.string;
+        break;
+    case D_ATTR_REALM:
+        dig->realm = value.string;
+        break;
+    case D_ATTR_NONCE:
+        dig->nonce = value.string;
+        break;
+    case D_ATTR_CNONCE:
+        dig->cnonce = value.number;
+        break;
+    case D_ATTR_OPAQUE:
+        dig->opaque = value.string;
+        break;
+    case D_ATTR_URI:
+        dig->uri = value.string;
+        break;
+    case D_ATTR_METHOD:
+        dig->method = value.number;
+        break;
+    case D_ATTR_ALGORITHM:
+        dig->algorithm = value.number;
+        break;
+    case D_ATTR_QOP:
+        dig->qop = value.number;
+        break;
+    case D_ATTR_NONCE_COUNT:
+        dig->nc = value.number;
+        break;
+    default:
+        return -1;
+    }
 
-	return 0;
+    return 0;
 }
 
 int
 as_digest_client_parse(as_digest_t *digest, const char *digest_string)
 {
-	as_digest_s *dig = (as_digest_s *) digest;
+    as_digest_s *dig = (as_digest_s *) digest;
 
-	/* Set default values */
-	dig->nc = 1;
-	dig->cnonce = time(NULL);
+    /* Set default values */
+    dig->nc = 1;
+    dig->cnonce = time(NULL);
 
-	return as_parse_digest(dig, digest_string);
+    return as_parse_digest(dig, digest_string);
 }
 
 /**
@@ -741,138 +741,138 @@ as_digest_client_parse(as_digest_t *digest, const char *digest_string)
 size_t
 as_digest_client_generate_header(as_digest_t *digest, char *result, size_t max_length)
 {
-	as_digest_s *dig = (as_digest_s *) digest;
-	char hash_a1[52], hash_a2[52], hash_res[52];
-	char *qop_value, *algorithm_value, *method_value;
-	size_t result_size; /* The size of the result string */
-	int sz;
+    as_digest_s *dig = (as_digest_s *) digest;
+    char hash_a1[52], hash_a2[52], hash_res[52];
+    char *qop_value, *algorithm_value, *method_value;
+    size_t result_size; /* The size of the result string */
+    int sz;
 
-	/* Check length of char attributes to prevent buffer overflow */
-	if (-1 == as_parse_validate_attributes(dig)) {
-		return -1;
-	}
+    /* Check length of char attributes to prevent buffer overflow */
+    if (-1 == as_parse_validate_attributes(dig)) {
+        return -1;
+    }
 
-	/* Quality of Protection - qop */
-	if (DIGEST_QOP_AUTH == (DIGEST_QOP_AUTH & dig->qop)) {
-		qop_value = "auth";
-	} else if (DIGEST_QOP_AUTH_INT == (DIGEST_QOP_AUTH_INT & dig->qop)) {
-		/* auth-int, which is not supported */
-		return -1;
-	}
+    /* Quality of Protection - qop */
+    if (DIGEST_QOP_AUTH == (DIGEST_QOP_AUTH & dig->qop)) {
+        qop_value = "auth";
+    } else if (DIGEST_QOP_AUTH_INT == (DIGEST_QOP_AUTH_INT & dig->qop)) {
+        /* auth-int, which is not supported */
+        return -1;
+    }
 
-	/* Set algorithm */
-	algorithm_value = NULL;
-	if (DIGEST_ALGORITHM_MD5 == dig->algorithm) {
-		algorithm_value = "MD5";
-	}
+    /* Set algorithm */
+    algorithm_value = NULL;
+    if (DIGEST_ALGORITHM_MD5 == dig->algorithm) {
+        algorithm_value = "MD5";
+    }
 
-	/* Set method */
-	switch (dig->method) {
-	case DIGEST_METHOD_OPTIONS:
-		method_value = "OPTIONS";
-		break;
-	case DIGEST_METHOD_GET:
-		method_value = "GET";
-		break;
-	case DIGEST_METHOD_HEAD:
-		method_value = "HEAD";
-		break;
-	case DIGEST_METHOD_POST:
-		method_value = "POST";
-		break;
-	case DIGEST_METHOD_PUT:
-		method_value = "PUT";
-		break;
-	case DIGEST_METHOD_DELETE:
-		method_value = "DELETE";
-		break;
-	case DIGEST_METHOD_TRACE:
-		method_value = "TRACE";
-		break;
-	default:
-		return -1;
-	}
+    /* Set method */
+    switch (dig->method) {
+    case DIGEST_METHOD_OPTIONS:
+        method_value = "OPTIONS";
+        break;
+    case DIGEST_METHOD_GET:
+        method_value = "GET";
+        break;
+    case DIGEST_METHOD_HEAD:
+        method_value = "HEAD";
+        break;
+    case DIGEST_METHOD_POST:
+        method_value = "POST";
+        break;
+    case DIGEST_METHOD_PUT:
+        method_value = "PUT";
+        break;
+    case DIGEST_METHOD_DELETE:
+        method_value = "DELETE";
+        break;
+    case DIGEST_METHOD_TRACE:
+        method_value = "TRACE";
+        break;
+    default:
+        return -1;
+    }
 
-	/* Generate the hashes */
-	as_hash_generate_a1(hash_a1, dig->username, dig->realm, dig->password);
-	as_hash_generate_a2(hash_a2, method_value, dig->uri);
+    /* Generate the hashes */
+    as_hash_generate_a1(hash_a1, dig->username, dig->realm, dig->password);
+    as_hash_generate_a2(hash_a2, method_value, dig->uri);
 
-	if (DIGEST_QOP_NOT_SET != dig->qop) {
-		as_hash_generate_response_auth(hash_res, hash_a1, dig->nonce, dig->nc, dig->cnonce, qop_value, hash_a2);
-	} else {
-		as_hash_generate_response(hash_res, hash_a1, dig->nonce, hash_a2);
-	}
+    if (DIGEST_QOP_NOT_SET != dig->qop) {
+        as_hash_generate_response_auth(hash_res, hash_a1, dig->nonce, dig->nc, dig->cnonce, qop_value, hash_a2);
+    } else {
+        as_hash_generate_response(hash_res, hash_a1, dig->nonce, hash_a2);
+    }
 
-	/* Generate the minimum digest header string */
+    /* Generate the minimum digest header string */
     if(digest->quotes) {
-	    result_size = snprintf(result, max_length, "Digest username=\"%s\", realm=\"%s\", uri=\"%s\", response=\"%s\"",\
-    	    dig->username,\
-    	    dig->realm,\
-    	    dig->uri,\
-    	    hash_res);
+        result_size = snprintf(result, max_length, "Digest username=\"%s\", realm=\"%s\", uri=\"%s\", response=\"%s\"",\
+            dig->username,\
+            dig->realm,\
+            dig->uri,\
+            hash_res);
     }
     else {
         result_size = snprintf(result, max_length, "Digest username=%s, realm=%s, uri=%s, response=%s",\
-    	    dig->username,\
-    	    dig->realm,\
-    	    dig->uri,\
-    	    hash_res);
+            dig->username,\
+            dig->realm,\
+            dig->uri,\
+            hash_res);
     }
-	if (result_size == -1 || result_size == max_length) {
-		return -1;
-	}
+    if (result_size == -1 || result_size == max_length) {
+        return -1;
+    }
 
-	/* Add opaque */
-	if (NULL != dig->opaque) {
-		sz = snprintf(result + result_size, max_length - result_size, ", opaque=\"%s\"", dig->opaque);
-		result_size += sz;
-		if (sz == -1 || result_size >= max_length) {
-			return -1;
-		}
-	}
+    /* Add opaque */
+    if (NULL != dig->opaque) {
+        sz = snprintf(result + result_size, max_length - result_size, ", opaque=\"%s\"", dig->opaque);
+        result_size += sz;
+        if (sz == -1 || result_size >= max_length) {
+            return -1;
+        }
+    }
 
-	/* Add algorithm */
-	if (DIGEST_ALGORITHM_NOT_SET != dig->algorithm) {
-		sz = snprintf(result + result_size, max_length - result_size, ", algorithm=\"%s\"",\
-	    	    algorithm_value);
-		if (sz == -1 || result_size >= max_length) {
-			return -1;
-		}
-	}
+    /* Add algorithm */
+    if (DIGEST_ALGORITHM_NOT_SET != dig->algorithm) {
+        sz = snprintf(result + result_size, max_length - result_size, ", algorithm=\"%s\"",\
+                algorithm_value);
+        if (sz == -1 || result_size >= max_length) {
+            return -1;
+        }
+    }
 
-	/* If qop is supplied, add nonce, cnonce, nc and qop */
-	if (DIGEST_QOP_NOT_SET != dig->qop) {
-		sz = snprintf(result + result_size, max_length - result_size, ", qop=%s, nonce=\"%s\", cnonce=\"%08x\", nc=%08x",\
-		    qop_value,\
-		    dig->nonce,\
-		    dig->cnonce,\
-		    dig->nc);
-		if (sz == -1 || result_size >= max_length) {
-			return -1;
-		}
-	}
+    /* If qop is supplied, add nonce, cnonce, nc and qop */
+    if (DIGEST_QOP_NOT_SET != dig->qop) {
+        sz = snprintf(result + result_size, max_length - result_size, ", qop=%s, nonce=\"%s\", cnonce=\"%08x\", nc=%08x",\
+            qop_value,\
+            dig->nonce,\
+            dig->cnonce,\
+            dig->nc);
+        if (sz == -1 || result_size >= max_length) {
+            return -1;
+        }
+    }
 
-	return result_size;
+    return result_size;
 }
 
 int
 as_digest_server_parse(as_digest_t *digest, const char *digest_string)
 {
-	as_digest_s *dig = (as_digest_s *) digest;
+    as_digest_s *dig = (as_digest_s *) digest;
 
-	return as_parse_digest(dig, digest_string);
+    return as_parse_digest(dig, digest_string);
 }
 
 int
 as_digest_server_generate_nonce(as_digest_t *digest)
 {
-	//as_digest_s *dig = (as_digest_s *) digest;
+    //as_digest_s *dig = (as_digest_s *) digest;
 
-	/* Use srand and base64 or md5.
-	   Do the same with cnonce and opaque.
-	   How should the strings be allocated and free'd? */
+    /* Use srand and base64 or md5.
+       Do the same with cnonce and opaque.
+       How should the strings be allocated and free'd? */
 
-	return 0;
+    return 0;
 }
 
 /**
@@ -891,65 +891,65 @@ as_digest_server_generate_nonce(as_digest_t *digest)
 size_t
 as_digest_server_generate_header(as_digest_t *digest, char *result, size_t max_length)
 {
-	as_digest_s *dig = (as_digest_s *) digest;
-	char *qop_value, *algorithm_value;
-	size_t result_size; /* The size of the result string */
-	int sz;
+    as_digest_s *dig = (as_digest_s *) digest;
+    char *qop_value, *algorithm_value;
+    size_t result_size; /* The size of the result string */
+    int sz;
 
-	/* Check length of char attributes to prevent buffer overflow */
-	if (-1 == as_parse_validate_attributes(dig)) {
-		return -1;
-	}
+    /* Check length of char attributes to prevent buffer overflow */
+    if (-1 == as_parse_validate_attributes(dig)) {
+        return -1;
+    }
 
-	/* Quality of Protection - qop */
-	if (DIGEST_QOP_AUTH == (DIGEST_QOP_AUTH & dig->qop)) {
-		qop_value = "auth";
-	} else if (DIGEST_QOP_AUTH_INT == (DIGEST_QOP_AUTH_INT & dig->qop)) {
-		/* auth-int, which is not supported */
-		return -1;
-	}
+    /* Quality of Protection - qop */
+    if (DIGEST_QOP_AUTH == (DIGEST_QOP_AUTH & dig->qop)) {
+        qop_value = "auth";
+    } else if (DIGEST_QOP_AUTH_INT == (DIGEST_QOP_AUTH_INT & dig->qop)) {
+        /* auth-int, which is not supported */
+        return -1;
+    }
 
-	/* Set algorithm */
-	algorithm_value = NULL;
-	if (DIGEST_ALGORITHM_MD5 == dig->algorithm) {
-		algorithm_value = "MD5";
-	}
+    /* Set algorithm */
+    algorithm_value = NULL;
+    if (DIGEST_ALGORITHM_MD5 == dig->algorithm) {
+        algorithm_value = "MD5";
+    }
 
-	/* Generate the minimum digest header string */
-	result_size = snprintf(result, max_length, "Digest realm=\"%s\"", dig->realm);
-	if (result_size == -1 || result_size == max_length) {
-		return -1;
-	}
+    /* Generate the minimum digest header string */
+    result_size = snprintf(result, max_length, "Digest realm=\"%s\"", dig->realm);
+    if (result_size == -1 || result_size == max_length) {
+        return -1;
+    }
 
-	/* Add opaque */
-	if (NULL != dig->opaque) {
-		sz = snprintf(result + result_size, max_length - result_size, ", opaque=\"%s\"", dig->opaque);
-		result_size += sz;
-		if (sz == -1 || result_size >= max_length) {
-			return -1;
-		}
-	}
+    /* Add opaque */
+    if (NULL != dig->opaque) {
+        sz = snprintf(result + result_size, max_length - result_size, ", opaque=\"%s\"", dig->opaque);
+        result_size += sz;
+        if (sz == -1 || result_size >= max_length) {
+            return -1;
+        }
+    }
 
-	/* Add algorithm */
-	if (DIGEST_ALGORITHM_NOT_SET != dig->algorithm) {
-		sz = snprintf(result + result_size, max_length - result_size, ", algorithm=\"%s\"",\
-	    	    algorithm_value);
-		if (sz == -1 || result_size >= max_length) {
-			return -1;
-		}
-	}
+    /* Add algorithm */
+    if (DIGEST_ALGORITHM_NOT_SET != dig->algorithm) {
+        sz = snprintf(result + result_size, max_length - result_size, ", algorithm=\"%s\"",\
+                algorithm_value);
+        if (sz == -1 || result_size >= max_length) {
+            return -1;
+        }
+    }
 
-	/* If qop is supplied, add nonce, cnonce, nc and qop */
-	if (DIGEST_QOP_NOT_SET != dig->qop) {
-		sz = snprintf(result + result_size, max_length - result_size, ", qop=%s, nonce=\"%s\", cnonce=\"%08x\", nc=%08x",\
-		    qop_value,\
-		    dig->nonce,\
-		    dig->cnonce,\
-		    dig->nc);
-		if (sz == -1 || result_size >= max_length) {
-			return -1;
-		}
-	}
+    /* If qop is supplied, add nonce, cnonce, nc and qop */
+    if (DIGEST_QOP_NOT_SET != dig->qop) {
+        sz = snprintf(result + result_size, max_length - result_size, ", qop=%s, nonce=\"%s\", cnonce=\"%08x\", nc=%08x",\
+            qop_value,\
+            dig->nonce,\
+            dig->cnonce,\
+            dig->nc);
+        if (sz == -1 || result_size >= max_length) {
+            return -1;
+        }
+    }
 
-	return result_size;
+    return result_size;
 }

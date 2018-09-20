@@ -44,6 +44,326 @@ UsageEnvironment& operator<<(UsageEnvironment& env, const MediaSubsession& subse
   return env << subsession.mediumName() << "/" << subsession.codecName();
 }
 
+RTMPStream::RTMPStream(void)
+{
+    m_pRtmp = NULL;
+    InitSockets();
+    m_pRtmp = RTMP_Alloc();
+    RTMP_Init(m_pRtmp);
+}
+RTMPStream::~RTMPStream(void)
+{
+
+}
+
+int RTMPStream::InitSockets()
+{
+#ifdef WIN32
+    WORD version;
+    WSADATA wsaData;
+    version = MAKEWORD(1, 1);
+    return (WSAStartup(version, &wsaData) == 0);
+#else
+    return TRUE;
+#endif
+}
+
+
+void RTMPStream::CleanupSockets()
+{
+#ifdef WIN32
+    WSACleanup();
+#endif
+}
+
+char * RTMPStream::put_byte( char *output, uint8_t nVal )
+{
+    output[0] = nVal;
+    return output+1;
+}
+char * RTMPStream::put_be16(char *output, uint16_t nVal )
+{
+    output[1] = nVal & 0xff;
+    output[0] = nVal >> 8;
+    return output+2;
+}
+char * RTMPStream::put_be24(char *output,uint32_t nVal )
+{
+    output[2] = nVal & 0xff;
+    output[1] = nVal >> 8;
+    output[0] = nVal >> 16;
+    return output+3;
+}
+char * RTMPStream::put_be32(char *output, uint32_t nVal )
+{
+    output[3] = nVal & 0xff;
+    output[2] = nVal >> 8;
+    output[1] = nVal >> 16;
+    output[0] = nVal >> 24;
+    return output+4;
+}
+char *  RTMPStream::put_be64( char *output, uint64_t nVal )
+{
+    output=put_be32( output, nVal >> 32 );
+    output=put_be32( output, nVal );
+    return output;
+}
+char * RTMPStream::put_amf_string( char *c, const char *str )
+{
+    uint16_t len = strlen( str );
+    c=put_be16( c, len );
+    memcpy(c,str,len);
+    return c+len;
+}
+char * RTMPStream::put_amf_double( char *c, double d )
+{
+    *c++ = AMF_NUMBER;  /* type: Number */
+    {
+        unsigned char *ci, *co;
+        ci = (unsigned char *)&d;
+        co = (unsigned char *)c;
+        co[0] = ci[7];
+        co[1] = ci[6];
+        co[2] = ci[5];
+        co[3] = ci[4];
+        co[4] = ci[3];
+        co[5] = ci[2];
+        co[6] = ci[1];
+        co[7] = ci[0];
+    }
+    return c+8;
+}
+
+bool RTMPStream::Connect(const char* url)
+{
+    if(RTMP_SetupURL(m_pRtmp, (char*)url)<0)
+    {
+        return FALSE;
+    }
+    RTMP_EnableWrite(m_pRtmp);
+    if(RTMP_Connect(m_pRtmp, NULL)<0)
+    {
+        return FALSE;
+    }
+    if(RTMP_ConnectStream(m_pRtmp,0)<0)
+    {
+        return FALSE;
+    }
+    return TRUE;
+}
+// ????
+void RTMPStream::Close()
+{
+    if(m_pRtmp)
+    {
+
+        int x=RTMP_IsConnected(m_pRtmp);
+        WSACleanup();
+
+        RTMP_Close(m_pRtmp);
+        RTMP_Free(m_pRtmp);
+
+        m_pRtmp = NULL;
+
+    }
+}
+// ??MetaData
+bool RTMPStream::SendMetadata(LPRTMPMetadata lpMetaData)
+{
+    if(lpMetaData == NULL)
+    {
+        return false;
+    }
+
+    char body[1024] = {0};
+
+    char * p = (char *)body;
+    p = put_byte(p, AMF_STRING );
+    p = put_amf_string(p , "@setDataFrame" );
+
+    p = put_byte( p, AMF_STRING );
+    p = put_amf_string( p, "onMetaData" );
+
+    p = put_byte(p, AMF_OBJECT );
+    p = put_amf_string( p, "copyright" );
+    p = put_byte(p, AMF_STRING );
+    p = put_amf_string( p, "firehood" );
+
+    p =put_amf_string( p, "width");
+    p =put_amf_double( p, lpMetaData->nWidth);
+
+    p =put_amf_string( p, "height");
+    p =put_amf_double( p, lpMetaData->nHeight);
+
+    p =put_amf_string( p, "framerate" );
+    p =put_amf_double( p, lpMetaData->nFrameRate);
+
+    p =put_amf_string( p, "videodatarate" );
+    p =put_amf_double( p, lpMetaData->nVideoDataRate);
+
+    p =put_amf_string( p, "videocodecid" );
+    p =put_amf_double( p, lpMetaData->nvideocodecid );
+
+    if(lpMetaData->bHasAudio) {
+
+        p =put_amf_string( p, "audiodatarate");
+        p =put_amf_double( p, lpMetaData->nAudioDatarate);
+
+        p =put_amf_string( p, "audiosamplerate");
+        p =put_amf_double( p, lpMetaData->nAudioSampleRate);
+
+        p =put_amf_string( p, "audiosamplesize" );
+        p =put_amf_double( p, lpMetaData->nAudioSampleSize);
+
+        p =put_amf_string( p, "stereo" );
+        p =put_amf_double( p, lpMetaData->nAudioChannels);
+
+        p =put_amf_string( p, "audiocodecid" );
+        p =put_amf_double( p, lpMetaData->nAudioFmt);
+    }
+
+    p =put_amf_string( p, "" );
+    p =put_byte( p, AMF_OBJECT_END  );
+
+    int index = p-body;
+
+    return SendPacket(RTMP_PACKET_TYPE_INFO,(unsigned char*)body,p-body,0);
+
+    int i = 0;
+    body[i++] = 0x17; // 1:keyframe  7:AVC
+    body[i++] = 0x00; // AVC sequence header
+
+    body[i++] = 0x00;
+    body[i++] = 0x00;
+    body[i++] = 0x00; // fill in 0;
+
+    // AVCDecoderConfigurationRecord.
+    body[i++] = 0x01; // configurationVersion
+    body[i++] = lpMetaData->Sps[1]; // AVCProfileIndication
+    body[i++] = lpMetaData->Sps[2]; // profile_compatibility
+    body[i++] = lpMetaData->Sps[3]; // AVCLevelIndication
+    body[i++] = 0xff; // lengthSizeMinusOne
+
+    // sps nums
+    body[i++] = 0xE1; //&0x1f
+    // sps data length
+    body[i++] = lpMetaData->nSpsLen>>8;
+    body[i++] = lpMetaData->nSpsLen&0xff;
+    // sps data
+    memcpy(&body[i],lpMetaData->Sps,lpMetaData->nSpsLen);
+    i= i+lpMetaData->nSpsLen;
+
+    // pps nums
+    body[i++] = 0x01; //&0x1f
+    // pps data length
+    body[i++] = lpMetaData->nPpsLen>>8;
+    body[i++] = lpMetaData->nPpsLen&0xff;
+    // sps data
+    memcpy(&body[i],lpMetaData->Pps,lpMetaData->nPpsLen);
+    i= i+lpMetaData->nPpsLen;
+
+    return SendPacket(RTMP_PACKET_TYPE_VIDEO,(unsigned char*)body,i,0);
+
+}
+// ??H264???
+bool RTMPStream::SendH264Packet(unsigned char *data,unsigned int size,bool bIsKeyFrame,unsigned int nTimeStamp)
+{
+    if(data == NULL && size<11)
+    {
+        return false;
+    }
+
+    unsigned char *body = new unsigned char[size+9];
+
+    int i = 0;
+
+    if(bIsKeyFrame)
+        body[i++] = 0x17;// 1:Iframe  7:AVC
+    else
+        body[i++] = 0x27;// 2:Pframe  7:AVC
+
+    body[i++] = 0x01;// AVC NALU
+    body[i++] = 0x00;
+    body[i++] = 0x00;
+    body[i++] = 0x00;
+
+    // NALU size
+    body[i++] = size>>24;
+    body[i++] = size>>16;
+    body[i++] = size>>8;
+    body[i++] = size&0xff;
+
+    // NALU data
+    memcpy(&body[i],data,size);
+    bool bRet = SendPacket(RTMP_PACKET_TYPE_VIDEO,body,i+size,nTimeStamp);
+    delete[] body;
+    return bRet;
+}
+//??AAC??
+bool RTMPStream::SendAACPacket(unsigned char* data,unsigned int size,unsigned int nTimeStamp )
+{
+    if(m_pRtmp == NULL)
+        return FALSE;
+
+    if (size > 0)
+    {
+        RTMPPacket * packet;
+        unsigned char * body;
+
+        packet = (RTMPPacket *)malloc(RTMP_HEAD_SIZE+size+2);
+        memset(packet,0,RTMP_HEAD_SIZE);
+
+        packet->m_body = (char *)packet + RTMP_HEAD_SIZE;
+        body = (unsigned char *)packet->m_body;
+
+        /*AF 01 + AAC RAW data*/
+        body[0] = 0xAF;
+        body[1] = 0x01;
+        memcpy(&body[2],data,size);
+
+        packet->m_packetType = RTMP_PACKET_TYPE_AUDIO;
+        packet->m_nBodySize = size+2;
+        packet->m_nChannel = 0x04;
+        packet->m_nTimeStamp = nTimeStamp;
+        packet->m_hasAbsTimestamp = 0;
+        packet->m_headerType = RTMP_PACKET_SIZE_MEDIUM;
+        packet->m_nInfoField2 = m_pRtmp->m_stream_id;
+
+        /*??????*/
+        RTMP_SendPacket(m_pRtmp,packet,TRUE);
+        free(packet);
+    }
+    return true;
+}
+
+// ????
+int RTMPStream::SendPacket(unsigned int nPacketType,unsigned char *data,unsigned int size,unsigned int nTimestamp)
+{
+    if(m_pRtmp == NULL)
+        return FALSE;
+
+
+    RTMPPacket packet;
+    RTMPPacket_Reset(&packet);
+    RTMPPacket_Alloc(&packet,size);
+
+    packet.m_packetType = nPacketType;
+    packet.m_nChannel = 0x04;
+    packet.m_headerType = /*RTMP_PACKET_SIZE_MEDIUM*/RTMP_PACKET_SIZE_LARGE;
+    packet.m_nTimeStamp = nTimestamp;
+    packet.m_nInfoField2 = m_pRtmp->m_stream_id;
+    packet.m_nBodySize = size;
+    packet.m_hasAbsTimestamp = 0;
+    memcpy(packet.m_body,data,size);
+
+    //??????????
+    int nRet = RTMP_SendPacket(m_pRtmp,&packet,TRUE);
+
+    RTMPPacket_Free(&packet);
+
+    return nRet;
+}
+
 
 // Implementation of "ASRtsp2RtmpClient":
 
@@ -65,6 +385,9 @@ ASRtsp2RtmpClient::ASRtsp2RtmpClient(u_int32_t ulEnvIndex,UsageEnvironment& env,
   m_ulTryTime = 0;
   m_bTcp = false;
   m_lLastHeartBeat = time(NULL);
+
+  m_rtmp    = NULL;
+  m_rtmpUlr = NULL;
 }
 
 ASRtsp2RtmpClient::~ASRtsp2RtmpClient() {
@@ -72,10 +395,10 @@ ASRtsp2RtmpClient::~ASRtsp2RtmpClient() {
         as_destroy_mutex(m_mutex);
         m_mutex = NULL;
     }
-
+    m_RtmpStream.Close();
 }
 
-int32_t ASRtsp2RtmpClient::open(as_rtsp_callback_t* cb)
+int32_t ASRtsp2RtmpClient::open(char const* rtmpURL,as_rtsp_callback_t* cb)
 {
     as_lock_guard locker(m_mutex);
     m_cb = cb;
@@ -83,6 +406,9 @@ int32_t ASRtsp2RtmpClient::open(as_rtsp_callback_t* cb)
     // Note that this command - like all RTSP commands - is sent asynchronously; we do not block, waiting for a response.
     // Instead, the following function call returns immediately, and we handle the RTSP response later, from within the event loop:
     scs.Start();
+
+    m_rtmpUlr = strDup(rtmpURL);
+
     return sendOptionsCommand(continueAfterOPTIONS);
     //return sendDescribeCommand(continueAfterDESCRIBE);
 }
@@ -93,12 +419,6 @@ void    ASRtsp2RtmpClient::close()
     StopClient();
 }
 
-
-void ASRtsp2RtmpClient::report_stream(MediaFrameInfo* info, char* data, unsigned int size)
-{
-    as_lock_guard locker(m_mutex);
-    /* send to rtmp server */
-}
 void ASRtsp2RtmpClient::report_status(int status)
 {
     m_curStatus = status;
@@ -222,6 +542,11 @@ void ASRtsp2RtmpClient::setupNextSubsession() {
         }
         return;
     }
+
+    /* connect to the rtmp server */
+    if (!m_RtmpStream.Connect(m_rtmpUlr)) {
+        return;
+    }
     /* report the status */
     report_status(AS_RTSP_STATUS_SETUP);
     // We've finished setting up all of the subsessions.  Now, send a RTSP "PLAY" command to start the streaming:
@@ -252,7 +577,7 @@ void ASRtsp2RtmpClient::handleAfterSETUP(int resultCode, char* resultString)
         // (This will prepare the data sink to receive data; the actual flow of data from the client won't start happening until later,
         // after we've sent a RTSP "PLAY" command.)
 
-        scs.subsession->sink = ASRtsp2RtmpStreamSink::createNew(env, *scs.subsession, url(), this);
+        scs.subsession->sink = ASRtsp2RtmpStreamSink::createNew(env, *scs.subsession,&m_RtmpStream, url(), this);
         // perhaps use your own custom "MediaSink" subclass instead
         if (scs.subsession->sink == NULL) {
             break;
@@ -305,7 +630,6 @@ void ASRtsp2RtmpClient::handleAfterPLAY(int resultCode, char* resultString)
         }
         else {
         sendOptionsCommand(continueAfterHearBeatOption);
-        //sendHikKeyFrame(*scs.session);
         }
         */
 
@@ -319,7 +643,6 @@ void ASRtsp2RtmpClient::handleAfterPLAY(int resultCode, char* resultString)
 void ASRtsp2RtmpClient::handleAfterGET_PARAMETE(int resultCode, char* resultString)
 {
     delete[] resultString;
-    //sendHikKeyFrame(*scs.session);
 }
 void ASRtsp2RtmpClient::handleAfterPause(int resultCode, char* resultString)
 {
@@ -535,6 +858,8 @@ void ASRtsp2RtmpClient::shutdownStream() {
         }
     }
 
+    m_RtmpStream.Close();
+
     /* report the status */
     if (m_bRunning) {
         report_status(AS_RTSP_STATUS_TEARDOWN);
@@ -543,11 +868,6 @@ void ASRtsp2RtmpClient::shutdownStream() {
     /* not close here ,it will be closed by the close URL */
     //Modified by Chris@201712011000;
     // Note that this will also cause this stream's "ASRtsp2RtmpStreamState" structure to get reclaimed.
-}
-
-void ASRtsp2RtmpClient::sendHikKeyFrame(MediaSession& session)
-{
-    sendRequest(new RequestRecord(++fCSeq, "FORCEIFRAME", NULL, &session));
 }
 
 void ASRtsp2RtmpClient::StopClient()
@@ -571,6 +891,15 @@ bool ASRtsp2RtmpClient::checkStop()
     if (0 == m_bRunning) {
         return false;
     }
+
+    if(NULL == m_rtmp) {
+        return false;
+    }
+
+    if(!RTMP_IsConnected(m_rtmp)) {
+        return false;
+    }
+
     return true;
 }
 void ASRtsp2RtmpClient::tryReqeust()
@@ -642,10 +971,10 @@ void ASRtsp2RtmpStreamState::Stop()
 
 
 ASRtsp2RtmpStreamSink* ASRtsp2RtmpStreamSink::createNew(UsageEnvironment& env, MediaSubsession& subsession,
-    char const* streamId, ASStreamReport* cb) {
+    RTMPStream* pRtmpStream,char const* streamId, ASStreamReport* cb) {
     ASRtsp2RtmpStreamSink* pSink = NULL;
     try{
-        pSink = new ASRtsp2RtmpStreamSink(env, subsession, streamId, cb);
+        pSink = new ASRtsp2RtmpStreamSink(env, subsession,pRtmpStream, streamId, cb);
     }
     catch (...){
         pSink = NULL;
@@ -654,40 +983,33 @@ ASRtsp2RtmpStreamSink* ASRtsp2RtmpStreamSink::createNew(UsageEnvironment& env, M
 }
 
 ASRtsp2RtmpStreamSink::ASRtsp2RtmpStreamSink(UsageEnvironment& env, MediaSubsession& subsession,
-    char const* streamId, ASStreamReport* cb)
-    : MediaSink(env), fSubsession(subsession), m_StreamReport(cb) {
+    RTMPStream* pRtmpStream,char const* streamId, ASStreamReport* cb)
+    : MediaSink(env), fSubsession(subsession),m_pRtmpStream(pRtmpStream), m_StreamReport(cb) {
     fStreamId = strDup(streamId);
-    fReceiveBuffer = (u_int8_t*)&fMediaBuffer[0];
-    prefixSize = sizeof(SVS_MEDIA_FRAME_HEADER);
+    m_bWaitFirstKeyFrame = false;
+    fReceiveBuffer = (u_int8_t*)&fMediaBuffer[RTMP_HEAD_SIZE];
+    prefixSize     = RTMP_HEAD_SIZE;
 
-    memset(&m_MediaInfo,0,sizeof(MediaFrameInfo));
-
-    m_MediaInfo.type = AS_RTSP_DATA_TYPE_OTHER;
+    memset(&m_stMetadata,0,sizeof(RTMPMetadata));
 
     if (!strcmp(fSubsession.mediumName(), "video")) {
-        fMediaBuffer[prefixSize] = 0x00;
-        fMediaBuffer[prefixSize + 1] = 0x00;
-        fMediaBuffer[prefixSize + 2] = 0x00;
-        fMediaBuffer[prefixSize + 3] = 0x01;
+        m_bWaitFirstKeyFrame = true;
+        if (!strcmp(fOurSubsession.codecName(), "H264")) {
+            fMediaBuffer[prefixSize] = 0x00;
+            fMediaBuffer[prefixSize + 1] = 0x00;
+            fMediaBuffer[prefixSize + 2] = 0x00;
+            fMediaBuffer[prefixSize + 3] = 0x01;
 
-        prefixSize += DUMMY_SINK_H264_STARTCODE_SIZE;
-        fReceiveBuffer = (u_int8_t*)&fMediaBuffer[prefixSize];
-        m_MediaInfo.type = AS_RTSP_DATA_TYPE_VIDEO;
+            prefixSize += DUMMY_SINK_H264_STARTCODE_SIZE;
+            fReceiveBuffer = (u_int8_t*)&fMediaBuffer[prefixSize];
+            m_stMetadata.nvideocodecid = FLV_CODECID_H264
+        }
+
+        // TODO H265
     }
     else if (!strcmp(fSubsession.mediumName(), "audio")){
         fReceiveBuffer = (u_int8_t*)&fMediaBuffer[prefixSize];
-        m_MediaInfo.type = AS_RTSP_DATA_TYPE_AUDIO;
     }
-
-    m_MediaInfo.rtpPayloadFormat = fSubsession.rtpPayloadFormat();
-    m_MediaInfo.rtpTimestampFrequency = fSubsession.rtpTimestampFrequency();
-    m_MediaInfo.codecName = (char*)fSubsession.codecName();
-    m_MediaInfo.protocolName = (char*)fSubsession.protocolName();
-    m_MediaInfo.videoWidth =fSubsession.videoWidth();
-    m_MediaInfo.videoHeight =fSubsession.videoHeight();
-    m_MediaInfo.videoFPS =fSubsession.videoFPS();
-    m_MediaInfo.numChannels =fSubsession.numChannels();
-
     m_bRunning = true;
 
 }
@@ -707,29 +1029,21 @@ void ASRtsp2RtmpStreamSink::afterGettingFrame(void* clientData, unsigned frameSi
 }
 
 void ASRtsp2RtmpStreamSink::afterGettingFrame(unsigned frameSize, unsigned numTruncatedBytes,
-                  struct timeval presentationTime, unsigned /*durationInMicroseconds*/) {
+                  struct timeval presentationTime, unsigned durationInMicroseconds) {
 
     if(!m_bRunning) {
         continuePlaying();
         return;
     }
 
-    m_MediaInfo.rtpPayloadFormat = fSubsession.rtpPayloadFormat();
-    m_MediaInfo.rtpTimestampFrequency = fSubsession.rtpTimestampFrequency();
-    m_MediaInfo.presentationTime = presentationTime;
-    m_MediaInfo.codecName = (char*)fSubsession.codecName();
-    m_MediaInfo.protocolName = (char*)fSubsession.protocolName();
-    m_MediaInfo.videoWidth = fSubsession.videoWidth();
-    m_MediaInfo.videoHeight = fSubsession.videoHeight();
-    m_MediaInfo.videoFPS = fSubsession.videoFPS();
-    m_MediaInfo.numChannels = fSubsession.numChannels();
-
-    if (NULL != m_StreamReport) {
-        unsigned int size = frameSize + prefixSize;
-        m_StreamReport->report_stream(&m_MediaInfo, (char*)&fMediaBuffer[0], size);
+    if(FLV_CODECID_H264 == m_stMetadata.nvideocodecid) {
+        sendH264Frame(frameSize,numTruncatedBytes,presentationTime,durationInMicroseconds);
+    }
+    else if(FLV_CODECID_H265 == m_stMetadata.nvideocodecid ) {
+        sendH265Frame();
     }
     // Then continue, to request the next frame of data:
-        continuePlaying();
+    continuePlaying();
 }
 
 Boolean ASRtsp2RtmpStreamSink::continuePlaying() {
@@ -741,6 +1055,90 @@ Boolean ASRtsp2RtmpStreamSink::continuePlaying() {
                         onSourceClosure, this);
   return True;
 }
+
+// send the H264 frame
+void ASRtsp2RtmpStreamSink::sendH264Frame(unsigned frameSize, unsigned numTruncatedBytes,
+             struct timeval presentationTime, unsigned durationInMicroseconds)
+{
+    unsigned int nTimeStamp = presentationTime.tv_sec * 1000 + presentationTime.tv_usec / 1000;
+    H264_FU_INDICATOR* fu = (H264_FU_INDICATOR*)(void*)fReceiveBuffer;
+    if(H264_NALU_TYPE_SPS == fu->TYPE) {
+        if(H264_PPS_SPS_FRAME_LEN_MAX < frameSize) {
+            return;
+        }
+        memcpy((char*)&m_stMetadata.Sps[0],fReceiveBuffer,frameSize);
+        m_stMetadata.nSpsLen = frameSize;
+    }
+    else if(H264_NALU_TYPE_PPS == fu->TYPE) {
+        if(H264_PPS_SPS_FRAME_LEN_MAX < frameSize) {
+            return;
+        }
+        memcpy((char*)&m_stMetadata.Pps[0],fReceiveBuffer,frameSize);
+        m_stMetadata.nPpsLen = frameSize;
+    }
+    else if(H264_NALU_TYPE_IDR == fu->TYPE) {
+        /* key frame */
+        sendH264KeyFrame(frameSize,nTimeStamp);
+    }
+    else {
+        if(m_bWaitFirstKeyFrame) {
+            return;
+        }
+        m_pRtmpStream->SendH264Packet(fReceiveBuffer,frameSize,false,nTimeStamp);
+    }
+    return;
+}
+void ASRtsp2RtmpStreamSink::sendH264KeyFrame(unsigned frameSize, unsigned int nTimeStamp)
+{
+    if(m_bWaitFirstKeyFrame) {
+        if((0 == m_stMetadata.nPpsLen)
+            ||(0 == m_stMetadata.nSpsLen)) {
+            /* wait the pps sps and idr frame */
+            return;;
+        }
+
+        /* first key frame and with pps sps frame */
+        m_pRtmpStream->SendMetadata(&m_stMetadata);
+
+        m_bWaitFirstKeyFrame = false;
+    }
+
+    m_pRtmpStream->SendH264Packet(fReceiveBuffer,frameSize,true,nTimeStamp);
+
+}
+
+// send the H265 frame
+void ASRtsp2RtmpStreamSink::sendH265Frame()
+{
+    //todo:
+}
+
+int ASRtsp2RtmpStreamSink::SendRtmpPacket(unsigned int nPacketType,unsigned char *data,unsigned int size,unsigned int nTimestamp)
+{
+    RTMPPacket* packet; /*分配包内存和初始化,len为包体长度*/
+    packet = (RTMPPacket *)(data - RTMP_HEAD_SIZE);
+    memset(packet,0,RTMP_HEAD_SIZE);    /*包体内存*/
+    packet->m_body            = data;
+    packet->m_nBodySize       = size;
+    packet->m_hasAbsTimestamp = 0;
+    packet->m_packetType      = nPacketType; /*此处为类型有两种一种是音频,一种是视频*/
+    packet->m_nInfoField2     = m_rtmp->m_stream_id;
+    packet->m_nChannel        = 0x04;
+    packet->m_headerType      = RTMP_PACKET_SIZE_LARGE;
+    if (RTMP_PACKET_TYPE_AUDIO ==nPacketType && size !=4)   {
+        packet->m_headerType = RTMP_PACKET_SIZE_MEDIUM;
+    }
+    packet->m_nTimeStamp = nTimestamp;  /*发送*/
+    int nRet =0;
+    if (RTMP_IsConnected(m_rtmp))  {
+        nRet = RTMP_SendPacket(m_rtmp,packet,TRUE); /*TRUE为放进发送队列,FALSE是不放进发送队列,直接发送*/
+    }
+    else {
+        return AS_ERROR_CODE_FAIL;
+    }
+    return nRet;
+}
+
 
 void ASRtsp2RtmpStreamSink::Start()
 {
