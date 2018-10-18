@@ -34,18 +34,4 @@ enum AS_RTSP_STATUS {
     AS_RTSP_STATUS_INVALID    = 0xFF,
 };
 
-enum AS_RTSP_DATA_TYPE {
-    AS_RTSP_DATA_TYPE_VIDEO   = 0x00,
-    AS_RTSP_DATA_TYPE_AUDIO   = 0x01,
-    AS_RTSP_DATA_TYPE_OTHER   = 0x02,
-};
-
-
-typedef void (*rtsp_status_callback)(AS_HANDLE handle,int status,void* ctx);
-
-typedef struct  {
-    rtsp_status_callback f_status_cb;   /*status callback function*/
-    void                *ctx;           /*user data*/
-}as_rtsp_callback_t;
-
 #endif /*__AS_MEDIA_DEFINE_H__*/

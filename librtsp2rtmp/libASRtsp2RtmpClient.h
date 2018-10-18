@@ -22,8 +22,10 @@ extern "C"
     /* get the socket recv buffer size*/
     AS_API uint32_t  as_rtsp2rtmp_get_recv_buffer_size();
     /* open a rtsp2rtmp client handle */
-    AS_API AS_HANDLE as_rtsp2rtmp_create_handle(char const* rtspURL,char const* rtmpURL, as_rtsp_callback_t* cb, bool bTcp);
+    AS_API AS_HANDLE as_rtsp2rtmp_create_handle(char const* rtspURL,char const* rtmpURL, bool bTcp);
     /* destory a rtsp2rtmp client handle */
     AS_API void      as_rtsp2rtmp_destory_handle(AS_HANDLE handle);
+    /* get a rtsp2rtmp client handle status */
+    AS_API uint32_t  as_rtsp2rtmp_get_handle_status(AS_HANDLE handle);
 }
 #endif /*__LIB_AS_RTSP_CLINET_H__*/

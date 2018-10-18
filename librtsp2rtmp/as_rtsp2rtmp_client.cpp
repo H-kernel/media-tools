@@ -395,10 +395,9 @@ ASRtsp2RtmpClient::~ASRtsp2RtmpClient() {
     m_RtmpStream.Close();
 }
 
-int32_t ASRtsp2RtmpClient::open(char const* rtmpURL,as_rtsp_callback_t* cb)
+int32_t ASRtsp2RtmpClient::open(char const* rtmpURL)
 {
     as_lock_guard locker(m_mutex);
-    m_cb = cb;
     // Next, send a RTSP "DESCRIBE" command, to get a SDP description for the stream.
     // Note that this command - like all RTSP commands - is sent asynchronously; we do not block, waiting for a response.
     // Instead, the following function call returns immediately, and we handle the RTSP response later, from within the event loop:
@@ -415,18 +414,14 @@ void    ASRtsp2RtmpClient::close()
     resetTCPSockets();
     StopClient();
 }
+u_int32_t ASRtsp2RtmpClient::getStatus()
+{
+    return m_curStatus;
+}
 
 void ASRtsp2RtmpClient::report_status(int status)
 {
     m_curStatus = status;
-    if(NULL == m_cb) {
-        return;
-    }
-    if(NULL == m_cb->f_status_cb) {
-        return;
-    }
-
-    m_cb->f_status_cb(this,status,m_cb->ctx);
 }
 
 
@@ -870,7 +865,6 @@ void ASRtsp2RtmpClient::shutdownStream() {
 void ASRtsp2RtmpClient::StopClient()
 {
     scs.Stop();
-    m_cb = NULL;
     m_bRunning = 0;
     (void)as_mutex_lock(m_mutex);
     shutdownStream();
@@ -1208,10 +1202,9 @@ u_int32_t ASRtsp2RtmpClientManager::find_beast_thread()
 
 
 
-AS_HANDLE ASRtsp2RtmpClientManager::openURL(char const* rtspURL,char const* rtmpURL, as_rtsp_callback_t* cb, bool bTcp) {
+AS_HANDLE ASRtsp2RtmpClientManager::openURL(char const* rtspURL,char const* rtmpURL, bool bTcp) {
 
     as_mutex_lock(m_mutex);
-    TaskScheduler* scheduler = NULL;
     UsageEnvironment* env = NULL;
     u_int32_t index =  0;
 
@@ -1235,7 +1228,7 @@ AS_HANDLE ASRtsp2RtmpClientManager::openURL(char const* rtspURL,char const* rtmp
 
     ASRtsp2RtmpClient* pRtsp2RtmpClient = (ASRtsp2RtmpClient*)rtspClient;
     pRtsp2RtmpClient->setMediaTcp(bTcp);
-    if (AS_ERROR_CODE_OK == pRtsp2RtmpClient->open(rtmpURL,cb))
+    if (AS_ERROR_CODE_OK == pRtsp2RtmpClient->open(rtmpURL))
     {
         Medium::close(pRtsp2RtmpClient);
         as_mutex_unlock(m_mutex);
@@ -1258,6 +1251,16 @@ void      ASRtsp2RtmpClientManager::closeURL(AS_HANDLE handle)
     as_mutex_unlock(m_mutex);
     return;
 }
+
+u_int32_t  ASRtsp2RtmpClientManager::getStatus(AS_HANDLE handle)
+{
+    as_mutex_lock(m_mutex);
+    ASRtsp2RtmpClient* pAsRtspClient = (ASRtsp2RtmpClient*)handle;
+    u_int32_t uStatus = pAsRtspClient->getStatus();
+    as_mutex_unlock(m_mutex);
+    return uStatus;
+}
+
 
 void ASRtsp2RtmpClientManager::setRecvBufSize(u_int32_t ulSize)
 {

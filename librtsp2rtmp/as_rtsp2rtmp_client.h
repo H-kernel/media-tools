@@ -190,14 +190,14 @@ protected:
     // called only by createNew();
     virtual ~ASRtsp2RtmpClient();
 public:
-    int32_t open(char const* rtmpURL,as_rtsp_callback_t* cb);
+    int32_t open(char const* rtmpURL);
     void    close();
+    u_int32_t getStatus();
     void    setMediaTcp(bool bTcp) { m_bTcp = bTcp; };
     u_int32_t index(){return m_ulEnvIndex;};
     void    report_status(int status);
     void    SupportsGetParameter(Boolean bSupportsGetParameter) {m_bSupportsGetParameter = bSupportsGetParameter;};
     Boolean SupportsGetParameter(){return m_bSupportsGetParameter;};
-    as_rtsp_callback_t* get_cb(){return m_cb;};
 public:
     void handleAfterOPTIONS(int resultCode, char* resultString);
     void handleAfterDESCRIBE(int resultCode, char* resultString);
@@ -244,7 +244,6 @@ public:
     ASRtsp2RtmpStreamState   scs;
 private:
     u_int32_t           m_ulEnvIndex;
-    as_rtsp_callback_t *m_cb;
     Boolean             m_bSupportsGetParameter;
     double              m_dStarttime;
     double              m_dEndTime;
@@ -338,8 +337,9 @@ public:
     // init the live Environment
     int32_t init();
     void    release();
-    AS_HANDLE openURL(char const* rtspURL,char const* rtmpURL, as_rtsp_callback_t* cb, bool bTcp);
+    AS_HANDLE openURL(char const* rtspURL,char const* rtmpURL, bool bTcp);
     void      closeURL(AS_HANDLE handle);
+    u_int32_t getStatus(AS_HANDLE handle);
     void      setRecvBufSize(u_int32_t ulSize);
     u_int32_t getRecvBufSize();
 public:
