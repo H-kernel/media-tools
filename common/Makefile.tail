@@ -46,7 +46,7 @@ clean:
 install: install1 $(INSTALL2)
 install1: $(NAME).$(LIB_SUFFIX)
 	  install -d $(DESTDIR)$(PREFIX)/include/common $(DESTDIR)$(LIBDIR)
-	  install -m 644 include/*.hh include/*.h $(DESTDIR)$(PREFIX)/include/common
+	  install -m 644 *.h $(DESTDIR)$(PREFIX)/include/common
 	  install -m 644 $(NAME).$(LIB_SUFFIX) $(DESTDIR)$(LIBDIR)
 install_shared_libraries: $(NAME).$(LIB_SUFFIX)
 	  ln -fs $(NAME).$(LIB_SUFFIX) $(DESTDIR)$(LIBDIR)/$(NAME).$(SHORT_LIB_SUFFIX)

@@ -1,9 +1,8 @@
 ##### End of variables to change
+NAME=libASRtsp2RtmpClient
+LIBRTSP2RTMPCLINET_DLL = ${NAME}.so
+LIBRTSP2RTMPCLINET_LIB = ${NAME}.a
 
-LIBRTSP2RTMPCLINET_DLL = libASRtsp2RtmpClient.so
-LIBRTSP2RTMPCLINET_LIB = libASRtsp2RtmpClient.a
-
-PREFIX = /usr/local
 ALL = $(LIBRTSP2RTMPCLINET_DLL) $(LIBRTSP2RTMPCLINET_LIB)
 
 RTSP_LIBS      += -shared -fPIC -Wunused-value -lpthread 
@@ -49,8 +48,11 @@ $(LIBRTSP2RTMPCLINET_LIB): $(LIB_RTSP2RTMP_CLIENT_OBJS) $(LOCAL_LIBS) \
 clean:
 	-rm -rf *.$(OBJ) $(ALL) core *.core *~ include/*~
 
-install: $(PROXY_SERVER)
-		install -d $(DESTDIR)$(PREFIX)/bin
-		install -m 755 $(PROXY_SERVER) $(DESTDIR)$(PREFIX)/bin
+install: install1 $(INSTALL2)
+install1: $(NAME).$(LIB_SUFFIX)
+	  install -d $(DESTDIR)$(PREFIX)/include/librtsp2rtmp $(DESTDIR)$(LIBDIR)
+	  install -m 644 *.h $(DESTDIR)$(PREFIX)/include/librtsp2rtmp
+	  install -m 644 $(LIBRTSP2RTMPCLINET_DLL) $(DESTDIR)$(LIBDIR)
+	  install -m 644 $(LIBRTSP2RTMPCLINET_LIB) $(DESTDIR)$(LIBDIR)
 
 ##### Any additional, platform-specific rules come here:

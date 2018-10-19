@@ -1,9 +1,10 @@
 ##### End of variables to change
 
-LIBRTSPCLINET = libASRtspClient.so
+NAME=libASRtspClient
+LIBRTSPCLINET_DLL = ${NAME}.so
+LIBRTSPCLINET_LIB = ${NAME}.a
 
-PREFIX = /usr/local
-ALL = $(LIBRTSPCLINET)
+ALL = $(LIBRTSPCLINET_DLL) $(LIBRTSPCLINET_LIB)
 
 RTSP_LIBS      += -shared -fPIC -Wunused-value -lpthread 
 RTSP_FLAGS     += -pipe -g -fPIC -Wall -O0 -DENV_LINUX
@@ -35,16 +36,24 @@ LOCAL_LIBS =    $(LIVEMEDIA_LIB) $(GROUPSOCK_LIB) \
         $(BASIC_USAGE_ENVIRONMENT_LIB) $(USAGE_ENVIRONMENT_LIB) $(COMMON_LIB)
 LIBS =            $(LOCAL_LIBS) $(LIBS_FOR_CONSOLE_APPLICATION)
 
-$(LIBRTSPCLINET): $(LIB_RTSP_CLIENT_OBJS) $(LOCAL_LIBS) \
+$(LIBRTSPCLINET_DLL): $(LIB_RTSP_CLIENT_OBJS) $(LOCAL_LIBS) \
 	$(PLATFORM_SPECIFIC_LIB_OBJS)
 	$(CPLUSPLUS_COMPILER) $(CPLUSPLUS_FLAGS) -o $@ \
 		$(LIB_RTSP_CLIENT_OBJS) $(LIBS) $(RTSP_LIBS)
 
+$(LIBRTSPCLINET_LIB): $(LIB_RTSP_CLIENT_OBJS) $(LOCAL_LIBS) \
+	$(PLATFORM_SPECIFIC_LIB_OBJS)
+	$(LIBRARY_LINK)$@ $(LIBRARY_LINK_OPTS) \
+	$(LIB_RTSP_CLIENT_OBJS) $(LIBS) 
+
 clean:
 	-rm -rf *.$(OBJ) $(ALL) core *.core *~ include/*~
 
-install: $(PROXY_SERVER)
-		install -d $(DESTDIR)$(PREFIX)/bin
-		install -m 755 $(PROXY_SERVER) $(DESTDIR)$(PREFIX)/bin
+install: install1 $(INSTALL2)
+install1: $(NAME).$(LIB_SUFFIX)
+		install -d $(DESTDIR)$(PREFIX)/include/librtspclient $(DESTDIR)$(LIBDIR)
+		install -m 644 *.h $(DESTDIR)$(PREFIX)/include/librtspclient
+		install -m 644 ${LIBRTSPCLINET_DLL} $(DESTDIR)$(LIBDIR)
+		install -m 644 ${LIBRTSPCLINET_LIB} $(DESTDIR)$(LIBDIR)
 
 ##### Any additional, platform-specific rules come here:
