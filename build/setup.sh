@@ -49,7 +49,7 @@ download_3rd()
         package=`echo "${LINE}"|awk -F '|' '{print $3}'`
         if [ ! -f ${THIRD_ROOT}/${package} ]; then
             echo "begin:download :${name}..................."
-            wget --no-check-certificate ${url}?raw=true -O ${THIRD_ROOT}/${package}
+            wget --no-check-certificate ${url} -O ${THIRD_ROOT}/${package}
             echo "end:download :${name}....................."
         fi     
     done
