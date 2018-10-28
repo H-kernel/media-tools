@@ -5,10 +5,18 @@ ALLMEDIAVERSION="AllStream 0.1.1"
 CURRENT_PATH=`pwd`
 cd ${CURRENT_PATH}/..
 export ALLSTREAM_ROOT=$PWD
-export PREFIX_ROOT=/home/allstream/
-export THIRD_ROOT=${ALLSTREAM_ROOT}/3rd_party/
-export EXTEND_ROOT=${ALLSTREAM_ROOT}/extend/linux64/
 
+#build by other shell script
+if [ $# -gt 0 ]
+then
+    export PREFIX_ROOT=$1
+    export THIRD_ROOT=$2
+    export EXTEND_ROOT=$3
+else
+    export PREFIX_ROOT=/home/allstream/
+    export THIRD_ROOT=${ALLSTREAM_ROOT}/3rd_party/
+    export EXTEND_ROOT=${ALLSTREAM_ROOT}/extend/linux64/
+fi
 find=`env|grep PKG_CONFIG_PATH`    
 if [ "find${find}" == "find" ]; then    
     export PKG_CONFIG_PATH=${EXTEND_ROOT}/lib/pkgconfig/
@@ -28,6 +36,7 @@ echo " PATH ${PATH}"
 echo " ALLSTREAM_ROOT exported as ${ALLSTREAM_ROOT}"
 echo "------------------------------------------------------------------------------"
 
+export prefix=${EXTEND_ROOT}
 #
 # Sets QUIT variable so script will finish.
 #
@@ -406,6 +415,13 @@ all_allstream_func()
 }
 
 STEPS[1]="all_allstream_func"
+
+#build by other shell script
+if [ $# -gt 0 ]
+then
+   build_all_stream
+   exit 0
+fi
 
 QUIT=0
 

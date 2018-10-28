@@ -3,6 +3,9 @@
 AS_RTSP_GUARD = rtsp_guard
 
 PREFIX = /usr/local
+ifneq ("as","as${prefix}")
+        PREFIX =${prefix}
+endif
 ALL = $(AS_RTSP_GUARD)
 
 RTSP_LIBS      += -fPIC -Wunused-value -lpthread -lrt

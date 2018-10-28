@@ -3,6 +3,11 @@
 MEDIA_SERVER = live555MediaServer$(EXE)
 
 PREFIX = /usr/local
+
+ifneq ("as","as${prefix}")
+        PREFIX =${prefix}
+endif
+
 ALL = $(MEDIA_SERVER)
 all: $(ALL)
 

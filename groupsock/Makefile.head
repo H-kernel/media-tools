@@ -1,4 +1,7 @@
 INCLUDES = -Iinclude -I../UsageEnvironment/include
 PREFIX = /usr/local
+ifneq ("as","as${prefix}")
+        PREFIX =${prefix}
+endif
 LIBDIR = $(PREFIX)/lib
 ##### Change the following for your environment:

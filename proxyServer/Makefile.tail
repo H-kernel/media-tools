@@ -3,6 +3,9 @@
 PROXY_SERVER = live555ProxyServer$(EXE)
 
 PREFIX = /usr/local
+ifneq ("as","as${prefix}")
+        PREFIX =${prefix}
+endif
 ALL = $(PROXY_SERVER)
 all: $(ALL)
 
