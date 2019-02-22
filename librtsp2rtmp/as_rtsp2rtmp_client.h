@@ -1,5 +1,5 @@
-#ifndef __AS_RTSP_CLIENT_MANAGE_H__
-#define __AS_RTSP_CLIENT_MANAGE_H__
+#ifndef __AS_RTSP2RTMP_CLIENT_MANAGE_H__
+#define __AS_RTSP2RTMP_CLIENT_MANAGE_H__
 #include "liveMedia.hh"
 #include "BasicUsageEnvironment.hh"
 #include "as_def.h"
@@ -146,12 +146,10 @@ private:
     char * put_be64( char *output, uint64_t nVal );
     char * put_amf_string( char *c, const char *str );
     char * put_amf_double( char *c, double d );
-    // ????
     int SendPacket(unsigned int nPacketType,unsigned char *data,unsigned int size,unsigned int nTimestamp);
 private:
 
     RTMP* m_pRtmp;
-
 };
 
 
@@ -223,7 +221,6 @@ private:
     //
     void StopClient();
     bool checkStop();
-    void tryReqeust();
 public:
     // RTSP 'response handlers':
     static void continueAfterOPTIONS(RTSPClient* rtspClient, int resultCode, char* resultString);
@@ -250,7 +247,6 @@ private:
     int                 m_curStatus;
     as_mutex_t         *m_mutex;
     uint32_t            m_bRunning;
-    uint32_t            m_ulTryTime;
     bool                m_bTcp;
     time_t              m_lLastHeartBeat;
 private:
@@ -280,47 +276,48 @@ private:
 
 class ASRtsp2RtmpStreamSink: public MediaSink {
 public:
-  static ASRtsp2RtmpStreamSink* createNew(UsageEnvironment& env,
+    static ASRtsp2RtmpStreamSink* createNew(UsageEnvironment& env,
                   MediaSubsession& subsession, // identifies the kind of data that's being received
                   RTMPStream* pRtmpStream,
                   char const* streamId = NULL); // identifies the stream itself (optional)
 
-  void Start();
-  void Stop();
+    void Start();
+    void Stop();
 
 private:
     ASRtsp2RtmpStreamSink(UsageEnvironment& env, MediaSubsession& subsession,RTMPStream* pRtmpStream, char const* streamIdb);
     // called only by "createNew()"
 public:
-  virtual ~ASRtsp2RtmpStreamSink();
+    virtual ~ASRtsp2RtmpStreamSink();
 
-  static void afterGettingFrame(void* clientData, unsigned frameSize,
+    static void afterGettingFrame(void* clientData, unsigned frameSize,
                                 unsigned numTruncatedBytes,
-                struct timeval presentationTime,
+                                struct timeval presentationTime,
                                 unsigned durationInMicroseconds);
-  void afterGettingFrame(unsigned frameSize, unsigned numTruncatedBytes,
-             struct timeval presentationTime, unsigned durationInMicroseconds);
+    void afterGettingFrame(unsigned frameSize, unsigned numTruncatedBytes,
+                           struct timeval presentationTime, 
+                           unsigned durationInMicroseconds);
 
 private:
-  // redefined virtual functions:
-  virtual Boolean continuePlaying();
+    // redefined virtual functions:
+    virtual Boolean continuePlaying();
 
-  // send the H264 frame
-  void sendH264Frame(unsigned frameSize, unsigned numTruncatedBytes,
+    // send the H264 frame
+    void sendH264Frame(unsigned frameSize, unsigned numTruncatedBytes,
              struct timeval presentationTime, unsigned durationInMicroseconds);
-  void sendH264KeyFrame(unsigned frameSize, unsigned int nTimeStamp);
-  // send the H265 frame
-  void sendH265Frame();
+    void sendH264KeyFrame(unsigned frameSize, unsigned int nTimeStamp);
+    // send the H265 frame
+    void sendH265Frame();
 private:
-  u_int8_t* fReceiveBuffer;
-  u_int8_t  fMediaBuffer[DUMMY_SINK_MEDIA_BUFFER_SIZE];
-  u_int32_t prefixSize;
-  MediaSubsession& fSubsession;
-  char* fStreamId;
-  RTMPStream*         m_pRtmpStream;
-  RTMPMetadata        m_stMetadata;
-  bool                m_bWaitFirstKeyFrame;
-  volatile bool       m_bRunning;
+    u_int8_t*           fReceiveBuffer;
+    u_int8_t            fMediaBuffer[DUMMY_SINK_MEDIA_BUFFER_SIZE];
+    u_int32_t           prefixSize;
+    MediaSubsession&    fSubsession;
+    char*               fStreamId;
+    RTMPStream*         m_pRtmpStream;
+    RTMPMetadata        m_stMetadata;
+    bool                m_bWaitFirstKeyFrame;
+    volatile bool       m_bRunning;
 };
 
 
@@ -367,4 +364,4 @@ private:
     u_int32_t         m_clCountArray[RTSP_MANAGE_ENV_MAX_COUNT];
     u_int32_t         m_ulRecvBufSize;
 };
-#endif /* __AS_RTSP_CLIENT_MANAGE_H__ */
+#endif /* __AS_RTSP2RTMP_CLIENT_MANAGE_H__ */

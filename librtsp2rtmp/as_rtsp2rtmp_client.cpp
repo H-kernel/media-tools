@@ -151,7 +151,7 @@ bool RTMPStream::Connect(const char* url)
     }
     return TRUE;
 }
-// ????
+
 void RTMPStream::Close()
 {
     if(m_pRtmp)
@@ -165,7 +165,7 @@ void RTMPStream::Close()
        m_pRtmp = NULL;
     }
 }
-// ??MetaData
+//MetaData
 bool RTMPStream::SendMetadata(LPRTMPMetadata lpMetaData)
 {
     if(lpMetaData == NULL)
@@ -263,7 +263,7 @@ bool RTMPStream::SendMetadata(LPRTMPMetadata lpMetaData)
     return SendPacket(RTMP_PACKET_TYPE_VIDEO,(unsigned char*)body,i,0);
 
 }
-// ??H264???
+// H264
 bool RTMPStream::SendH264Packet(unsigned char *data,unsigned int size,bool bIsKeyFrame,unsigned int nTimeStamp)
 {
     if(data == NULL && size<11)
@@ -297,7 +297,7 @@ bool RTMPStream::SendH264Packet(unsigned char *data,unsigned int size,bool bIsKe
     delete[] body;
     return bRet;
 }
-//??AAC??
+//AAC
 bool RTMPStream::SendAACPacket(unsigned char* data,unsigned int size,unsigned int nTimeStamp )
 {
     if(m_pRtmp == NULL)
@@ -327,14 +327,12 @@ bool RTMPStream::SendAACPacket(unsigned char* data,unsigned int size,unsigned in
         packet->m_headerType = RTMP_PACKET_SIZE_MEDIUM;
         packet->m_nInfoField2 = m_pRtmp->m_stream_id;
 
-        /*??????*/
         RTMP_SendPacket(m_pRtmp,packet,TRUE);
         free(packet);
     }
     return true;
 }
 
-// ????
 int RTMPStream::SendPacket(unsigned int nPacketType,unsigned char *data,unsigned int size,unsigned int nTimestamp)
 {
     if(m_pRtmp == NULL)
@@ -354,7 +352,6 @@ int RTMPStream::SendPacket(unsigned int nPacketType,unsigned char *data,unsigned
     packet.m_hasAbsTimestamp = 0;
     memcpy(packet.m_body,data,size);
 
-    //??????????
     int nRet = RTMP_SendPacket(m_pRtmp,&packet,TRUE);
 
     RTMPPacket_Free(&packet);
@@ -380,7 +377,6 @@ ASRtsp2RtmpClient::ASRtsp2RtmpClient(u_int32_t ulEnvIndex,UsageEnvironment& env,
   m_curStatus = AS_RTSP_STATUS_INIT;
   m_mutex = as_create_mutex();
   m_bRunning = 0;
-  m_ulTryTime = 0;
   m_bTcp = false;
   m_lLastHeartBeat = time(NULL);
 
@@ -454,9 +450,6 @@ void ASRtsp2RtmpClient::handleAfterDESCRIBE(int resultCode, char* resultString)
     }
 
     if (0 != resultCode) {
-        if (2 > m_ulTryTime) {
-            tryReqeust();
-        }
         return;
     }
     do {
@@ -537,6 +530,7 @@ void ASRtsp2RtmpClient::setupNextSubsession() {
 
     /* connect to the rtmp server */
     if (!m_RtmpStream.Connect(m_rtmpUlr)) {
+        report_status(AS_RTSP_STATUS_BREAK);
         return;
     }
     /* report the status */
@@ -884,20 +878,6 @@ bool ASRtsp2RtmpClient::checkStop()
     }
     return true;
 }
-void ASRtsp2RtmpClient::tryReqeust()
-{
-    /* shutshow first*/
-    as_lock_guard locker(m_mutex);
-    m_bRunning = 0;
-    resetTCPSockets();
-    shutdownStream();
-    if (NULL != scs.streamTimerTask) {
-        envir().taskScheduler().unscheduleDelayedTask(scs.streamTimerTask);
-        scs.streamTimerTask = NULL;
-    }
-    sendDescribeCommand(continueAfterDESCRIBE);
-    m_ulTryTime++;
-}
 
 
 // Implementation of "ASRtsp2RtmpStreamState":
@@ -907,15 +887,15 @@ ASRtsp2RtmpStreamState::ASRtsp2RtmpStreamState()
 }
 
 ASRtsp2RtmpStreamState::~ASRtsp2RtmpStreamState() {
-  delete iter;
-  if (session != NULL) {
-    // We also need to delete "session", and unschedule "streamTimerTask" (if set)
-    UsageEnvironment& env = session->envir(); // alias
+    delete iter;
+    if (session != NULL) {
+        // We also need to delete "session", and unschedule "streamTimerTask" (if set)
+        UsageEnvironment& env = session->envir(); // alias
 
-    env.taskScheduler().unscheduleDelayedTask(streamTimerTask);
-    streamTimerTask = NULL;
-    Medium::close(session);
-  }
+        env.taskScheduler().unscheduleDelayedTask(streamTimerTask);
+        streamTimerTask = NULL;
+        Medium::close(session);
+    }
 }
 void ASRtsp2RtmpStreamState::Start()
 {
@@ -1210,14 +1190,6 @@ AS_HANDLE ASRtsp2RtmpClientManager::openURL(char const* rtspURL,char const* rtmp
 
     index = find_beast_thread();
     env = m_envArray[index];
-
-    //unsigned long ulLen = strlen(rtspURL) - 14;
-    //char* pszUrl = new char[ulLen];
-    //memset(pszUrl, 0, ulLen);
-    //strncpy(pszUrl, rtspURL, ulLen - 1);
-    //char*pszUrl = "rtsp://47.97.197.105:557/pag://172.16.0.11:7302:33000000001310000580:0:MAIN:TCP?cnid=2&pnid=2&auth=50&streamform=rtp";
-    //char*pszUrl = "rtsp://47.97.197.105:557/pag://172.16.0.11:7302:33000000001310000580:0:MAIN:TCP?cnid=2&pnid=2&auth=50";
-    //RTSPClient* rtspClient = ASRtsp2RtmpClient::createNew(index, *env, pszUrl, RTSP_CLIENT_VERBOSITY_LEVEL, RTSP_AGENT_NAME);
 
     RTSPClient* rtspClient = ASRtsp2RtmpClient::createNew(index,*env, rtspURL, RTSP_CLIENT_VERBOSITY_LEVEL, RTSP_AGENT_NAME);
     if (rtspClient == NULL) {

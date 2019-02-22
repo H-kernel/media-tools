@@ -73,7 +73,7 @@ build_EasyAACEncoder()
         echo "start get the EasyAACEncoder package from server\n"
         wget https://github.com/EasyDarwin/EasyAACEncoder/archive/master.zip -O ${module_pack}
     fi
-    unzip ${module_pack}
+    unzip -o ${module_pack}
     
     cd EasyAACEncoder*
     cd src/
@@ -134,6 +134,11 @@ build_libevent()
     tar -zxvf ${module_pack}
     
     cd libevent*
+    
+    CPPFLAGS="-I${EXTEND_ROOT}/include/"
+    export CPPFLAGS 
+    LDFLAGS="-L${EXTEND_ROOT}/lib"
+    export LDFLAGS 
     
     ./configure --prefix=${EXTEND_ROOT}
                 
