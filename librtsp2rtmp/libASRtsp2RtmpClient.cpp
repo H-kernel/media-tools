@@ -41,6 +41,11 @@ uint32_t  as_rtsp2rtmp_get_handle_status(AS_HANDLE handle)
 {
     return ASRtsp2RtmpClientManager::instance().getStatus(handle);
 }
+/* set the log call back */
+void      as_rtsp2rtmp_set_log_callback(uint32_t nLevel,Rtsp2Rtmp_LogCallback cb)
+{
+    return ASRtsp2RtmpClientManager::instance().setLogCallBack(nLevel, cb);
+}
 
 
 

@@ -44,319 +44,12 @@ UsageEnvironment& operator<<(UsageEnvironment& env, const MediaSubsession& subse
   return env << subsession.mediumName() << "/" << subsession.codecName();
 }
 
-RTMPStream::RTMPStream(void)
+static void rtsp2rtmp_log(int32_t level,const char* szFormat, ...)
 {
-    m_pRtmp = NULL;
-    InitSockets();
-    m_pRtmp = RTMP_Alloc();
-    RTMP_Init(m_pRtmp);
-}
-RTMPStream::~RTMPStream(void)
-{
-
-}
-
-int RTMPStream::InitSockets()
-{
-#ifdef WIN32
-    WORD version;
-    WSADATA wsaData;
-    version = MAKEWORD(1, 1);
-    return (WSAStartup(version, &wsaData) == 0);
-#else
-    return TRUE;
-#endif
-}
-
-
-void RTMPStream::CleanupSockets()
-{
-#ifdef WIN32
-    WSACleanup();
-#endif
-}
-
-char * RTMPStream::put_byte( char *output, uint8_t nVal )
-{
-    output[0] = nVal;
-    return output+1;
-}
-char * RTMPStream::put_be16(char *output, uint16_t nVal )
-{
-    output[1] = nVal & 0xff;
-    output[0] = nVal >> 8;
-    return output+2;
-}
-char * RTMPStream::put_be24(char *output,uint32_t nVal )
-{
-    output[2] = nVal & 0xff;
-    output[1] = nVal >> 8;
-    output[0] = nVal >> 16;
-    return output+3;
-}
-char * RTMPStream::put_be32(char *output, uint32_t nVal )
-{
-    output[3] = nVal & 0xff;
-    output[2] = nVal >> 8;
-    output[1] = nVal >> 16;
-    output[0] = nVal >> 24;
-    return output+4;
-}
-char *  RTMPStream::put_be64( char *output, uint64_t nVal )
-{
-    output=put_be32( output, nVal >> 32 );
-    output=put_be32( output, nVal );
-    return output;
-}
-char * RTMPStream::put_amf_string( char *c, const char *str )
-{
-    uint16_t len = strlen( str );
-    c=put_be16( c, len );
-    memcpy(c,str,len);
-    return c+len;
-}
-char * RTMPStream::put_amf_double( char *c, double d )
-{
-    *c++ = AMF_NUMBER;  /* type: Number */
-    {
-        unsigned char *ci, *co;
-        ci = (unsigned char *)&d;
-        co = (unsigned char *)c;
-        co[0] = ci[7];
-        co[1] = ci[6];
-        co[2] = ci[5];
-        co[3] = ci[4];
-        co[4] = ci[3];
-        co[5] = ci[2];
-        co[6] = ci[1];
-        co[7] = ci[0];
-    }
-    return c+8;
-}
-
-bool RTMPStream::Connect(const char* url)
-{
-    if(RTMP_SetupURL(m_pRtmp, (char*)url)<0)
-    {
-        return FALSE;
-    }
-    RTMP_EnableWrite(m_pRtmp);
-    if(RTMP_Connect(m_pRtmp, NULL)<0)
-    {
-        return FALSE;
-    }
-    if(RTMP_ConnectStream(m_pRtmp,0)<0)
-    {
-        return FALSE;
-    }
-    return TRUE;
-}
-
-void RTMPStream::Close()
-{
-    if(m_pRtmp)
-    {
-
-       if(RTMP_IsConnected(m_pRtmp)) {
-            RTMP_Close(m_pRtmp);
-       }
-       RTMP_Free(m_pRtmp);
-
-       m_pRtmp = NULL;
-    }
-}
-//MetaData
-bool RTMPStream::SendMetadata(LPRTMPMetadata lpMetaData)
-{
-    if(lpMetaData == NULL)
-    {
-        return false;
-    }
-
-    char body[1024] = {0};
-
-    char * p = (char *)body;
-    p = put_byte(p, AMF_STRING );
-    p = put_amf_string(p , "@setDataFrame" );
-
-    p = put_byte( p, AMF_STRING );
-    p = put_amf_string( p, "onMetaData" );
-
-    p = put_byte(p, AMF_OBJECT );
-    p = put_amf_string( p, "copyright" );
-    p = put_byte(p, AMF_STRING );
-    p = put_amf_string( p, "firehood" );
-
-    p =put_amf_string( p, "width");
-    p =put_amf_double( p, lpMetaData->nWidth);
-
-    p =put_amf_string( p, "height");
-    p =put_amf_double( p, lpMetaData->nHeight);
-
-    p =put_amf_string( p, "framerate" );
-    p =put_amf_double( p, lpMetaData->nFrameRate);
-
-    p =put_amf_string( p, "videodatarate" );
-    p =put_amf_double( p, lpMetaData->nVideoDataRate);
-
-    p =put_amf_string( p, "videocodecid" );
-    p =put_amf_double( p, lpMetaData->nvideocodecid );
-
-    if(lpMetaData->bHasAudio) {
-
-        p =put_amf_string( p, "audiodatarate");
-        p =put_amf_double( p, lpMetaData->nAudioDatarate);
-
-        p =put_amf_string( p, "audiosamplerate");
-        p =put_amf_double( p, lpMetaData->nAudioSampleRate);
-
-        p =put_amf_string( p, "audiosamplesize" );
-        p =put_amf_double( p, lpMetaData->nAudioSampleSize);
-
-        p =put_amf_string( p, "stereo" );
-        p =put_amf_double( p, lpMetaData->nAudioChannels);
-
-        p =put_amf_string( p, "audiocodecid" );
-        p =put_amf_double( p, lpMetaData->nAudioFmt);
-    }
-
-    p =put_amf_string( p, "" );
-    p =put_byte( p, AMF_OBJECT_END  );
-
-    int index = p-body;
-
-    return SendPacket(RTMP_PACKET_TYPE_INFO,(unsigned char*)body,p-body,0);
-
-    int i = 0;
-    body[i++] = 0x17; // 1:keyframe  7:AVC
-    body[i++] = 0x00; // AVC sequence header
-
-    body[i++] = 0x00;
-    body[i++] = 0x00;
-    body[i++] = 0x00; // fill in 0;
-
-    // AVCDecoderConfigurationRecord.
-    body[i++] = 0x01; // configurationVersion
-    body[i++] = lpMetaData->Sps[1]; // AVCProfileIndication
-    body[i++] = lpMetaData->Sps[2]; // profile_compatibility
-    body[i++] = lpMetaData->Sps[3]; // AVCLevelIndication
-    body[i++] = 0xff; // lengthSizeMinusOne
-
-    // sps nums
-    body[i++] = 0xE1; //&0x1f
-    // sps data length
-    body[i++] = lpMetaData->nSpsLen>>8;
-    body[i++] = lpMetaData->nSpsLen&0xff;
-    // sps data
-    memcpy(&body[i],lpMetaData->Sps,lpMetaData->nSpsLen);
-    i= i+lpMetaData->nSpsLen;
-
-    // pps nums
-    body[i++] = 0x01; //&0x1f
-    // pps data length
-    body[i++] = lpMetaData->nPpsLen>>8;
-    body[i++] = lpMetaData->nPpsLen&0xff;
-    // sps data
-    memcpy(&body[i],lpMetaData->Pps,lpMetaData->nPpsLen);
-    i= i+lpMetaData->nPpsLen;
-
-    return SendPacket(RTMP_PACKET_TYPE_VIDEO,(unsigned char*)body,i,0);
-
-}
-// H264
-bool RTMPStream::SendH264Packet(unsigned char *data,unsigned int size,bool bIsKeyFrame,unsigned int nTimeStamp)
-{
-    if(data == NULL && size<11)
-    {
-        return false;
-    }
-
-    unsigned char *body = new unsigned char[size+9];
-
-    int i = 0;
-
-    if(bIsKeyFrame)
-        body[i++] = 0x17;// 1:Iframe  7:AVC
-    else
-        body[i++] = 0x27;// 2:Pframe  7:AVC
-
-    body[i++] = 0x01;// AVC NALU
-    body[i++] = 0x00;
-    body[i++] = 0x00;
-    body[i++] = 0x00;
-
-    // NALU size
-    body[i++] = size>>24;
-    body[i++] = size>>16;
-    body[i++] = size>>8;
-    body[i++] = size&0xff;
-
-    // NALU data
-    memcpy(&body[i],data,size);
-    bool bRet = SendPacket(RTMP_PACKET_TYPE_VIDEO,body,i+size,nTimeStamp);
-    delete[] body;
-    return bRet;
-}
-//AAC
-bool RTMPStream::SendAACPacket(unsigned char* data,unsigned int size,unsigned int nTimeStamp )
-{
-    if(m_pRtmp == NULL)
-        return FALSE;
-
-    if (size > 0)
-    {
-        RTMPPacket * packet;
-        unsigned char * body;
-
-        packet = (RTMPPacket *)malloc(RTMP_HEAD_SIZE+size+2);
-        memset(packet,0,RTMP_HEAD_SIZE);
-
-        packet->m_body = (char *)packet + RTMP_HEAD_SIZE;
-        body = (unsigned char *)packet->m_body;
-
-        /*AF 01 + AAC RAW data*/
-        body[0] = 0xAF;
-        body[1] = 0x01;
-        memcpy(&body[2],data,size);
-
-        packet->m_packetType = RTMP_PACKET_TYPE_AUDIO;
-        packet->m_nBodySize = size+2;
-        packet->m_nChannel = 0x04;
-        packet->m_nTimeStamp = nTimeStamp;
-        packet->m_hasAbsTimestamp = 0;
-        packet->m_headerType = RTMP_PACKET_SIZE_MEDIUM;
-        packet->m_nInfoField2 = m_pRtmp->m_stream_id;
-
-        RTMP_SendPacket(m_pRtmp,packet,TRUE);
-        free(packet);
-    }
-    return true;
-}
-
-int RTMPStream::SendPacket(unsigned int nPacketType,unsigned char *data,unsigned int size,unsigned int nTimestamp)
-{
-    if(m_pRtmp == NULL)
-        return FALSE;
-
-
-    RTMPPacket packet;
-    RTMPPacket_Reset(&packet);
-    RTMPPacket_Alloc(&packet,size);
-
-    packet.m_packetType = nPacketType;
-    packet.m_nChannel = 0x04;
-    packet.m_headerType = /*RTMP_PACKET_SIZE_MEDIUM*/RTMP_PACKET_SIZE_LARGE;
-    packet.m_nTimeStamp = nTimestamp;
-    packet.m_nInfoField2 = m_pRtmp->m_stream_id;
-    packet.m_nBodySize = size;
-    packet.m_hasAbsTimestamp = 0;
-    memcpy(packet.m_body,data,size);
-
-    int nRet = RTMP_SendPacket(m_pRtmp,&packet,TRUE);
-
-    RTMPPacket_Free(&packet);
-
-    return nRet;
+    va_list args;
+    va_start(args, szFormat);
+    ASRtsp2RtmpClientManager::instance().write_log(level, szFormat, args);
+    va_end(args);
 }
 
 
@@ -380,7 +73,7 @@ ASRtsp2RtmpClient::ASRtsp2RtmpClient(u_int32_t ulEnvIndex,UsageEnvironment& env,
   m_bTcp = false;
   m_lLastHeartBeat = time(NULL);
 
-  m_rtmpUlr = NULL;
+  m_srsRtmpHandle = NULL;
 }
 
 ASRtsp2RtmpClient::~ASRtsp2RtmpClient() {
@@ -388,7 +81,7 @@ ASRtsp2RtmpClient::~ASRtsp2RtmpClient() {
         as_destroy_mutex(m_mutex);
         m_mutex = NULL;
     }
-    m_RtmpStream.Close();
+    CloseRtmpConnect();
 }
 
 int32_t ASRtsp2RtmpClient::open(char const* rtmpURL)
@@ -461,8 +154,6 @@ void ASRtsp2RtmpClient::handleAfterDESCRIBE(int resultCode, char* resultString)
 
         char* const sdpDescription = resultString;
 
-        size_t lens = strlen(sdpDescription);
-
         // Create a media session object from this SDP description:
         scs.session = MediaSession::createNew(env, sdpDescription);
         delete[] sdpDescription; // because we don't need it anymore
@@ -529,7 +220,7 @@ void ASRtsp2RtmpClient::setupNextSubsession() {
     }
 
     /* connect to the rtmp server */
-    if (!m_RtmpStream.Connect(m_rtmpUlr)) {
+    if (!Connect2RtmpServer()) {
         report_status(AS_RTSP_STATUS_BREAK);
         return;
     }
@@ -563,7 +254,7 @@ void ASRtsp2RtmpClient::handleAfterSETUP(int resultCode, char* resultString)
         // (This will prepare the data sink to receive data; the actual flow of data from the client won't start happening until later,
         // after we've sent a RTSP "PLAY" command.)
 
-        scs.subsession->sink = ASRtsp2RtmpStreamSink::createNew(env, *scs.subsession,&m_RtmpStream, url());
+        scs.subsession->sink = ASRtsp2RtmpMediaSink::createNew(env, *scs.subsession,m_srsRtmpHandle, url());
         // perhaps use your own custom "MediaSink" subclass instead
         if (scs.subsession->sink == NULL) {
             break;
@@ -589,7 +280,7 @@ void ASRtsp2RtmpClient::handleAfterPLAY(int resultCode, char* resultString)
         return;
     }
     do {
-        UsageEnvironment& env = envir(); // alias
+        //UsageEnvironment& env = envir(); // alias
 
         if (resultCode != 0) {
             break;
@@ -817,7 +508,7 @@ void ASRtsp2RtmpClient::streamTimerHandler(void* clientData) {
 }
 
 void ASRtsp2RtmpClient::shutdownStream() {
-    UsageEnvironment& env = envir(); // alias
+    //UsageEnvironment& env = envir(); // alias
 
 
     // First, check whether any subsessions have still to be closed:
@@ -844,7 +535,7 @@ void ASRtsp2RtmpClient::shutdownStream() {
         }
     }
 
-    m_RtmpStream.Close();
+    CloseRtmpConnect();
 
     /* report the status */
     if (m_bRunning) {
@@ -878,7 +569,43 @@ bool ASRtsp2RtmpClient::checkStop()
     }
     return true;
 }
+bool ASRtsp2RtmpClient::Connect2RtmpServer()
+{
+    m_srsRtmpHandle = srs_rtmp_create(m_rtmpUlr);
+    if(NULL == m_srsRtmpHandle)
+    {
+        rtsp2rtmp_log(AS_RTSP2RTMP_LOGERROR,"allocate the rtmp handle fail.");
+        return false;
+    }
+    if (srs_rtmp_handshake(m_srsRtmpHandle) != 0) {
+        rtsp2rtmp_log(AS_RTSP2RTMP_LOGERROR,"simple handshake failed.");
+        return false;
+    }
+    rtsp2rtmp_log(AS_RTSP2RTMP_LOGINFO,"simple handshake success");
 
+    if (srs_rtmp_connect_app(m_srsRtmpHandle) != 0) {
+        rtsp2rtmp_log(AS_RTSP2RTMP_LOGERROR,"connect vhost/app failed.");
+        return false;
+    }
+    rtsp2rtmp_log(AS_RTSP2RTMP_LOGINFO,"connect vhost/app success");
+
+    if (srs_rtmp_publish_stream(m_srsRtmpHandle) != 0) {
+        rtsp2rtmp_log(AS_RTSP2RTMP_LOGERROR,"publish stream failed.");
+        return false;
+    }
+
+    rtsp2rtmp_log(AS_RTSP2RTMP_LOGINFO,"rtmp stream connect.");
+    return true;
+}
+void ASRtsp2RtmpClient::CloseRtmpConnect()
+{
+    if(m_srsRtmpHandle)
+    {
+       srs_rtmp_destroy(m_srsRtmpHandle);
+       m_srsRtmpHandle = NULL;
+    }
+    rtsp2rtmp_log(AS_RTSP2RTMP_LOGINFO,"rtmp stream close.");
+}
 
 // Implementation of "ASRtsp2RtmpStreamState":
 
@@ -902,10 +629,10 @@ void ASRtsp2RtmpStreamState::Start()
     if (session != NULL) {
         MediaSubsessionIterator iter(*session);
         MediaSubsession* subsession;
-        ASRtsp2RtmpStreamSink* sink = NULL;
+        ASRtsp2RtmpMediaSink* sink = NULL;
         while ((subsession = iter.next()) != NULL) {
             if (subsession->sink != NULL) {
-                sink = (ASRtsp2RtmpStreamSink*)subsession->sink;
+                sink = (ASRtsp2RtmpMediaSink*)subsession->sink;
                 if (sink != NULL) {
                     sink->Start();
                 }
@@ -918,10 +645,10 @@ void ASRtsp2RtmpStreamState::Stop()
     if (session != NULL) {
         MediaSubsessionIterator iter(*session);
         MediaSubsession* subsession;
-        ASRtsp2RtmpStreamSink* sink = NULL;
+        ASRtsp2RtmpMediaSink* sink = NULL;
         while ((subsession = iter.next()) != NULL) {
             if (subsession->sink != NULL) {
-                sink = (ASRtsp2RtmpStreamSink*)subsession->sink;
+                sink = (ASRtsp2RtmpMediaSink*)subsession->sink;
                 if (sink != NULL) {
                     sink->Stop();
                 }
@@ -932,11 +659,11 @@ void ASRtsp2RtmpStreamState::Stop()
 
 
 
-ASRtsp2RtmpStreamSink* ASRtsp2RtmpStreamSink::createNew(UsageEnvironment& env, MediaSubsession& subsession,
-    RTMPStream* pRtmpStream,char const* streamId) {
-    ASRtsp2RtmpStreamSink* pSink = NULL;
+ASRtsp2RtmpMediaSink* ASRtsp2RtmpMediaSink::createNew(UsageEnvironment& env, MediaSubsession& subsession,
+    srs_rtmp_t rtmpHandle,char const* streamId) {
+    ASRtsp2RtmpMediaSink* pSink = NULL;
     try{
-        pSink = new ASRtsp2RtmpStreamSink(env, subsession,pRtmpStream, streamId);
+        pSink = new ASRtsp2RtmpMediaSink(env, subsession,rtmpHandle, streamId);
     }
     catch (...){
         pSink = NULL;
@@ -944,39 +671,42 @@ ASRtsp2RtmpStreamSink* ASRtsp2RtmpStreamSink::createNew(UsageEnvironment& env, M
     return pSink;
 }
 
-ASRtsp2RtmpStreamSink::ASRtsp2RtmpStreamSink(UsageEnvironment& env, MediaSubsession& subsession,
-    RTMPStream* pRtmpStream,char const* streamId)
-    : MediaSink(env), fSubsession(subsession),m_pRtmpStream(pRtmpStream) {
-    fStreamId = strDup(streamId);
-    m_bWaitFirstKeyFrame = false;
-    fReceiveBuffer = (u_int8_t*)&fMediaBuffer[RTMP_HEAD_SIZE];
-    prefixSize     = RTMP_HEAD_SIZE;
-
-    memset(&m_stMetadata,0,sizeof(RTMPMetadata));
+ASRtsp2RtmpMediaSink::ASRtsp2RtmpMediaSink(UsageEnvironment& env, MediaSubsession& subsession,
+    srs_rtmp_t rtmpHandle,char const* streamId)
+    : MediaSink(env), fSubsession(subsession),m_rtmpHandle(rtmpHandle) {
+    fStreamId            = strDup(streamId);
+    fReceiveBuffer       = NULL;
+    fMediaBuffer         = NULL;
+    ulRecvBufLens        = 0;
 
     if (!strcmp(fSubsession.mediumName(), "video")) {
-        m_bWaitFirstKeyFrame = true;
+        fMediaBuffer = new u_int8_t[DUMMY_SINK_VIDEO_RECEIVE_BUFFER_SIZE];
+        ulRecvBufLens = DUMMY_SINK_VIDEO_RECEIVE_BUFFER_SIZE;
         if (!strcmp(fSubsession.codecName(), "H264")) {
-            fMediaBuffer[prefixSize] = 0x00;
-            fMediaBuffer[prefixSize + 1] = 0x00;
-            fMediaBuffer[prefixSize + 2] = 0x00;
-            fMediaBuffer[prefixSize + 3] = 0x01;
-
-            prefixSize += DUMMY_SINK_H264_STARTCODE_SIZE;
-            fReceiveBuffer = (u_int8_t*)&fMediaBuffer[prefixSize];
-            m_stMetadata.nvideocodecid = FLV_CODECID_H264;
+            fReceiveBuffer = (u_int8_t*)&fMediaBuffer[DUMMY_SINK_H264_STARTCODE_SIZE];
+            fMediaBuffer[0] = 0x00;
+            fMediaBuffer[1] = 0x00;
+            fMediaBuffer[2] = 0x00;
+            fMediaBuffer[3] = 0x01;
+            prefixSize      = DUMMY_SINK_H264_STARTCODE_SIZE;
+            ulRecvBufLens   = DUMMY_SINK_VIDEO_RECEIVE_BUFFER_SIZE -  DUMMY_SINK_H264_STARTCODE_SIZE;
         }
-
         // TODO H265
     }
     else if (!strcmp(fSubsession.mediumName(), "audio")){
-        fReceiveBuffer = (u_int8_t*)&fMediaBuffer[prefixSize];
+        fMediaBuffer   = new u_int8_t[DUMMY_SINK_AUDIO_RECEIVE_BUFFER_SIZE];
+        fReceiveBuffer = fMediaBuffer;
+        ulRecvBufLens  = DUMMY_SINK_AUDIO_RECEIVE_BUFFER_SIZE;
     }
     m_bRunning = true;
 
 }
 
-ASRtsp2RtmpStreamSink::~ASRtsp2RtmpStreamSink() {
+ASRtsp2RtmpMediaSink::~ASRtsp2RtmpMediaSink() {
+    if(NULL != fMediaBuffer) {
+        delete[] fMediaBuffer;
+        fMediaBuffer = NULL;
+    }
     fReceiveBuffer = NULL;
     if(NULL == fStreamId) {
         delete[] fStreamId;
@@ -984,13 +714,13 @@ ASRtsp2RtmpStreamSink::~ASRtsp2RtmpStreamSink() {
     }
 }
 
-void ASRtsp2RtmpStreamSink::afterGettingFrame(void* clientData, unsigned frameSize, unsigned numTruncatedBytes,
+void ASRtsp2RtmpMediaSink::afterGettingFrame(void* clientData, unsigned frameSize, unsigned numTruncatedBytes,
                   struct timeval presentationTime, unsigned durationInMicroseconds) {
-    ASRtsp2RtmpStreamSink* sink = (ASRtsp2RtmpStreamSink*)clientData;
+    ASRtsp2RtmpMediaSink* sink = (ASRtsp2RtmpMediaSink*)clientData;
     sink->afterGettingFrame(frameSize, numTruncatedBytes, presentationTime, durationInMicroseconds);
 }
 
-void ASRtsp2RtmpStreamSink::afterGettingFrame(unsigned frameSize, unsigned numTruncatedBytes,
+void ASRtsp2RtmpMediaSink::afterGettingFrame(unsigned frameSize, unsigned numTruncatedBytes,
                   struct timeval presentationTime, unsigned durationInMicroseconds) {
 
     if(!m_bRunning) {
@@ -998,90 +728,106 @@ void ASRtsp2RtmpStreamSink::afterGettingFrame(unsigned frameSize, unsigned numTr
         return;
     }
 
-    if(FLV_CODECID_H264 == m_stMetadata.nvideocodecid) {
+    if(FLV_CODECID_H264 == m_enVideoID) {
         sendH264Frame(frameSize,numTruncatedBytes,presentationTime,durationInMicroseconds);
     }
-    else if(FLV_CODECID_H265 == m_stMetadata.nvideocodecid ) {
+    else if(FLV_CODECID_H265 == m_enVideoID) {
         sendH265Frame();
     }
     // Then continue, to request the next frame of data:
     continuePlaying();
 }
 
-Boolean ASRtsp2RtmpStreamSink::continuePlaying() {
+Boolean ASRtsp2RtmpMediaSink::continuePlaying() {
   if (fSource == NULL) return False; // sanity check (should not happen)
 
   // Request the next frame of data from our input source.  "afterGettingFrame()" will get called later, when it arrives:
-  fSource->getNextFrame(fReceiveBuffer, DUMMY_SINK_RECEIVE_BUFFER_SIZE,
+  fSource->getNextFrame(fReceiveBuffer, ulRecvBufLens,
                         afterGettingFrame, this,
                         onSourceClosure, this);
   return True;
 }
 
 // send the H264 frame
-void ASRtsp2RtmpStreamSink::sendH264Frame(unsigned frameSize, unsigned numTruncatedBytes,
+void ASRtsp2RtmpMediaSink::sendH264Frame(unsigned frameSize, unsigned numTruncatedBytes,
              struct timeval presentationTime, unsigned durationInMicroseconds)
 {
     unsigned int nTimeStamp = presentationTime.tv_sec * 1000 + presentationTime.tv_usec / 1000;
-    H264_FU_INDICATOR* fu = (H264_FU_INDICATOR*)(void*)fReceiveBuffer;
-    if(H264_NALU_TYPE_SPS == fu->TYPE) {
-        if(H264_PPS_SPS_FRAME_LEN_MAX < frameSize) {
-            return;
+    
+    uint32_t ulSize = frameSize + prefixSize;
+    // send out the h264 packet over RTMP
+    int ret = srs_h264_write_raw_frames(m_rtmpHandle, (char*)fMediaBuffer, ulSize, nTimeStamp, nTimeStamp);
+    if (ret != 0) {
+        if (srs_h264_is_dvbsp_error(ret)) {
+            rtsp2rtmp_log(AS_RTSP2RTMP_LOGWARNING,"ignore drop video error, code=%d", ret);
+        } else if (srs_h264_is_duplicated_sps_error(ret)) {
+            rtsp2rtmp_log(AS_RTSP2RTMP_LOGWARNING,"ignore duplicated sps, code=%d", ret);
+        } else if (srs_h264_is_duplicated_pps_error(ret)) {
+            rtsp2rtmp_log(AS_RTSP2RTMP_LOGWARNING,"ignore duplicated pps, code=%d", ret);
+        } else {
+            rtsp2rtmp_log(AS_RTSP2RTMP_LOGWARNING,"send h264 raw data failed. ret=%d", ret);
         }
-        memcpy((char*)&m_stMetadata.Sps[0],fReceiveBuffer,frameSize);
-        m_stMetadata.nSpsLen = frameSize;
-    }
-    else if(H264_NALU_TYPE_PPS == fu->TYPE) {
-        if(H264_PPS_SPS_FRAME_LEN_MAX < frameSize) {
-            return;
-        }
-        memcpy((char*)&m_stMetadata.Pps[0],fReceiveBuffer,frameSize);
-        m_stMetadata.nPpsLen = frameSize;
-    }
-    else if(H264_NALU_TYPE_IDR == fu->TYPE) {
-        /* key frame */
-        sendH264KeyFrame(frameSize,nTimeStamp);
-    }
-    else {
-        if(m_bWaitFirstKeyFrame) {
-            return;
-        }
-        m_pRtmpStream->SendH264Packet(fReceiveBuffer,frameSize,false,nTimeStamp);
     }
     return;
 }
-void ASRtsp2RtmpStreamSink::sendH264KeyFrame(unsigned frameSize, unsigned int nTimeStamp)
-{
-    if(m_bWaitFirstKeyFrame) {
-        if((0 == m_stMetadata.nPpsLen)
-            ||(0 == m_stMetadata.nSpsLen)) {
-            /* wait the pps sps and idr frame */
-            return;;
-        }
-
-        /* first key frame and with pps sps frame */
-        m_pRtmpStream->SendMetadata(&m_stMetadata);
-
-        m_bWaitFirstKeyFrame = false;
-    }
-
-    m_pRtmpStream->SendH264Packet(fReceiveBuffer,frameSize,true,nTimeStamp);
-
-}
 
 // send the H265 frame
-void ASRtsp2RtmpStreamSink::sendH265Frame()
+void ASRtsp2RtmpMediaSink::sendH265Frame()
 {
     //todo:
 }
+void ASRtsp2RtmpMediaSink::sendAudioFrame(unsigned frameSize, unsigned numTruncatedBytes,
+             struct timeval presentationTime, unsigned durationInMicroseconds)
+{
 
-void ASRtsp2RtmpStreamSink::Start()
+}
+
+void ASRtsp2RtmpMediaSink::Start()
 {
     m_bRunning = true;
 }
-void ASRtsp2RtmpStreamSink::Stop()
+void ASRtsp2RtmpMediaSink::Stop()
 {
     m_bRunning = false;
+}
+
+
+Rtsp2RtmpEnvironment::Rtsp2RtmpEnvironment(TaskScheduler& taskScheduler)
+: BasicUsageEnvironment(taskScheduler) {
+}
+
+Rtsp2RtmpEnvironment::~Rtsp2RtmpEnvironment() {
+}
+
+Rtsp2RtmpEnvironment*
+Rtsp2RtmpEnvironment::createNew(TaskScheduler& taskScheduler) {
+  return new Rtsp2RtmpEnvironment(taskScheduler);
+}
+
+UsageEnvironment& Rtsp2RtmpEnvironment::operator<<(char const* str) {
+  if (str == NULL) str = "(NULL)"; // sanity check
+  ASRtsp2RtmpClientManager::instance().rtsp_write_log("%s", str);
+  return *this;
+}
+
+UsageEnvironment& Rtsp2RtmpEnvironment::operator<<(int i) {
+  ASRtsp2RtmpClientManager::instance().rtsp_write_log("%d", i);
+  return *this;
+}
+
+UsageEnvironment& Rtsp2RtmpEnvironment::operator<<(unsigned u) {
+  ASRtsp2RtmpClientManager::instance().rtsp_write_log("%u", u);
+  return *this;
+}
+
+UsageEnvironment& Rtsp2RtmpEnvironment::operator<<(double d) {
+  ASRtsp2RtmpClientManager::instance().rtsp_write_log("%f", d);
+  return *this;
+}
+
+UsageEnvironment& Rtsp2RtmpEnvironment::operator<<(void* p) {
+  ASRtsp2RtmpClientManager::instance().rtsp_write_log("%p", p);
+  return *this;
 }
 
 
@@ -1090,6 +836,8 @@ ASRtsp2RtmpClientManager::ASRtsp2RtmpClientManager()
     m_ulTdIndex     = 0;
     m_LoopWatchVar  = 0;
     m_ulRecvBufSize = RTSP_SOCKET_RECV_BUFFER_SIZE_DEFAULT;
+    m_LogCb         = NULL;
+    m_nLogLevel     = AS_RTSP2RTMP_LOGWARNING;
 }
 
 ASRtsp2RtmpClientManager::~ASRtsp2RtmpClientManager()
@@ -1100,6 +848,8 @@ int32_t ASRtsp2RtmpClientManager::init()
 {
     // Begin by setting up our usage environment:
     u_int32_t i = 0;
+    TaskScheduler* scheduler = NULL;
+    UsageEnvironment* env = NULL;
 
     m_mutex = as_create_mutex();
     if(NULL == m_mutex) {
@@ -1107,7 +857,9 @@ int32_t ASRtsp2RtmpClientManager::init()
     }
 
     for(i = 0;i < RTSP_MANAGE_ENV_MAX_COUNT;i++) {
-        m_envArray[i] = NULL;
+        scheduler = BasicTaskScheduler::createNew();
+        env = Rtsp2RtmpEnvironment::createNew(*scheduler);
+        m_envArray[i] = env;
         m_clCountArray[i] = 0;
     }
     m_LoopWatchVar = 0;
@@ -1128,6 +880,45 @@ void    ASRtsp2RtmpClientManager::release()
     m_mutex = NULL;
 }
 
+void ASRtsp2RtmpClientManager::rtsp_write_log(const char *fmt, ...)
+{
+    if(NULL == m_LogCb)
+    {
+        return;
+    }
+    /*
+    if(AS_RTSP2RTMP_LOGINFO > m_nLogLevel)
+    {
+        return;
+    }
+    */
+    va_list args;
+    va_start(args, fmt);
+    m_LogCb(AS_RTSP2RTMP_LOGINFO, fmt, args);
+    va_end(args);
+}
+void ASRtsp2RtmpClientManager::rtmp_write_log(int level, const char *fmt, va_list args)
+{
+}
+void ASRtsp2RtmpClientManager::write_log(int32_t level, const char *fmt, va_list args)
+{
+    if(NULL == m_LogCb)
+    {
+        return;
+    }
+    if(level > m_nLogLevel)
+    {
+        return;
+    }
+
+    m_LogCb(level,fmt,args);
+}
+
+
+void ASRtsp2RtmpClientManager::rtmp_log_callback(int level, const char *fmt, va_list args)
+{
+    ASRtsp2RtmpClientManager::instance().rtmp_write_log(level,fmt,args);
+}
 
 void *ASRtsp2RtmpClientManager::rtsp_env_invoke(void *arg)
 {
@@ -1139,15 +930,12 @@ void ASRtsp2RtmpClientManager::rtsp_env_thread()
 {
     u_int32_t index = thread_index();
 
-    TaskScheduler* scheduler = NULL;
-    UsageEnvironment* env = NULL;
-
-
     if(RTSP_MANAGE_ENV_MAX_COUNT <= index) {
         return;
     }
-    scheduler = BasicTaskScheduler::createNew();
-    env = BasicUsageEnvironment::createNew(*scheduler);
+
+    UsageEnvironment* env = m_envArray[index];
+    TaskScheduler* scheduler = &env->taskScheduler();
     m_envArray[index] = env;
     m_clCountArray[index] = 0;
 
@@ -1242,6 +1030,12 @@ u_int32_t ASRtsp2RtmpClientManager::getRecvBufSize()
 {
     return m_ulRecvBufSize;
 }
+void ASRtsp2RtmpClientManager::setLogCallBack(uint32_t nLevel,Rtsp2Rtmp_LogCallback cb)
+{
+    m_nLogLevel = nLevel;
+    m_LogCb     = cb;
+}
+
 
 
 

@@ -35,4 +35,16 @@ enum AS_RTSP_STATUS {
     AS_RTSP_STATUS_INVALID    = 0xFF,
 };
 
+typedef enum
+{ AS_RTSP2RTMP_LOGCRIT    = 0,
+  AS_RTSP2RTMP_LOGERROR   = 1,
+  AS_RTSP2RTMP_LOGWARNING = 2,
+  AS_RTSP2RTMP_LOGINFO    = 3,
+  AS_RTSP2RTMP_LOGDEBUG   = 4
+} AS_RTSP2RTMP_LOGLEVEL;
+
+typedef void (*Rtsp2Rtmp_LogCallback)(int32_t level, const char *fmt, va_list args);
+
+
+
 #endif /*__AS_MEDIA_DEFINE_H__*/

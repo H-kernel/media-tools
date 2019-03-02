@@ -5,11 +5,8 @@
 #include "as_def.h"
 extern "C"{
 #include "as_common.h"
-#include <librtmp/rtmp.h>
-#include <librtmp/log.h>
-#include <librtmp/http.h>
-#include <librtmp/amf.h>
 }
+#include "srs_librtmp.h"
 //#ifndef _BASIC_USAGE_ENVIRONMENT0_HH
 //#include "BasicUsageEnvironment0.hh"
 //#endif
@@ -22,21 +19,28 @@ extern "C"{
 
 #define RTSP_CLIENT_VERBOSITY_LEVEL 1 // by default, print verbose output from each "RTSPClient"
 
-// Implementation of "ASRtsp2RtmpStreamSink":
+// Implementation of "ASRtsp2RtmpMediaSink":
 
 // Even though we're not going to be doing anything with the incoming data, we still need to receive it.
 // Define the size of the buffer that we'll use:
 
-#define DUMMY_SINK_RECEIVE_BUFFER_SIZE /*(2*1024*1024)*/(512*1024)
+
+
 
 #define DUMMY_SINK_H264_STARTCODE_SIZE 4
 
 //定义包头长度，RTMP_MAX_HEADER_SIZE=18
 #define RTMP_HEAD_SIZE   (sizeof(RTMPPacket)+RTMP_MAX_HEADER_SIZE)
+#define RTMP_H264_NALU_HEAD 9
+#define RTMP_AAC_PACKET_HEAD 2
+
+
+
+#define DUMMY_SINK_VIDEO_RECEIVE_BUFFER_SIZE (1024*1024)
+#define DUMMY_SINK_AUDIO_RECEIVE_BUFFER_SIZE 1024
 
 
 #define DUMMY_SINK_MEDIA_BUFFER_SIZE (RTMP_HEAD_SIZE + DUMMY_SINK_RECEIVE_BUFFER_SIZE+DUMMY_SINK_H264_STARTCODE_SIZE)
-
 
 #define RTSP_SOCKET_RECV_BUFFER_SIZE_DEFAULT (1024*1024)
 
@@ -83,38 +87,13 @@ typedef struct _NaluUnit
     unsigned char *data;
 }NaluUnit;
 
-typedef struct _RTMPMetadata
-{
-    // video, must be h264 type
-    unsigned int    nWidth;
-    unsigned int    nHeight;
-    unsigned int    nFrameRate;        // fps
-    unsigned int    nVideoDataRate;    // bps
-    unsigned int    nvideocodecid;
-    unsigned int    nSpsLen;
-    unsigned char   Sps[H264_PPS_SPS_FRAME_LEN_MAX];
-    unsigned int    nPpsLen;
-    unsigned char   Pps[H264_PPS_SPS_FRAME_LEN_MAX];
-
-    // audio, must be aac type
-    bool            bHasAudio;
-    unsigned int    nAudioDatarate;
-    unsigned int    nAudioSampleRate;
-    unsigned int    nAudioSampleSize;
-    int             nAudioFmt;
-    unsigned int    nAudioChannels;
-    char            pAudioSpecCfg;
-    unsigned int    nAudioSpecCfgLen;
-
-} RTMPMetadata,*LPRTMPMetadata;
-
 #define FILEBUFSIZE (1024 * 1024 * 10) //  10M
 
-enum
+typedef enum en_FLV_CODECID
 {
     FLV_CODECID_H264 = 7,
     FLV_CODECID_H265 = 12,
-};
+}FLV_CODECID;
 
 
 typedef enum RTSP2RTMP_PAYLOAD_TYPE
@@ -122,36 +101,6 @@ typedef enum RTSP2RTMP_PAYLOAD_TYPE
     RTSP2RTMP_PAYLOAD_TYPE_H264      = 0x01,
     RTSP2RTMP_PAYLOAD_TYPE_H265      = 0x02
 }PAYLOAD_TYPE;
-
-
-
-class RTMPStream
-{
-public:
-    RTMPStream(void);
-    virtual ~RTMPStream(void);
-public:
-    bool Connect(const char* url);
-    void Close();
-    bool SendMetadata(LPRTMPMetadata lpMetaData);
-    bool SendH264Packet(unsigned char *data,unsigned int size,bool bIsKeyFrame,unsigned int nTimeStamp);
-    bool SendAACPacket(unsigned char* data,unsigned int size,unsigned int nTimeStamp );
-private:
-    int InitSockets();
-    void CleanupSockets();
-    char * put_byte( char *output, uint8_t nVal ) ;
-    char * put_be16(char *output, uint16_t nVal ) ;
-    char * put_be24(char *output,uint32_t nVal )  ;
-    char * put_be32(char *output, uint32_t nVal ) ;
-    char * put_be64( char *output, uint64_t nVal );
-    char * put_amf_string( char *c, const char *str );
-    char * put_amf_double( char *c, double d );
-    int SendPacket(unsigned int nPacketType,unsigned char *data,unsigned int size,unsigned int nTimestamp);
-private:
-
-    RTMP* m_pRtmp;
-};
-
 
 // Define a class to hold per-stream state that we maintain throughout each stream's lifetime:
 
@@ -170,7 +119,6 @@ public:
   TaskToken streamTimerTask;
   double duration;
 };
-
 // If you're streaming just a single stream (i.e., just from a single URL, once), then you can define and use just a single
 // "ASRtsp2RtmpStreamState" structure, as a global variable in your application.  However, because - in this demo application - we're
 // showing how to play multiple streams, concurrently, we can't do that.  Instead, we have to have a separate "ASRtsp2RtmpStreamState"
@@ -221,6 +169,9 @@ private:
     //
     void StopClient();
     bool checkStop();
+private:
+    bool Connect2RtmpServer();
+    void CloseRtmpConnect();
 public:
     // RTSP 'response handlers':
     static void continueAfterOPTIONS(RTSPClient* rtspClient, int resultCode, char* resultString);
@@ -250,7 +201,7 @@ private:
     bool                m_bTcp;
     time_t              m_lLastHeartBeat;
 private:
-    RTMPStream          m_RtmpStream;
+    srs_rtmp_t          m_srsRtmpHandle;
     char               *m_rtmpUlr;
     char               *app;
     char               *conn;
@@ -274,28 +225,28 @@ private:
 // Or it might be a "FileSink", for outputting the received data into a file (as is done by the "openRTSP" application).
 // In this example code, however, we define a simple 'dummy' sink that receives incoming data, but does nothing with it.
 
-class ASRtsp2RtmpStreamSink: public MediaSink {
+class ASRtsp2RtmpMediaSink: public MediaSink {
 public:
-    static ASRtsp2RtmpStreamSink* createNew(UsageEnvironment& env,
+    static ASRtsp2RtmpMediaSink* createNew(UsageEnvironment& env,
                   MediaSubsession& subsession, // identifies the kind of data that's being received
-                  RTMPStream* pRtmpStream,
+                  srs_rtmp_t rtmpHandle,
                   char const* streamId = NULL); // identifies the stream itself (optional)
 
     void Start();
     void Stop();
 
 private:
-    ASRtsp2RtmpStreamSink(UsageEnvironment& env, MediaSubsession& subsession,RTMPStream* pRtmpStream, char const* streamIdb);
+    ASRtsp2RtmpMediaSink(UsageEnvironment& env, MediaSubsession& subsession,srs_rtmp_t rtmpHandle, char const* streamIdb);
     // called only by "createNew()"
 public:
-    virtual ~ASRtsp2RtmpStreamSink();
+    virtual ~ASRtsp2RtmpMediaSink();
 
     static void afterGettingFrame(void* clientData, unsigned frameSize,
                                 unsigned numTruncatedBytes,
                                 struct timeval presentationTime,
                                 unsigned durationInMicroseconds);
     void afterGettingFrame(unsigned frameSize, unsigned numTruncatedBytes,
-                           struct timeval presentationTime, 
+                           struct timeval presentationTime,
                            unsigned durationInMicroseconds);
 
 private:
@@ -305,24 +256,43 @@ private:
     // send the H264 frame
     void sendH264Frame(unsigned frameSize, unsigned numTruncatedBytes,
              struct timeval presentationTime, unsigned durationInMicroseconds);
-    void sendH264KeyFrame(unsigned frameSize, unsigned int nTimeStamp);
     // send the H265 frame
     void sendH265Frame();
+    // send the Audio Fram
+    void sendAudioFrame(unsigned frameSize, unsigned numTruncatedBytes,
+             struct timeval presentationTime, unsigned durationInMicroseconds);
 private:
+    u_int8_t*           fMediaBuffer;
     u_int8_t*           fReceiveBuffer;
-    u_int8_t            fMediaBuffer[DUMMY_SINK_MEDIA_BUFFER_SIZE];
+    u_int32_t           ulRecvBufLens;
     u_int32_t           prefixSize;
     MediaSubsession&    fSubsession;
     char*               fStreamId;
-    RTMPStream*         m_pRtmpStream;
-    RTMPMetadata        m_stMetadata;
-    bool                m_bWaitFirstKeyFrame;
+    srs_rtmp_t          m_rtmpHandle;
+    FLV_CODECID         m_enVideoID;
     volatile bool       m_bRunning;
 };
 
 
-class ASRtsp2RtmpClientManager
-{
+class Rtsp2RtmpEnvironment: public BasicUsageEnvironment {
+public:
+  static Rtsp2RtmpEnvironment* createNew(TaskScheduler& taskScheduler);
+
+  virtual UsageEnvironment& operator<<(char const* str);
+  virtual UsageEnvironment& operator<<(int i);
+  virtual UsageEnvironment& operator<<(unsigned u);
+  virtual UsageEnvironment& operator<<(double d);
+  virtual UsageEnvironment& operator<<(void* p);
+
+protected:
+  Rtsp2RtmpEnvironment(TaskScheduler& taskScheduler);
+      // called only by "createNew()" (or subclass constructors)
+  virtual ~Rtsp2RtmpEnvironment();
+};
+
+
+
+class ASRtsp2RtmpClientManager {
 public:
     static ASRtsp2RtmpClientManager& instance()
     {
@@ -339,12 +309,16 @@ public:
     u_int32_t getStatus(AS_HANDLE handle);
     void      setRecvBufSize(u_int32_t ulSize);
     u_int32_t getRecvBufSize();
+    void      setLogCallBack(uint32_t nLevel,Rtsp2Rtmp_LogCallback cb);
 public:
     void rtsp_env_thread();
-
+    void rtsp_write_log(const char *fmt, ...);
+    void rtmp_write_log(int level, const char *fmt, va_list args);
+    void write_log(int32_t level, const char *fmt, va_list args);
 protected:
     ASRtsp2RtmpClientManager();
 private:
+    static void rtmp_log_callback(int level, const char *fmt, va_list args);
     static void *rtsp_env_invoke(void *arg);
     u_int32_t thread_index()
     {
@@ -363,5 +337,7 @@ private:
     UsageEnvironment *m_envArray[RTSP_MANAGE_ENV_MAX_COUNT];
     u_int32_t         m_clCountArray[RTSP_MANAGE_ENV_MAX_COUNT];
     u_int32_t         m_ulRecvBufSize;
+    Rtsp2Rtmp_LogCallback m_LogCb;
+    int32_t           m_nLogLevel;
 };
 #endif /* __AS_RTSP2RTMP_CLIENT_MANAGE_H__ */

@@ -15,9 +15,10 @@ all: $(ALL)
 .$(CPP).$(OBJ):
 	$(CPLUSPLUS_COMPILER) -c $(CPLUSPLUS_FLAGS) $(RTSP_FLAGS) $<
 
-LIB_RTSP2RTMP_CLIENT_OBJS = as_rtsp2rtmp_client.$(OBJ) libASRtsp2RtmpClient.$(OBJ)
+LIB_RTSP2RTMP_CLIENT_OBJS = srs_librtmp.$(OBJ) as_rtsp2rtmp_client.$(OBJ) libASRtsp2RtmpClient.$(OBJ)
 
-as_rtsp2rtmp_client.$(CPP):as_rtsp2rtmp_client.h as_def.h 
+srs_librtmp.$(CPP):srs_librtmp.h 
+as_rtsp2rtmp_client.$(CPP):as_rtsp2rtmp_client.h as_def.h srs_librtmp.h 
 libASRtsp2RtmpClient.$(CPP):libASRtsp2RtmpClient.h as_def.h as_rtsp2rtmp_client.h
 
 USAGE_ENVIRONMENT_DIR = ../UsageEnvironment

@@ -27,5 +27,7 @@ extern "C"
     AS_API void      as_rtsp2rtmp_destory_handle(AS_HANDLE handle);
     /* get a rtsp2rtmp client handle status */
     AS_API uint32_t  as_rtsp2rtmp_get_handle_status(AS_HANDLE handle);
+    /* set the log call back */
+    AS_API void      as_rtsp2rtmp_set_log_callback(uint32_t nLevel,Rtsp2Rtmp_LogCallback cb);
 }
 #endif /*__LIB_AS_RTSP_CLINET_H__*/
