@@ -7,6 +7,7 @@ extern "C"{
 #include "as_common.h"
 }
 #include "srs_librtmp.h"
+#include "EasyAACEncoderAPI.h"
 //#ifndef _BASIC_USAGE_ENVIRONMENT0_HH
 //#include "BasicUsageEnvironment0.hh"
 //#endif
@@ -89,18 +90,13 @@ typedef struct _NaluUnit
 
 #define FILEBUFSIZE (1024 * 1024 * 10) //  10M
 
-typedef enum en_FLV_CODECID
+typedef enum en_RTMP_CODECID
 {
-    FLV_CODECID_H264 = 7,
-    FLV_CODECID_H265 = 12,
-}FLV_CODECID;
+    RTMP_CODECID_H264 = 1,
+    RTMP_CODECID_H265 = 2,
+    RTMP_CODECID_AAC  = 3,
+}RTMP_CODECID;
 
-
-typedef enum RTSP2RTMP_PAYLOAD_TYPE
-{
-    RTSP2RTMP_PAYLOAD_TYPE_H264      = 0x01,
-    RTSP2RTMP_PAYLOAD_TYPE_H265      = 0x02
-}PAYLOAD_TYPE;
 
 // Define a class to hold per-stream state that we maintain throughout each stream's lifetime:
 
@@ -111,6 +107,7 @@ public:
 
   void Start();
   void Stop();
+  bool Check();
 
 public:
   MediaSubsessionIterator* iter;
@@ -234,6 +231,7 @@ public:
 
     void Start();
     void Stop();
+    bool Check();
 
 private:
     ASRtsp2RtmpMediaSink(UsageEnvironment& env, MediaSubsession& subsession,srs_rtmp_t rtmpHandle, char const* streamIdb);
@@ -262,15 +260,18 @@ private:
     void sendAudioFrame(unsigned frameSize, unsigned numTruncatedBytes,
              struct timeval presentationTime, unsigned durationInMicroseconds);
 private:
-    u_int8_t*           fMediaBuffer;
-    u_int8_t*           fReceiveBuffer;
-    u_int32_t           ulRecvBufLens;
-    u_int32_t           prefixSize;
-    MediaSubsession&    fSubsession;
-    char*               fStreamId;
-    srs_rtmp_t          m_rtmpHandle;
-    FLV_CODECID         m_enVideoID;
-    volatile bool       m_bRunning;
+    u_int8_t*             fMediaBuffer;
+    u_int8_t*             fReceiveBuffer;
+    u_int32_t             ulRecvBufLens;
+    u_int32_t             prefixSize;
+    MediaSubsession&      fSubsession;
+    char*                 fStreamId;
+    srs_rtmp_t            m_rtmpHandle;
+    RTMP_CODECID          m_enVideoID;
+    volatile bool         m_bRunning;
+    EasyAACEncoder_Handle m_hAacEncoder;
+    InitParam             m_hEncoderParam;
+    u_int8_t*             m_pAacEncodeBuf;
 };
 
 
@@ -313,12 +314,10 @@ public:
 public:
     void rtsp_env_thread();
     void rtsp_write_log(const char *fmt, ...);
-    void rtmp_write_log(int level, const char *fmt, va_list args);
     void write_log(int32_t level, const char *fmt, va_list args);
 protected:
     ASRtsp2RtmpClientManager();
 private:
-    static void rtmp_log_callback(int level, const char *fmt, va_list args);
     static void *rtsp_env_invoke(void *arg);
     u_int32_t thread_index()
     {

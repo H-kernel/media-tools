@@ -69,26 +69,30 @@ void EpollTaskScheduler::schedulerTickTask() {
 #endif
 
 void EpollTaskScheduler::SingleStep(unsigned maxDelayTime) {
-  DelayInterval const& timeToDelay = fDelayQueue.timeToNextAlarm();
-  struct timeval tv_timeToDelay;
-  tv_timeToDelay.tv_sec = timeToDelay.seconds();
-  tv_timeToDelay.tv_usec = timeToDelay.useconds();
-  // Very large "tv_sec" values cause select() to fail.
-  // Don't make it any larger than 1 million seconds (11.5 days)
-  const long MAX_TV_SEC = MILLION;
-  if (tv_timeToDelay.tv_sec > MAX_TV_SEC) {
-    tv_timeToDelay.tv_sec = MAX_TV_SEC;
-  }
-  // Also check our "maxDelayTime" parameter (if it's > 0):
-  if (maxDelayTime > 0 &&
+    DelayInterval const& timeToDelay = fDelayQueue.timeToNextAlarm();
+    struct timeval tv_timeToDelay;
+    tv_timeToDelay.tv_sec = timeToDelay.seconds();
+    tv_timeToDelay.tv_usec = timeToDelay.useconds();
+    // Very large "tv_sec" values cause select() to fail.
+    // Don't make it any larger than 1 million seconds (11.5 days)
+    const long MAX_TV_SEC = MILLION;
+    if (tv_timeToDelay.tv_sec > MAX_TV_SEC) {
+        tv_timeToDelay.tv_sec = MAX_TV_SEC;
+    }
+    // Also check our "maxDelayTime" parameter (if it's > 0):
+    if (maxDelayTime > 0 &&
       (tv_timeToDelay.tv_sec > (long)maxDelayTime/MILLION ||
        (tv_timeToDelay.tv_sec == (long)maxDelayTime/MILLION &&
-    tv_timeToDelay.tv_usec > (long)maxDelayTime%MILLION))) {
-    tv_timeToDelay.tv_sec = maxDelayTime/MILLION;
-    tv_timeToDelay.tv_usec = maxDelayTime%MILLION;
-  }
+        tv_timeToDelay.tv_usec > (long)maxDelayTime%MILLION))) {
+        
+        tv_timeToDelay.tv_sec = maxDelayTime/MILLION;
+        tv_timeToDelay.tv_usec = maxDelayTime%MILLION;
+    }
 
-  const int timeout = tv_timeToDelay.tv_sec * 1000 + tv_timeToDelay.tv_usec / 1000;
+  int timeout = tv_timeToDelay.tv_sec * 1000 + tv_timeToDelay.tv_usec / 1000;
+  if(0 == timeout) {
+      timeout = 5000;
+  }
   epoll_event event;
   int ret = epoll_wait(fEpollHandle, &event, 1, timeout);
   if (ret < 0) {

@@ -10,4 +10,5 @@ libBasicUsageEnvironment_LIB_SUFFIX = $(LIB_SUFFIX)
 libUsageEnvironment_LIB_SUFFIX = $(LIB_SUFFIX)
 libgroupsock_LIB_SUFFIX = $(LIB_SUFFIX)
 libcommon_LIB_SUFFIX = $(LIB_SUFFIX)
+libEasyAACEncoder_LIB_SUFFIX = $(LIB_SUFFIX)
 ##### Change the following for your environment:
