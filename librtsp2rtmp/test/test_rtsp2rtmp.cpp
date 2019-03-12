@@ -11,7 +11,7 @@ static void log_callbck(int32_t level, const char *fmt, va_list args)
     //vprintf(fmt,args);
     //printf("\n");
 }
-#define PUSH_COUNT 100
+#define PUSH_COUNT 2
 int main(int agrc,char* agrv[])
 {
     char* prtspUrl = "rtsp://119.3.79.46:554/live/32010000000000001501?streamtype=0&devtype=3&starttime=no&endtime=no&timestamp=20181029140614&timeout=30&encrypt=f752dfcd32cafa0d6831a944c237e688";
