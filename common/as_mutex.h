@@ -1,5 +1,10 @@
 #ifndef __AS_MEDIA_KENERL_MUTEX_H__
 #define __AS_MEDIA_KENERL_MUTEX_H__
+#ifdef __cplusplus
+#if __cplusplus
+extern "C" {
+#endif /* __cpluscplus */
+#endif /* __cpluscplus */
 #include "as_config.h"
 #include <stdint.h>
 #include <stdio.h>
@@ -26,6 +31,11 @@ int32_t     as_destroy_mutex( as_mutex_t *pstMutex );
 int32_t     as_mutex_lock( as_mutex_t *pstMutex );
 int32_t     as_mutex_unlock( as_mutex_t *pstMutex );
 
+#ifdef __cplusplus
+#if __cplusplus
+}
+#endif /* __cpluscplus */
+#endif /* __cpluscplus */
 #endif /* __AS_MEDIA_KENERL_MUTEX_H__ */
 
 

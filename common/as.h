@@ -21,5 +21,6 @@ extern "C"{
 #include "as_tinyxml2.h"
 #include "as_mem.h"
 #include "as_daemon.h"
+#include "as_conn_manage.h"
 using namespace tinyxml2;
 #endif

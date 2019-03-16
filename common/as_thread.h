@@ -1,5 +1,10 @@
 #ifndef __AS_MEDIA_KENERL_THREAD_H__
 #define __AS_MEDIA_KENERL_THREAD_H__
+#ifdef __cplusplus
+#if __cplusplus
+extern "C" {
+#endif /* __cpluscplus */
+#endif /* __cpluscplus */
 #include "as_config.h"
 #include <stdint.h>
 #include <stdio.h>
@@ -38,4 +43,11 @@ pthread_t  as_thread_self();
 #elif AS_APP_OS == AS_OS_WIN32
 HANDLE as_thread_self(void);
 #endif
+
+#ifdef __cplusplus
+#if __cplusplus
+}
+#endif /* __cpluscplus */
+#endif /* __cpluscplus */
+
 #endif /* __AS_MEDIA_KENERL_THREAD_H__ */

@@ -33,7 +33,168 @@ static void rtsp2rtmp_log(int32_t level,const char* szFormat, ...)
     va_end(args);
 }
 
+ASRtmpHandle::ASRtmpHandle()
+{
+    m_srsRtmpHandle = NULL;
+    m_lSockFD       = InvalidSocket;
+}
+ASRtmpHandle::~ASRtmpHandle()
+{
+    
+}
+int32_t ASRtmpHandle::open(const char* pszUrl)
+{
+    m_srsRtmpHandle = srs_rtmp_create(pszUrl);
+    if(NULL == m_srsRtmpHandle)
+    {
+        rtsp2rtmp_log(AS_RTSP2RTMP_LOGERROR,"allocate the rtmp handle fail.");
+        return -1;
+    }
+    if (srs_rtmp_handshake(m_srsRtmpHandle) != 0) {
+        rtsp2rtmp_log(AS_RTSP2RTMP_LOGERROR,"simple handshake failed.");
+        return -1;
+    }
+    rtsp2rtmp_log(AS_RTSP2RTMP_LOGINFO,"simple handshake success");
 
+    if (srs_rtmp_connect_app(m_srsRtmpHandle) != 0) {
+        rtsp2rtmp_log(AS_RTSP2RTMP_LOGERROR,"connect vhost/app failed.");
+        return -1;
+    }
+    rtsp2rtmp_log(AS_RTSP2RTMP_LOGINFO,"connect vhost/app success");
+
+    if (srs_rtmp_publish_stream(m_srsRtmpHandle) != 0) {
+        rtsp2rtmp_log(AS_RTSP2RTMP_LOGERROR,"publish stream failed.");
+        return -1;
+    }
+
+    rtsp2rtmp_log(AS_RTSP2RTMP_LOGINFO,"rtmp stream connect.");
+
+    long lSockFD = (long)srs_rtmp_socket(m_srsRtmpHandle);
+    setSockFD(lSockFD);
+    if(0 != ASRtsp2RtmpClientManager::instance().reg_rtmp_handle_actor(this))
+    {
+        rtsp2rtmp_log(AS_RTSP2RTMP_LOGERROR,"register the rtmp socket handle fail.");
+        return -1;
+    }
+    m_lSockFD   = lSockFD;
+    srs_rtmp_set_timeout(m_srsRtmpHandle,5,10);
+    setHandleRecv(AS_TRUE);
+    return 0;
+}
+void    ASRtmpHandle::close()
+{
+    if(m_srsRtmpHandle)
+    {
+       srs_rtmp_destroy(m_srsRtmpHandle);
+       m_srsRtmpHandle = NULL;
+    }
+    if(InvalidSocket != m_lSockFD)
+    {
+        ASRtsp2RtmpClientManager::instance().unreg_rtmp_handle_actor(this);
+    }
+    rtsp2rtmp_log(AS_RTSP2RTMP_LOGINFO,"rtmp stream close.");
+}
+int32_t ASRtmpHandle::sendH264Frame(char* frames, int frames_size, uint32_t dts, uint32_t pts)
+{    
+    // send out the h264 packet over RTMP
+    int ret = srs_h264_write_raw_frames(m_srsRtmpHandle,frames, frames_size, dts, pts);
+    if (ret != 0) {
+        if (srs_h264_is_dvbsp_error(ret)) {
+            rtsp2rtmp_log(AS_RTSP2RTMP_LOGWARNING,"ignore drop video error, code=%d", ret);
+        } else if (srs_h264_is_duplicated_sps_error(ret)) {
+            rtsp2rtmp_log(AS_RTSP2RTMP_LOGWARNING,"ignore duplicated sps, code=%d", ret);
+        } else if (srs_h264_is_duplicated_pps_error(ret)) {
+            rtsp2rtmp_log(AS_RTSP2RTMP_LOGWARNING,"ignore duplicated pps, code=%d", ret);
+        } else {
+            rtsp2rtmp_log(AS_RTSP2RTMP_LOGWARNING,"send h264 raw data failed. ret=%d", ret);
+            return -1;
+        }
+    }
+    return 0;
+}
+int32_t ASRtmpHandle::sendAacFrame(char sound_format, char sound_rate,char sound_size, char sound_type, 
+                        char* frame, int frame_size, uint32_t timestamp)
+{    
+    int ret = 0;
+    if ((ret = srs_audio_write_raw_frame(m_srsRtmpHandle, sound_format, sound_rate, sound_size, sound_type,
+                                        frame, frame_size, timestamp)) != 0) {
+        rtsp2rtmp_log(AS_RTSP2RTMP_LOGWARNING,"send audio raw data failed. ret=%d", ret);                              
+        return 0;
+    }
+    return 0;
+}
+long ASRtmpHandle::recv(char *pArrayData, CNetworkAddr *pPeerAddr, const ULONG ulDataSize,const EnumSyncAsync bSyncRecv)
+{
+    return 0;
+}
+void ASRtmpHandle::handle_recv(void)
+{
+    int size;
+    char type;
+    char* data;
+    u_int32_t timestamp;
+    rtsp2rtmp_log(AS_RTSP2RTMP_LOGINFO,"ASRtmpHandle::handle_recv.");
+        
+    if (srs_rtmp_read_packet(m_srsRtmpHandle, &type, &timestamp, &data, &size) == 0) {
+        free(data);
+    }
+        
+    setHandleRecv(AS_TRUE);
+}
+void ASRtmpHandle::handle_send(void)
+{
+    return;/*nothing to do */
+}
+
+
+void ASRtmpConnMgr::lockListOfHandle()
+{
+    if (AS_ERROR_CODE_OK != as_mutex_lock(m_pMutexListOfHandle))
+    {
+        return;
+    }
+    return;
+}
+void ASRtmpConnMgr::unlockListOfHandle()
+{
+    if (AS_ERROR_CODE_OK != as_mutex_unlock(m_pMutexListOfHandle))
+    {
+        return;
+    }
+    return;
+}
+void ASRtmpConnMgr::checkSelectResult(const EpollEventType enEpEvent,CHandle *pHandle)
+{
+    if(NULL == pHandle)
+    {
+        return;
+    }
+
+    ASRtmpHandle *pRtmpConnHandle = dynamic_cast<ASRtmpHandle *>(pHandle);
+    if(NULL == pRtmpConnHandle)
+    {
+        return;
+    }
+
+    //处理读事件
+    if(enEpollRead == enEpEvent)
+    {
+        //清除读事件检测
+        pRtmpConnHandle->setHandleRecv(AS_FALSE);
+        //调用handle处理接收事件
+        pRtmpConnHandle->handle_recv();
+    }
+
+    //处理写事件
+    if(enEpollWrite == enEpEvent)
+    {
+        //清除写事件检测
+        pRtmpConnHandle->setHandleSend(AS_FALSE);
+        //调用handle处理写事件
+        pRtmpConnHandle->handle_send();
+    }
+
+}
 // Implementation of "ASRtsp2RtmpClient":
 
 ASRtsp2RtmpClient* ASRtsp2RtmpClient::createNew(u_int32_t ulEnvIndex,UsageEnvironment& env, char const* rtspURL,
@@ -53,8 +214,6 @@ ASRtsp2RtmpClient::ASRtsp2RtmpClient(u_int32_t ulEnvIndex,UsageEnvironment& env,
   m_bRunning = 0;
   m_bTcp = false;
   m_lLastHeartBeat = time(NULL);
-
-  m_srsRtmpHandle = NULL;
 }
 
 ASRtsp2RtmpClient::~ASRtsp2RtmpClient() {
@@ -62,9 +221,8 @@ ASRtsp2RtmpClient::~ASRtsp2RtmpClient() {
         as_destroy_mutex(m_mutex);
         m_mutex = NULL;
     }
-    CloseRtmpConnect();
+    m_hRtmpHandle.close();
 }
-
 int32_t ASRtsp2RtmpClient::open(char const* rtmpURL)
 {
     as_lock_guard locker(m_mutex);
@@ -148,7 +306,8 @@ void ASRtsp2RtmpClient::handleAfterDESCRIBE(int resultCode, char* resultString)
         /* report the status */
         report_status(AS_RTSP_STATUS_INIT);
         /* connect to the rtmp server */
-        if (!Connect2RtmpServer()) {
+        if (0 != m_hRtmpHandle.open(m_rtmpUlr)) {
+            m_hRtmpHandle.close();
             report_status(AS_RTSP_STATUS_BREAK);
             break;
         }
@@ -233,7 +392,7 @@ void ASRtsp2RtmpClient::handleAfterSETUP(int resultCode, char* resultString)
         // (This will prepare the data sink to receive data; the actual flow of data from the client won't start happening until later,
         // after we've sent a RTSP "PLAY" command.)
 
-        scs.subsession->sink = ASRtsp2RtmpMediaSink::createNew(env, *scs.subsession,m_srsRtmpHandle, url());
+        scs.subsession->sink = ASRtsp2RtmpMediaSink::createNew(env, *scs.subsession,&m_hRtmpHandle, url());
         // perhaps use your own custom "MediaSink" subclass instead
         if (scs.subsession->sink == NULL) {
             break;
@@ -514,8 +673,6 @@ void ASRtsp2RtmpClient::shutdownStream() {
         }
     }
 
-    CloseRtmpConnect();
-
     /* report the status */
     if (m_bRunning) {
         report_status(AS_RTSP_STATUS_TEARDOWN);
@@ -550,43 +707,6 @@ bool ASRtsp2RtmpClient::checkStop()
         return false;
     }
     return true;
-}
-bool ASRtsp2RtmpClient::Connect2RtmpServer()
-{
-    m_srsRtmpHandle = srs_rtmp_create(m_rtmpUlr);
-    if(NULL == m_srsRtmpHandle)
-    {
-        rtsp2rtmp_log(AS_RTSP2RTMP_LOGERROR,"allocate the rtmp handle fail.");
-        return false;
-    }
-    if (srs_rtmp_handshake(m_srsRtmpHandle) != 0) {
-        rtsp2rtmp_log(AS_RTSP2RTMP_LOGERROR,"simple handshake failed.");
-        return false;
-    }
-    rtsp2rtmp_log(AS_RTSP2RTMP_LOGINFO,"simple handshake success");
-
-    if (srs_rtmp_connect_app(m_srsRtmpHandle) != 0) {
-        rtsp2rtmp_log(AS_RTSP2RTMP_LOGERROR,"connect vhost/app failed.");
-        return false;
-    }
-    rtsp2rtmp_log(AS_RTSP2RTMP_LOGINFO,"connect vhost/app success");
-
-    if (srs_rtmp_publish_stream(m_srsRtmpHandle) != 0) {
-        rtsp2rtmp_log(AS_RTSP2RTMP_LOGERROR,"publish stream failed.");
-        return false;
-    }
-
-    rtsp2rtmp_log(AS_RTSP2RTMP_LOGINFO,"rtmp stream connect.");
-    return true;
-}
-void ASRtsp2RtmpClient::CloseRtmpConnect()
-{
-    if(m_srsRtmpHandle)
-    {
-       srs_rtmp_destroy(m_srsRtmpHandle);
-       m_srsRtmpHandle = NULL;
-    }
-    rtsp2rtmp_log(AS_RTSP2RTMP_LOGINFO,"rtmp stream close.");
 }
 
 // Implementation of "ASRtsp2RtmpStreamState":
@@ -664,7 +784,7 @@ bool ASRtsp2RtmpStreamState::Check()
 
 
 ASRtsp2RtmpMediaSink* ASRtsp2RtmpMediaSink::createNew(UsageEnvironment& env, MediaSubsession& subsession,
-    srs_rtmp_t rtmpHandle,char const* streamId) {
+    ASRtmpHandle* rtmpHandle,char const* streamId) {
     ASRtsp2RtmpMediaSink* pSink = NULL;
     try{
         pSink = new ASRtsp2RtmpMediaSink(env, subsession,rtmpHandle, streamId);
@@ -676,7 +796,7 @@ ASRtsp2RtmpMediaSink* ASRtsp2RtmpMediaSink::createNew(UsageEnvironment& env, Med
 }
 
 ASRtsp2RtmpMediaSink::ASRtsp2RtmpMediaSink(UsageEnvironment& env, MediaSubsession& subsession,
-    srs_rtmp_t rtmpHandle,char const* streamId)
+    ASRtmpHandle* rtmpHandle,char const* streamId)
     : MediaSink(env), fSubsession(subsession),m_rtmpHandle(rtmpHandle) {
     fStreamId            = strDup(streamId);
     fReceiveBuffer       = NULL;
@@ -829,23 +949,18 @@ Boolean ASRtsp2RtmpMediaSink::continuePlaying() {
 void ASRtsp2RtmpMediaSink::sendH264Frame(unsigned frameSize, unsigned numTruncatedBytes,
              struct timeval presentationTime, unsigned durationInMicroseconds)
 {
+    if(NULL == m_rtmpHandle) {
+        return;
+    }
     unsigned int nTimeStamp = presentationTime.tv_sec * 1000 + presentationTime.tv_usec / 1000;
     
     uint32_t ulSize = frameSize + prefixSize;
+
+    int32_t nRet = m_rtmpHandle->sendH264Frame((char*)fMediaBuffer, ulSize, nTimeStamp, nTimeStamp);
     
-    // send out the h264 packet over RTMP
-    int ret = srs_h264_write_raw_frames(m_rtmpHandle, (char*)fMediaBuffer, ulSize, nTimeStamp, nTimeStamp);
-    if (ret != 0) {
-        if (srs_h264_is_dvbsp_error(ret)) {
-            rtsp2rtmp_log(AS_RTSP2RTMP_LOGWARNING,"ignore drop video error, code=%d", ret);
-        } else if (srs_h264_is_duplicated_sps_error(ret)) {
-            rtsp2rtmp_log(AS_RTSP2RTMP_LOGWARNING,"ignore duplicated sps, code=%d", ret);
-        } else if (srs_h264_is_duplicated_pps_error(ret)) {
-            rtsp2rtmp_log(AS_RTSP2RTMP_LOGWARNING,"ignore duplicated pps, code=%d", ret);
-        } else {
-            rtsp2rtmp_log(AS_RTSP2RTMP_LOGWARNING,"send h264 raw data failed. ret=%d", ret);
-            m_bRunning = false;
-        }
+    if (nRet != 0) {
+        rtsp2rtmp_log(AS_RTSP2RTMP_LOGWARNING,"send h264 frame data failed. ret=%d", nRet);
+        m_bRunning = false;
     }
     return;
 }
@@ -858,6 +973,10 @@ void ASRtsp2RtmpMediaSink::sendH265Frame()
 void ASRtsp2RtmpMediaSink::sendAudioFrame(unsigned frameSize, unsigned numTruncatedBytes,
              struct timeval presentationTime, unsigned durationInMicroseconds)
 {
+    if(NULL == m_rtmpHandle) {
+        return;
+    }
+
     if(NULL == m_hAacEncoder || NULL == m_pAacEncodeBuf) {
         return;
     }
@@ -891,7 +1010,7 @@ void ASRtsp2RtmpMediaSink::sendAudioFrame(unsigned frameSize, unsigned numTrunca
     unsigned int nTimeStamp = presentationTime.tv_sec * 1000 + presentationTime.tv_usec / 1000;
     
     int ret = 0;
-    if ((ret = srs_audio_write_raw_frame(m_rtmpHandle, sound_format, sound_rate, sound_size, sound_type,
+    if ((ret = m_rtmpHandle->sendAacFrame(sound_format, sound_rate, sound_size, sound_type,
                                          (char*)m_pAacEncodeBuf, out_len, nTimeStamp)) != 0) {
         rtsp2rtmp_log(AS_RTSP2RTMP_LOGWARNING,"send audio raw data failed. ret=%d", ret);                              
         return;
@@ -996,6 +1115,14 @@ int32_t ASRtsp2RtmpClientManager::init()
 
     }
 
+    /* start the tcp connect manager for rtmp */
+    if(AS_ERROR_CODE_OK != m_TcpConnMgr.init(30)) {
+        return -1;
+    }
+    if(AS_ERROR_CODE_OK != m_TcpConnMgr.run()) {
+        return -1;
+    }
+
     return 0;
 }
 void    ASRtsp2RtmpClientManager::release()
@@ -1035,6 +1162,16 @@ void ASRtsp2RtmpClientManager::write_log(int32_t level, const char *fmt, va_list
     }
 
     m_LogCb(AS_RTSP2RTMP_LOGINFO, fmt, args);
+}
+
+int32_t ASRtsp2RtmpClientManager::reg_rtmp_handle_actor(ASRtmpHandle* pHandle)
+{
+    
+    return m_TcpConnMgr.addHandle(pHandle);
+}
+void    ASRtsp2RtmpClientManager::unreg_rtmp_handle_actor(ASRtmpHandle* pHandle)
+{
+    m_TcpConnMgr.removeHandle(pHandle);
 }
 
 

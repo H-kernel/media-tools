@@ -222,6 +222,10 @@ class CNetworkHandle : public CHandle
     {
         return m_lSockFD;
     };
+    void setSockFD(long lSockFD)
+    {
+        m_lSockFD = lSockFD;
+    };
 #if AS_APP_OS == AS_OS_LINUX
     long sendMsg(const struct msghdr *pMsg);
 #endif

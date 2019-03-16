@@ -72,6 +72,7 @@ pid_t getpid(void);
 
 #include <stdint.h>
 #include <sys/types.h>
+#include <sys/socket.h>
 
 #ifdef __cplusplus
 extern "C"{
@@ -148,6 +149,12 @@ extern int srs_rtmp_set_timeout(srs_rtmp_t rtmp, int recv_timeout_ms, int send_t
  * @remark, user should never use the rtmp again.
  */
 extern void srs_rtmp_destroy(srs_rtmp_t rtmp);
+
+/**
+ * get the rtmp socket handle
+ * 
+ */
+extern int srs_rtmp_socket(srs_rtmp_t rtmp);
 
 /*************************************************************
  **************************************************************
@@ -1104,6 +1111,12 @@ extern void srs_hijack_io_destroy(srs_hijack_io_t ctx);
  * @return 0, success; otherswise, failed.
  */
 extern int srs_hijack_io_create_socket(srs_hijack_io_t ctx, srs_rtmp_t owner);
+/**
+ * get socket, not connect yet.
+ * @param owner, the rtmp context which create this socket.
+ * @return socket handle.
+ */
+extern int srs_hijack_io_get_socket(srs_hijack_io_t ctx);
 /**
  * connect socket at server_ip:port.
  * @return 0, success; otherswise, failed.

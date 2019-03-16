@@ -3,11 +3,10 @@
 #include "liveMedia.hh"
 #include "BasicUsageEnvironment.hh"
 #include "as_def.h"
-extern "C"{
-#include "as_common.h"
-}
+#include "as.h"
 #include "srs_librtmp.h"
 #include "EasyAACEncoderAPI.h"
+
 //#ifndef _BASIC_USAGE_ENVIRONMENT0_HH
 //#include "BasicUsageEnvironment0.hh"
 //#endif
@@ -89,6 +88,39 @@ typedef enum en_RTMP_CODECID
 }RTMP_CODECID;
 
 
+class ASRtmpHandle: public CNetworkHandle
+{
+public:
+    ASRtmpHandle();
+    virtual ~ASRtmpHandle();
+    int32_t open(const char* pszUrl);
+    void    close();
+    int32_t sendH264Frame(char* frames, int frames_size, uint32_t dts, uint32_t pts);
+    int32_t sendAacFrame(char sound_format, char sound_rate,char sound_size, char sound_type, 
+                         char* frame, int frame_size, uint32_t timestamp);
+public:
+    virtual long recv(char *pArrayData, CNetworkAddr *pPeerAddr, const ULONG ulDataSize,const EnumSyncAsync bSyncRecv);
+    virtual void handle_recv(void);
+    virtual void handle_send(void);
+private:
+    srs_rtmp_t   m_srsRtmpHandle;
+    long         m_lSockFD;
+};
+
+class ASRtmpConnMgr : public CHandleManager
+{
+  public:
+    ASRtmpConnMgr()
+    {
+        (void)strncpy(m_szMgrType, "ASRtmpConnMgr", MAX_HANDLE_MGR_TYPE_LEN);
+    };
+    void lockListOfHandle();
+    void unlockListOfHandle();
+
+  protected:
+    virtual void checkSelectResult(const EpollEventType enEpEvent,CHandle *pHandle);
+};
+
 // Define a class to hold per-stream state that we maintain throughout each stream's lifetime:
 
 class ASRtsp2RtmpStreamState {
@@ -157,9 +189,6 @@ private:
     //
     void StopClient();
     bool checkStop();
-private:
-    bool Connect2RtmpServer();
-    void CloseRtmpConnect();
 public:
     // RTSP 'response handlers':
     static void continueAfterOPTIONS(RTSPClient* rtspClient, int resultCode, char* resultString);
@@ -189,7 +218,7 @@ private:
     bool                m_bTcp;
     time_t              m_lLastHeartBeat;
 private:
-    srs_rtmp_t          m_srsRtmpHandle;
+    ASRtmpHandle        m_hRtmpHandle;
     char               *m_rtmpUlr;
     char               *app;
     char               *conn;
@@ -217,7 +246,7 @@ class ASRtsp2RtmpMediaSink: public MediaSink {
 public:
     static ASRtsp2RtmpMediaSink* createNew(UsageEnvironment& env,
                   MediaSubsession& subsession, // identifies the kind of data that's being received
-                  srs_rtmp_t rtmpHandle,
+                  ASRtmpHandle* rtmpHandle,
                   char const* streamId = NULL); // identifies the stream itself (optional)
 
     void Start();
@@ -225,7 +254,7 @@ public:
     bool Check();
 
 private:
-    ASRtsp2RtmpMediaSink(UsageEnvironment& env, MediaSubsession& subsession,srs_rtmp_t rtmpHandle, char const* streamIdb);
+    ASRtsp2RtmpMediaSink(UsageEnvironment& env, MediaSubsession& subsession,ASRtmpHandle* rtmpHandle, char const* streamIdb);
     // called only by "createNew()"
 public:
     virtual ~ASRtsp2RtmpMediaSink();
@@ -257,7 +286,7 @@ private:
     u_int32_t             prefixSize;
     MediaSubsession&      fSubsession;
     char*                 fStreamId;
-    srs_rtmp_t            m_rtmpHandle;
+    ASRtmpHandle         *m_rtmpHandle;
     RTMP_CODECID          m_enVideoID;
     volatile bool         m_bRunning;
     EasyAACEncoder_Handle m_hAacEncoder;
@@ -306,6 +335,8 @@ public:
     void rtsp_env_thread();
     void rtsp_write_log(const char *fmt, ...);
     void write_log(int32_t level, const char *fmt, va_list args);
+    int32_t reg_rtmp_handle_actor(ASRtmpHandle* pHandle);
+    void    unreg_rtmp_handle_actor(ASRtmpHandle* pHandle);
 protected:
     ASRtsp2RtmpClientManager();
 private:
@@ -329,5 +360,7 @@ private:
     u_int32_t         m_ulRecvBufSize;
     Rtsp2Rtmp_LogCallback m_LogCb;
     int32_t           m_nLogLevel;
+private:
+    ASRtmpConnMgr     m_TcpConnMgr;
 };
 #endif /* __AS_RTSP2RTMP_CLIENT_MANAGE_H__ */

@@ -5516,7 +5516,7 @@ private:
 public:
     // identifies the box type; standard boxes use a compact type, which is normally four printable
     // characters, to permit ease of identification, and is shown so in the boxes below. User extensions use
-    // an extended type; in this case, the type field is set to ‘uuid’.
+    // an extended type; in this case, the type field is set to ‘uuid�?.
     SrsMp4BoxType type;
     // For box 'uuid'.
     std::vector<char> usertype;
@@ -5752,7 +5752,7 @@ enum SrsMp4TfhdFlags
     /**
      * if base-data-offset-present is zero, this indicates that the base-data-
      * offset for this track fragment is the position of the first byte of the enclosing Movie Fragment Box.
-     * Support for the default-base-is-moof flag is required under the ‘iso5’ brand, and it shall not be used in
+     * Support for the default-base-is-moof flag is required under the ‘iso5�? brand, and it shall not be used in
      * brands or compatible brands earlier than iso5.
      */
     SrsMp4TfhdFlagsDefaultBaseIsMoof = 0x020000,
@@ -6265,13 +6265,13 @@ public:
     // in the Movie Header Box
     uint64_t segment_duration;
     // an integer containing the starting time within the media of this edit segment (in media time
-    // scale units, in composition time). If this field is set to –1, it is an empty edit. The last edit in a track
+    // scale units, in composition time). If this field is set to �?1, it is an empty edit. The last edit in a track
     // shall never be an empty edit. Any difference between the duration in the Movie Header Box, and the
     // track’s duration is expressed as an implicit empty edit at the end.
     int64_t media_time;
 public:
     // specifies the relative rate at which to play the media corresponding to this edit segment. If this value is 0,
-    // then the edit is specifying a ‘dwell’: the media at media-time is presented for the segment-duration. Otherwise
+    // then the edit is specifying a ‘dwell�?: the media at media-time is presented for the segment-duration. Otherwise
     // this field shall contain the value 1.
     int16_t media_rate_integer;
     int16_t media_rate_fraction;
@@ -6286,7 +6286,7 @@ public:
  * 8.6.6 Edit List Box (elst)
  * ISO_IEC_14496-12-base-format-2012.pdf, page 54
  * This box contains an explicit timeline map. Each entry defines part of the track time-line: by mapping part of
- * the media time-line, or by indicating ‘empty’ time, or by defining a ‘dwell’, where a single time-point in the
+ * the media time-line, or by indicating ‘empty�? time, or by defining a ‘dwell�?, where a single time-point in the
  * media is held for a period.
  */
 class SrsMp4EditListBox : public SrsMp4FullBox
@@ -6396,8 +6396,8 @@ class SrsMp4HandlerReferenceBox : public SrsMp4FullBox
 public:
     uint32_t pre_defined;
     // an integer containing one of the following values, or a value from a derived specification:
-    //      ‘vide’, Video track
-    //      ‘soun’, Audio track
+    //      ‘vide�?, Video track
+    //      ‘soun�?, Audio track
     SrsMp4HandlerType handler_type;
     uint32_t reserved[3];
     // a null-terminated string in UTF-8 characters which gives a human-readable name for the track
@@ -6669,7 +6669,7 @@ public:
     // and then padding to complete 32 bytes total (including the size byte). The field may be set to 0.
     char compressorname[32];
     // one of the following values
-    //      0x0018 – images are in colour with no alpha
+    //      0x0018 �? images are in colour with no alpha
     uint16_t depth;
     int16_t pre_defined2;
 public:
@@ -6736,7 +6736,7 @@ public:
     virtual std::stringstream& dumps_detail(std::stringstream& ss, SrsMp4DumpContext dc);
 };
 
-// Table 1 — List of Class Tags for Descriptors
+// Table 1 �? List of Class Tags for Descriptors
 // ISO_IEC_14496-1-System-2010.pdf, page 31
 enum SrsMp4ESTagEs {
     SrsMp4ESTagESforbidden = 0x00,
@@ -6784,7 +6784,7 @@ public:
     virtual std::stringstream& dumps_detail(std::stringstream& ss, SrsMp4DumpContext dc);
 };
 
-// Table 5 — objectTypeIndication Values
+// Table 5 �? objectTypeIndication Values
 // ISO_IEC_14496-1-System-2010.pdf, page 49
 enum SrsMp4ObjectType
 {
@@ -6793,7 +6793,7 @@ enum SrsMp4ObjectType
     SrsMp4ObjectTypeAac = 0x40,
 };
 
-// Table 6 — streamType Values
+// Table 6 �? streamType Values
 // ISO_IEC_14496-1-System-2010.pdf, page 51
 enum SrsMp4StreamType
 {
@@ -16094,6 +16094,7 @@ public:
 public:
     virtual srs_hijack_io_t hijack_io();
     virtual int create_socket(srs_rtmp_t owner);
+    virtual int get_socket();
     virtual int connect(const char* server, int port);
 // ISrsReader
 public:
@@ -48423,6 +48424,19 @@ void srs_rtmp_destroy(srs_rtmp_t rtmp)
     
     srs_freep(context);
 }
+int srs_rtmp_socket(srs_rtmp_t rtmp)
+{
+     if (!rtmp) {
+        return -1;
+    }
+    
+    Context* context = (Context*)rtmp;
+
+    if(!context->skt) {
+        return -1;
+    }
+    return context->skt->get_socket();
+}
 
 int srs_rtmp_handshake(srs_rtmp_t rtmp)
 {
@@ -50857,6 +50871,11 @@ int srs_hijack_io_create_socket(srs_hijack_io_t ctx, srs_rtmp_t owner)
 
     return ERROR_SUCCESS;
 }
+int srs_hijack_io_get_socket(srs_hijack_io_t ctx)
+{
+    SrsBlockSyncSocket* skt = (SrsBlockSyncSocket*)ctx;
+    return (int)skt->fd;
+}
 int srs_hijack_io_connect(srs_hijack_io_t ctx, const char* server_ip, int port)
 {
     SrsBlockSyncSocket* skt = (SrsBlockSyncSocket*)ctx;
@@ -51086,6 +51105,12 @@ int SimpleSocketStream::create_socket(srs_rtmp_t owner)
 {
     srs_assert(io);
     return srs_hijack_io_create_socket(io, owner);
+}
+
+int SimpleSocketStream::get_socket()
+{
+    srs_assert(io);
+    return srs_hijack_io_get_socket(io);
 }
 
 int SimpleSocketStream::connect(const char* server_ip, int port)
