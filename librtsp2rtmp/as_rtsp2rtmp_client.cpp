@@ -42,7 +42,7 @@ ASRtmpHandle::~ASRtmpHandle()
 {
     
 }
-int32_t ASRtmpHandle::open(const char* pszUrl)
+int32_t ASRtmpHandle::openHandle(const char* pszUrl)
 {
     m_srsRtmpHandle = srs_rtmp_create(pszUrl);
     if(NULL == m_srsRtmpHandle)
@@ -81,7 +81,7 @@ int32_t ASRtmpHandle::open(const char* pszUrl)
     setHandleRecv(AS_TRUE);
     return 0;
 }
-void    ASRtmpHandle::close()
+void    ASRtmpHandle::closeHandle()
 {
     if(m_srsRtmpHandle)
     {
@@ -94,17 +94,21 @@ void    ASRtmpHandle::close()
     }
     rtsp2rtmp_log(AS_RTSP2RTMP_LOGINFO,"rtmp stream close.");
 }
+void    ASRtmpHandle::close()
+{
+    /* redefine the virtual function,nothing todo */
+}
 int32_t ASRtmpHandle::sendH264Frame(char* frames, int frames_size, uint32_t dts, uint32_t pts)
 {    
     // send out the h264 packet over RTMP
     int ret = srs_h264_write_raw_frames(m_srsRtmpHandle,frames, frames_size, dts, pts);
     if (ret != 0) {
         if (srs_h264_is_dvbsp_error(ret)) {
-            rtsp2rtmp_log(AS_RTSP2RTMP_LOGWARNING,"ignore drop video error, code=%d", ret);
+            rtsp2rtmp_log(AS_RTSP2RTMP_LOGINFO,"ignore drop video error, code=%d", ret);
         } else if (srs_h264_is_duplicated_sps_error(ret)) {
-            rtsp2rtmp_log(AS_RTSP2RTMP_LOGWARNING,"ignore duplicated sps, code=%d", ret);
+            rtsp2rtmp_log(AS_RTSP2RTMP_LOGINFO,"ignore duplicated sps, code=%d", ret);
         } else if (srs_h264_is_duplicated_pps_error(ret)) {
-            rtsp2rtmp_log(AS_RTSP2RTMP_LOGWARNING,"ignore duplicated pps, code=%d", ret);
+            rtsp2rtmp_log(AS_RTSP2RTMP_LOGINFO,"ignore duplicated pps, code=%d", ret);
         } else {
             rtsp2rtmp_log(AS_RTSP2RTMP_LOGWARNING,"send h264 raw data failed. ret=%d", ret);
             return -1;
@@ -221,7 +225,7 @@ ASRtsp2RtmpClient::~ASRtsp2RtmpClient() {
         as_destroy_mutex(m_mutex);
         m_mutex = NULL;
     }
-    m_hRtmpHandle.close();
+    m_hRtmpHandle.closeHandle();
 }
 int32_t ASRtsp2RtmpClient::open(char const* rtmpURL)
 {
@@ -306,8 +310,8 @@ void ASRtsp2RtmpClient::handleAfterDESCRIBE(int resultCode, char* resultString)
         /* report the status */
         report_status(AS_RTSP_STATUS_INIT);
         /* connect to the rtmp server */
-        if (0 != m_hRtmpHandle.open(m_rtmpUlr)) {
-            m_hRtmpHandle.close();
+        if (0 != m_hRtmpHandle.openHandle(m_rtmpUlr)) {
+            m_hRtmpHandle.closeHandle();
             report_status(AS_RTSP_STATUS_BREAK);
             break;
         }
@@ -1138,12 +1142,11 @@ void ASRtsp2RtmpClientManager::rtsp_write_log(const char *fmt, ...)
     {
         return;
     }
-    /*
+
     if(AS_RTSP2RTMP_LOGINFO > m_nLogLevel)
     {
         return;
     }
-    */
     va_list args;
     va_start(args, fmt);
     m_LogCb(AS_RTSP2RTMP_LOGINFO, fmt, args);

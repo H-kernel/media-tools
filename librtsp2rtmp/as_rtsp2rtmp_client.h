@@ -93,7 +93,8 @@ class ASRtmpHandle: public CNetworkHandle
 public:
     ASRtmpHandle();
     virtual ~ASRtmpHandle();
-    int32_t open(const char* pszUrl);
+    int32_t openHandle(const char* pszUrl);
+    void    closeHandle();
     void    close();
     int32_t sendH264Frame(char* frames, int frames_size, uint32_t dts, uint32_t pts);
     int32_t sendAacFrame(char sound_format, char sound_rate,char sound_size, char sound_type, 
