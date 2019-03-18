@@ -35,50 +35,12 @@
 
 #define RTSP_SOCKET_RECV_BUFFER_SIZE_DEFAULT (1024*1024)
 
-#define H264_PPS_SPS_FRAME_LEN_MAX  1024
-
-
-// If you don't want to see debugging output for each received frame, then comment out the following line:
-#define DEBUG_PRINT_EACH_RECEIVED_FRAME 1
 
 #define RTSP_MANAGE_ENV_MAX_COUNT       4
 #define RTSP_AGENT_NAME                 "all stream push"
 
-#define RTSP_CLIENT_TIME               5000
+#define RTSP_CLIENT_TIME                5000
 
-typedef enum
-{
-    H264_NALU_TYPE_UNDEFINED    =0,
-    H264_NALU_TYPE_IDR          =5,
-    H264_NALU_TYPE_SEI          =6,
-    H264_NALU_TYPE_SPS          =7,
-    H264_NALU_TYPE_PPS          =8,
-    H264_NALU_TYPE_STAP_A       =24,
-    H264_NALU_TYPE_STAP_B       =25,
-    H264_NALU_TYPE_MTAP16       =26,
-    H264_NALU_TYPE_MTAP24       =27,
-    H264_NALU_TYPE_FU_A         =28,
-    H264_NALU_TYPE_FU_B         =29,
-    H264_NALU_TYPE_END
-}H264_NALU_TYPE;
-
-typedef struct
-{
-    //byte 0
-    uint8_t TYPE:5;
-    uint8_t NRI:2;
-    uint8_t F:1;
-}H264_FU_INDICATOR; /**//* 1 BYTES */
-
-// NALU
-typedef struct _NaluUnit
-{
-    int type;
-    int size;
-    unsigned char *data;
-}NaluUnit;
-
-#define FILEBUFSIZE (1024 * 1024 * 10) //  10M
 
 typedef enum en_RTMP_CODECID
 {
