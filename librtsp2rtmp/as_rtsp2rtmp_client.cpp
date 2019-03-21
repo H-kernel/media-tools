@@ -77,7 +77,7 @@ int32_t ASRtmpHandle::openHandle(const char* pszUrl)
         return -1;
     }
     m_lSockFD   = lSockFD;
-    srs_rtmp_set_timeout(m_srsRtmpHandle,5,10);
+    srs_rtmp_set_timeout(m_srsRtmpHandle,500,10000);
     setHandleRecv(AS_TRUE);
     return 0;
 }

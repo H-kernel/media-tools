@@ -39418,7 +39418,7 @@ srs_error_t SrsRawH264Stream::mux_sequence_header(string sps, string pps, uint32
     // decode the SPS:
     // @see: 7.3.2.1.1, ISO_IEC_14496-10-AVC-2012.pdf, page 62
     if (true) {
-        srs_assert((int)sps.length() >= 4);
+        //srs_assert((int)sps.length() >= 4);
         char* frame = (char*)sps.data();
         
         // @see: Annex A Profiles and levels, ISO_IEC_14496-10-AVC-2003.pdf, page 205
@@ -49217,6 +49217,11 @@ int srs_write_h264_sps_pps(Context* context, uint32_t dts, uint32_t pts)
     
     // send when sps or pps changed.
     if (!context->h264_sps_changed && !context->h264_pps_changed) {
+        return ret;
+    }
+
+    if (4 >  context->h264_sps.length()) {
+        /* the sps is not good for send frame */
         return ret;
     }
     
