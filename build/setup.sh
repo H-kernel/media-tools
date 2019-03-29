@@ -465,3 +465,4 @@ while [ "$QUIT" == "0" ]; do
     ${OPTIONS[our_entry]} ${our_entry}
     echo
 done
+
