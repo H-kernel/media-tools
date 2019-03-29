@@ -16,10 +16,10 @@ all: $(ALL)
 .$(CPP).$(OBJ):
 	$(CPLUSPLUS_COMPILER) -c $(CPLUSPLUS_FLAGS) $(RTSP_FLAGS) $<
 
-LIB_RTSP_CLIENT_OBJS = as_rtsp_client.$(OBJ) libASRtspClient.$(OBJ)
+LIB_RTSP_CLIENT_OBJS = as_rtsp_client.$(OBJ) as_rtsp_stack.$(OBJ)
 
-as_rtsp_client.$(CPP):as_rtsp_client.h as_def.h 
-libASRtspClient.$(CPP):libASRtspClient.h as_def.h as_rtsp_client.h
+as_rtsp_client.$(CPP):as_rtsp_client.h as_rtsp_stack.h 
+as_rtsp_stack.$(CPP):as_rtsp_stack.h as_rtsp_stack.h
 
 USAGE_ENVIRONMENT_DIR = ../UsageEnvironment
 USAGE_ENVIRONMENT_LIB = $(USAGE_ENVIRONMENT_DIR)/libUsageEnvironment.$(libUsageEnvironment_LIB_SUFFIX)

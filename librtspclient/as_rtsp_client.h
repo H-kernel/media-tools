@@ -2,7 +2,7 @@
 #define __AS_RTSP_CLIENT_MANAGE_H__
 #include "liveMedia.hh"
 #include "BasicUsageEnvironment.hh"
-#include "as_def.h"
+#include "as_rtsp_stack.h"
 extern "C"{
 #include "as_common.h"
 }
@@ -45,9 +45,6 @@ SVS_MEDIA_FRAME_HEADER, *PSVS_MEDIA_FRAME_HEADER;
 
 #define DUMMY_SINK_H264_STARTCODE_SIZE 4
 
-#define DUMMY_SINK_MEDIA_BUFFER_SIZE (DUMMY_SINK_RECEIVE_BUFFER_SIZE+DUMMY_SINK_H264_STARTCODE_SIZE + sizeof(SVS_MEDIA_FRAME_HEADER))
-
-
 #define RTSP_SOCKET_RECV_BUFFER_SIZE_DEFAULT (1024*1024)
 
 
@@ -76,21 +73,14 @@ public:
   TaskToken streamTimerTask;
   double duration;
 };
-class ASStreamReport
-{
-public:
-    ASStreamReport(){};
-    virtual ~ASStreamReport(){};
 
-    virtual void report_stream(MediaFrameInfo* info, char* data, unsigned int size) = 0;
-};
 
 // If you're streaming just a single stream (i.e., just from a single URL, once), then you can define and use just a single
 // "ASRtspStreamState" structure, as a global variable in your application.  However, because - in this demo application - we're
 // showing how to play multiple streams, concurrently, we can't do that.  Instead, we have to have a separate "ASRtspStreamState"
 // structure for each "RTSPClient".  To do this, we subclass "RTSPClient", and add a "ASRtspStreamState" field to the subclass:
 
-class ASRtspClient : public RTSPClient, ASStreamReport {
+class ASRtspClient : public RTSPClient{
 public:
     static ASRtspClient* createNew(u_int32_t ulEnvIndex,UsageEnvironment& env, char const* rtspURL,
                   int verbosityLevel = 0,
@@ -102,19 +92,12 @@ protected:
     // called only by createNew();
     virtual ~ASRtspClient();
 public:
-    int32_t open(as_rtsp_callback_t* cb);
+    int32_t open(ASRtspClientHandle* handle);
     void    close();
     void    setMediaTcp(bool bTcp) { m_bTcp = bTcp; };
-    double  getDuration();
-    void    seek(double start);
-    void    pause();
-    void    play();
     u_int32_t index(){return m_ulEnvIndex;};
-    void    report_status(int status);
     void    SupportsGetParameter(Boolean bSupportsGetParameter) {m_bSupportsGetParameter = bSupportsGetParameter;};
     Boolean SupportsGetParameter(){return m_bSupportsGetParameter;};
-    as_rtsp_callback_t* get_cb(){return m_cb;};
-    virtual void report_stream(MediaFrameInfo* info, char* data, unsigned int size);
 public:
     void handleAfterOPTIONS(int resultCode, char* resultString);
     void handleAfterDESCRIBE(int resultCode, char* resultString);
@@ -137,12 +120,9 @@ public:
 private:
     // Used to shut down and close a stream (including its "RTSPClient" object):
     void shutdownStream();
-    // send the hik key frame request
-    void sendHikKeyFrame(MediaSession& session);
     //
     void StopClient();
     bool checkStop();
-    void tryReqeust();
 public:
     // RTSP 'response handlers':
     static void continueAfterOPTIONS(RTSPClient* rtspClient, int resultCode, char* resultString);
@@ -150,8 +130,6 @@ public:
     static void continueAfterSETUP(RTSPClient* rtspClient, int resultCode, char* resultString);
     static void continueAfterPLAY(RTSPClient* rtspClient, int resultCode, char* resultString);
     static void continueAfterGET_PARAMETE(RTSPClient* rtspClient, int resultCode, char* resultString);
-    static void continueAfterPause(RTSPClient* rtspClient, int resultCode, char* resultString);
-    static void continueAfterSeek(RTSPClient* rtspClient, int resultCode, char* resultString);
     static void continueAfterTeardown(RTSPClient* rtspClient, int resultCode, char* resultString);
     static void continueAfterHearBeatOption(RTSPClient* rtspClient, int resultCode, char* resultString);
     static void continueAfterHearBeatGET_PARAMETE(RTSPClient* rtspClient, int resultCode, char* resultString);
@@ -163,7 +141,7 @@ public:
     ASRtspStreamState   scs;
 private:
     u_int32_t           m_ulEnvIndex;
-    as_rtsp_callback_t *m_cb;
+    ASRtspClientHandle *m_handle;
     Boolean             m_bSupportsGetParameter;
     double              m_dStarttime;
     double              m_dEndTime;
@@ -185,13 +163,13 @@ public:
   static ASStreamSink* createNew(UsageEnvironment& env,
                   MediaSubsession& subsession, // identifies the kind of data that's being received
                   char const* streamId = NULL,
-                  ASStreamReport* cb = NULL); // identifies the stream itself (optional)
+                  ASRtspClientHandle *handle = NULL); // identifies the stream itself (optional)
 
   void Start();
   void Stop();
 
 private:
-    ASStreamSink(UsageEnvironment& env, MediaSubsession& subsession, char const* streamId, ASStreamReport* cb);
+    ASStreamSink(UsageEnvironment& env, MediaSubsession& subsession, char const* streamId, ASRtspClientHandle *handle);
     // called only by "createNew()"
 public:
   virtual ~ASStreamSink();
@@ -208,12 +186,13 @@ private:
   virtual Boolean continuePlaying();
 
 private:
-  u_int8_t* fReceiveBuffer;
-  u_int8_t  fMediaBuffer[DUMMY_SINK_MEDIA_BUFFER_SIZE];
-  u_int32_t prefixSize;
+  uint8_t*  fReceiveBuffer;
+  uint32_t  m_ulBufSize;
+  uint8_t*   fMediaBuffer;
+  uint32_t  prefixSize;
   MediaSubsession& fSubsession;
   char* fStreamId;
-  ASStreamReport     *m_StreamReport;
+  ASRtspClientHandle *m_handle;
   MediaFrameInfo      m_MediaInfo;
 
   volatile bool m_bRunning;
@@ -231,17 +210,11 @@ public:
     virtual ~ASRtspClientManager();
 public:
     // init the live Environment
-    int32_t init(u_int32_t model);
+    int32_t init();
     void    release();
-    u_int32_t getRunModel();
     // The main streaming routine (for each "rtsp://" URL):
-    AS_HANDLE openURL(char const* rtspURL, as_rtsp_callback_t* cb, bool bTcp);
+    AS_HANDLE openURL(char const* rtspURL, ASRtspClientHandle* handle, bool bTcp);
     void      closeURL(AS_HANDLE handle);
-    double    getDuration(AS_HANDLE handle);
-    void      seek(AS_HANDLE handle,double start);
-    void      pause(AS_HANDLE handle);
-    void      play(AS_HANDLE handle);
-    void      run(AS_HANDLE handle,char* LoopWatchVar);
     // option set function
     void      setRecvBufSize(u_int32_t ulSize);
     u_int32_t getRecvBufSize();
@@ -262,7 +235,6 @@ private:
     }
     u_int32_t find_beast_thread();
 private:
-    u_int32_t         m_ulModel;
     u_int32_t         m_ulTdIndex;
     as_mutex_t       *m_mutex;
     char              m_LoopWatchVar;

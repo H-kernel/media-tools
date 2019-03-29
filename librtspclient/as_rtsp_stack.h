@@ -1,32 +1,11 @@
-#ifndef __AS_MEDIA_DEFINE_H__
-#define __AS_MEDIA_DEFINE_H__
-#if (defined(__WIN32__) || defined(_WIN32)) && !defined(__MINGW32__)
-#include "stdafx.h"
-#include <winsock2.h>
-
-extern "C" int initializeWinsockIfNecessary();
-#else
-#include <stdarg.h>
-#include <time.h>
-#include <sys/time.h>
-#include <fcntl.h>
-#define initializeWinsockIfNecessary() 1
-#endif
-#if defined(__WIN32__) || defined(_WIN32) || defined(_QNX4)
-#else
-#include <signal.h>
-#define USE_SIGNALS 1
-#endif
-#include <stdint.h>
-#include <stdio.h>
-#include <signal.h>
-
+#ifndef __AS_RTSP_CLIENT_H__
+#define __AS_RTSP_CLIENT_H__
 
 typedef void*    AS_HANDLE;
 
-enum AS_RTSP_MODEL {
-    AS_RTSP_MODEL_MUTIL      = 0,
-    AS_RTSP_MODEL_SINGLE     = 1,
+enum AS_RTSP_ERROR {
+    AS_RTSP_ERROR_FAIL      = -1,
+    AS_RTSP_ERROR_OK        = 0,
 };
 
 
@@ -36,6 +15,7 @@ enum AS_RTSP_STATUS {
     AS_RTSP_STATUS_PLAY       = 0x02,
     AS_RTSP_STATUS_PAUSE      = 0x03,
     AS_RTSP_STATUS_TEARDOWN   = 0x04,
+    AS_RTSP_STATUS_BREAK      = 0x05,
     AS_RTSP_STATUS_INVALID    = 0xFF,
 };
 
@@ -59,15 +39,37 @@ typedef struct _tagMediaFrameInfo
     uint32_t          numChannels;            /* Aduio Channels */
 }MediaFrameInfo;
 
+class ASRtspClientHandle
+{
+public:
+     ASRtspClientHandle();
+     virtual ~ASRtspClientHandle();
+     int32_t open(char* pszUrl);
+     void    close();
+public:
+    virtual void handleStatus(AS_RTSP_STATUS eStatus) = 0;
+    virtual int32_t allocMediaRecvBuf(AS_RTSP_DATA_TYPE eType,char*& pBuf,uint32_t& ulSize) = 0;
+    virtual void handleMediaData(MediaFrameInfo* info,char* data,unsigned int size) = 0;
+    
+private:
+    AS_HANDLE m_hRtspClient;
+};
 
-typedef void (*rtsp_status_callback)(AS_HANDLE handle,int status,void* ctx);
-typedef void (*rtsp_data_callback)(MediaFrameInfo* info,char* data,unsigned int size,void* ctx);
-typedef void (*log_callback)(const char* log);
-
-typedef struct  {
-    rtsp_status_callback f_status_cb;   /*status callback function*/
-    rtsp_data_callback   f_data_cb;     /*data callback function*/
-    void                *ctx;           /*user data*/
-}as_rtsp_callback_t;
-
-#endif /*__AS_MEDIA_DEFINE_H__*/
+class ASRtspClientStack
+{
+public:
+    static ASRtspClientStack& instance()
+    {
+        static ASRtspClientStack objASRtspClientStack;
+        return objASRtspClientStack;
+    }
+    virtual ~ASRtspClientStack();
+public:
+    int32_t  init();
+    void     release();
+    void     setRecvBufSize(u_int32_t ulSize);
+    uint32_t getRecvBufSize();
+protected:
+    ASRtspClientStack();
+};
+#endif /* __AS_RTSP_CLIENT_H__*/
